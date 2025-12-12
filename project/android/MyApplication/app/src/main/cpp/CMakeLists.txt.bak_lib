@@ -1,0 +1,40 @@
+
+
+cmake_minimum_required(VERSION 3.4.1)
+SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/../libs)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -Wall")
+
+set(CMAKE_BUILD_TYPE Release)
+
+
+
+add_library(lib_z_renderer SHARED IMPORTED)
+set_target_properties(lib_z_renderer PROPERTIES IMPORTED_LOCATION
+        ${CMAKE_CURRENT_SOURCE_DIR}/../libs/z_renderer/${ANDROID_ABI}/libz_renderer.so)
+
+#ADD_SUBDIRECTORY(${PROJECT_SOURCE_DIR}/renderer)
+
+
+
+add_library(hmi3d SHARED
+        jni_test.cpp
+        apa_adaptor_imp.cpp
+        #hmi_app
+        hmi_app/common/car.cpp
+        hmi_app/common/application.cpp
+        hmi_app/common/model_manager.cpp
+        hmi_app/common/texture_manager.cpp
+        hmi_app/apa/parking_space.cpp
+        hmi_app/apa/apa_application.cpp
+        )
+
+#add_definitions(-DCGLTF_IMPLEMENTATION)
+
+include_directories(renderer/third_party renderer/src hmi_app renderer/third_party/jsoncpp)
+
+
+
+
+target_link_libraries(hmi3d log android vulkan  lib_z_renderer)
+

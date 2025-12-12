@@ -1,0 +1,385 @@
+{
+	"mats" : 
+	[
+		{
+			"emissiveColor" : 
+			[
+				1.0,
+				1.0,
+				1.0,
+				0.0
+			],
+			"isEnvironmentEnabled" : false,
+			"isTransparent" : false,
+			"name" : "jinguang_deng",
+			"pbrParams" : 
+			[
+				0.5,
+				0.5,
+				1.5,
+				0.0,
+				0.5
+			]
+		},
+		{
+			"emissiveColor" : 
+			[
+				1.0,
+				1.0,
+				1.0,
+				0.0
+			],
+			"isEnvironmentEnabled" : false,
+			"isTransparent" : false,
+			"name" : "yuanguang_deng",
+			"pbrParams" : 
+			[
+				0.5,
+				0.5,
+				1.5,
+				0.0,
+				0.5
+			]
+		},
+		{
+			"emissiveColor" : 
+			[
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			],
+			"isEnvironmentEnabled" : true,
+			"isTransparent" : false,
+			"name" : "cheqi",
+			"pbrParams" : 
+			[
+				0.34999999403953552,
+				0.05000000074505806,
+				1.5,
+				1.7000000476837158,
+				0.31000000238418579
+			]
+		},
+		{
+			"emissiveColor" : 
+			[
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			],
+			"isEnvironmentEnabled" : true,
+			"isTransparent" : false,
+			"name" : "chepai",
+			"pbrParams" : 
+			[
+				1.0,
+				1.0049999952316284,
+				1.5,
+				0.0,
+				1.0
+			]
+		},
+		{
+			"emissiveColor" : 
+			[
+				0.0,
+				0.079999998211860657,
+				0.10000000149011612,
+				0.0
+			],
+			"isEnvironmentEnabled" : true,
+			"isTransparent" : true,
+			"name" : "boli",
+			"pbrParams" : 
+			[
+				0.20000000298023224,
+				0.059999998658895493,
+				1.5,
+				0.6600000262260437,
+				0.63999998569488525
+			]
+		},
+		{
+			"emissiveColor" : 
+			[
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			],
+			"isEnvironmentEnabled" : true,
+			"isTransparent" : true,
+			"name" : "hocheboli",
+			"pbrParams" : 
+			[
+				0.57999998331069946,
+				0.039999999105930328,
+				1.5,
+				0.5,
+				0.5
+			]
+		},
+		{
+			"emissiveColor" : 
+			[
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			],
+			"isEnvironmentEnabled" : false,
+			"isTransparent" : false,
+			"name" : "fanguangj",
+			"pbrParams" : 
+			[
+				0.5,
+				0.5,
+				1.5,
+				0.0,
+				0.5
+			]
+		},
+		{
+			"emissiveColor" : 
+			[
+				1.0,
+				1.0,
+				1.0,
+				0.0
+			],
+			"isEnvironmentEnabled" : true,
+			"isTransparent" : false,
+			"name" : "chedi",
+			"pbrParams" : 
+			[
+				1.4800000190734863,
+				0.60000002384185791,
+				0.0,
+				0.0,
+				0.43999999761581421
+			]
+		},
+		{
+			"emissiveColor" : 
+			[
+				1.0,
+				1.0,
+				1.0,
+				0.0
+			],
+			"isEnvironmentEnabled" : true,
+			"isTransparent" : false,
+			"name" : "neishi",
+			"pbrParams" : 
+			[
+				0.54000002145767212,
+				0.54000002145767212,
+				1.5,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"emissiveColor" : 
+			[
+				1.0,
+				1.0,
+				1.0,
+				0.0
+			],
+			"isEnvironmentEnabled" : true,
+			"isTransparent" : false,
+			"name" : "cheheiqi",
+			"pbrParams" : 
+			[
+				0.41999998688697815,
+				0.10000000149011612,
+				1.5,
+				0.2800000011920929,
+				0.31000000238418579
+			]
+		},
+		{
+			"emissiveColor" : 
+			[
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			],
+			"isEnvironmentEnabled" : false,
+			"isTransparent" : false,
+			"name" : "che_luntai",
+			"pbrParams" : 
+			[
+				0.5,
+				0.5,
+				1.5,
+				0.0,
+				0.5
+			]
+		},
+		{
+			"emissiveColor" : 
+			[
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			],
+			"isEnvironmentEnabled" : true,
+			"isTransparent" : false,
+			"name" : "chemen_heibian",
+			"pbrParams" : 
+			[
+				0.95999997854232788,
+				0.23999999463558197,
+				1.5,
+				0.5,
+				0.23999999463558197
+			]
+		},
+		{
+			"emissiveColor" : 
+			[
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			],
+			"isEnvironmentEnabled" : false,
+			"isTransparent" : false,
+			"name" : "chetai_neice",
+			"pbrParams" : 
+			[
+				0.98000001907348633,
+				0.079999998211860657,
+				1.5,
+				0.0,
+				0.40000000596046448
+			]
+		},
+		{
+			"emissiveColor" : 
+			[
+				1.0,
+				1.0,
+				1.0,
+				0.0
+			],
+			"isEnvironmentEnabled" : true,
+			"isTransparent" : false,
+			"name" : "cheyse",
+			"pbrParams" : 
+			[
+				0.72000002861022949,
+				0.10000000149011612,
+				1.3999999761581421,
+				1.8200000524520874,
+				0.41999998688697815
+			]
+		},
+		{
+			"emissiveColor" : 
+			[
+				0.0,
+				0.05000000074505806,
+				0.10000000149011612,
+				0.0
+			],
+			"isEnvironmentEnabled" : true,
+			"isTransparent" : true,
+			"name" : "tianchung",
+			"pbrParams" : 
+			[
+				0.0,
+				0.11999999731779099,
+				0.5,
+				0.5,
+				0.40000000596046448
+			]
+		},
+		{
+			"emissiveColor" : 
+			[
+				1.0,
+				1.0,
+				1.0,
+				0.0
+			],
+			"isEnvironmentEnabled" : true,
+			"isTransparent" : false,
+			"name" : "faguanglogo",
+			"pbrParams" : 
+			[
+				0.11999999731779099,
+				0.20000000298023224,
+				1.5,
+				0.0,
+				0.5
+			]
+		},
+		{
+			"emissiveColor" : 
+			[
+				1.5,
+				0.0,
+				0.0,
+				0.0
+			],
+			"isEnvironmentEnabled" : true,
+			"isTransparent" : false,
+			"name" : "cheweihongdeng",
+			"pbrParams" : 
+			[
+				0.0,
+				0.30000001192092896,
+				1.5,
+				0.0,
+				0.5
+			]
+		},
+		{
+			"emissiveColor" : 
+			[
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			],
+			"isEnvironmentEnabled" : false,
+			"isTransparent" : false,
+			"name" : "zhuangxiangdeng",
+			"pbrParams" : 
+			[
+				0.5,
+				0.5,
+				1.5,
+				0.0,
+				0.5
+			]
+		},
+		{
+			"emissiveColor" : 
+			[
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			],
+			"isEnvironmentEnabled" : true,
+			"isTransparent" : false,
+			"name" : "shachepan",
+			"pbrParams" : 
+			[
+				0.98000001907348633,
+				0.090000003576278687,
+				1.3999999761581421,
+				0.41999998688697815,
+				0.40000000596046448
+			]
+		}
+	]
+}

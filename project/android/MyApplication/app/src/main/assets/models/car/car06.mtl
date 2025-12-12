@@ -1,0 +1,13 @@
+# Blender MTL File: 'fenhaoheibai（hebin）.blend'
+# Material Count: 1
+
+newmtl 材质.001
+Ns 21.768325
+Ka 0.721312 0.721312 0.721312
+Kd 0.800000 0.800000 0.800000
+Ks 0.322404 0.322404 0.322404
+Ke 0.000000 0.000000 0.000000
+Ni 1.650000
+d 1.000000
+illum 3
+map_Kd car.png

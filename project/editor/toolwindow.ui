@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ToolWindow</class>
+ <widget class="QMainWindow" name="ToolWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>791</width>
+    <height>1142</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>工具</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="NodeTreeView" name="treeView">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>0</y>
+      <width>341</width>
+      <height>1081</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QTreeView" name="propView">
+    <property name="geometry">
+     <rect>
+      <x>1050</x>
+      <y>540</y>
+      <width>441</width>
+      <height>471</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="ComponentScrollArea" name="scrollArea">
+    <property name="geometry">
+     <rect>
+      <x>350</x>
+      <y>30</y>
+      <width>440</width>
+      <height>1051</height>
+     </rect>
+    </property>
+    <property name="widgetResizable">
+     <bool>true</bool>
+    </property>
+    <widget class="QWidget" name="scrollAreaWidgetContents">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>438</width>
+       <height>1049</height>
+      </rect>
+     </property>
+     <widget class="QWidget" name="verticalLayoutWidget">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>441</width>
+        <height>1051</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout"/>
+     </widget>
+    </widget>
+   </widget>
+   <widget class="QLabel" name="lb_node_name">
+    <property name="geometry">
+     <rect>
+      <x>360</x>
+      <y>10</y>
+      <width>421</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>791</width>
+     <height>28</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>文件</string>
+    </property>
+    <addaction name="new_scene"/>
+    <addaction name="import_gltf"/>
+   </widget>
+   <widget class="QMenu" name="menu_2">
+    <property name="title">
+     <string>编辑</string>
+    </property>
+    <addaction name="save_param"/>
+    <addaction name="load_param"/>
+   </widget>
+   <addaction name="menu"/>
+   <addaction name="menu_2"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="import_gltf">
+   <property name="text">
+    <string>导入gltf</string>
+   </property>
+  </action>
+  <action name="new_scene">
+   <property name="text">
+    <string>新建场景</string>
+   </property>
+  </action>
+  <action name="save_param">
+   <property name="text">
+    <string>保存场景</string>
+   </property>
+  </action>
+  <action name="load_param">
+   <property name="text">
+    <string>载入场景</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>NodeTreeView</class>
+   <extends>QTreeView</extends>
+   <header location="global">control/custom_treeview.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ComponentScrollArea</class>
+   <extends>QScrollArea</extends>
+   <header location="global">control/custom_treeview.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
