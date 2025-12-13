@@ -27,8 +27,7 @@ namespace zr {
 
         class Swapchain {
         public:
-            Swapchain(std::shared_ptr<PhysicalDevice> physical_device, 
-                    std::shared_ptr<Device> device, VkSurfaceKHR surface, VkFormat target_format);
+            Swapchain(std::shared_ptr<Device> device, VkFormat target_format);
             inline VkSwapchainKHR get() { return _vk_swapchain; };
             inline VkFormat get_suitable_format() const { return _suitable_fmt.format;};
             inline const std::vector<std::shared_ptr<ImageView>>& get_display_image_views() const {

@@ -5,17 +5,11 @@
 
 using namespace zr::core;
 
-Swapchain::Swapchain(std::shared_ptr<PhysicalDevice> physical_device, 
-    std::shared_ptr<Device> device, VkSurfaceKHR surface, VkFormat target_format) :
+Swapchain::Swapchain(std::shared_ptr<Device> device, VkFormat target_format) :
     _device(device){
-    VkSurfaceCapabilitiesKHR surface_cap;
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device->get(), surface, &surface_cap);
-
-    uint32_t count = 0;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device->get(), surface, &count, nullptr);
-    std::vector<VkSurfaceFormatKHR> formats(count);
-    vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device->get(), surface, &count, formats.data());
-
+    auto gpu = _device->get_gpu(); 
+    
+    std::vector<VkSurfaceFormatKHR> formats = gpu->get_formats();
     for (auto fmt : formats) {
         if (fmt.format == target_format) {
             _suitable_fmt = fmt;
@@ -24,14 +18,14 @@ Swapchain::Swapchain(std::shared_ptr<PhysicalDevice> physical_device,
     }
 
     // assert(_suitable_fmt.format == VK_FORMAT_R8G8B8A8_UNORM);
-
+    VkSurfaceCapabilitiesKHR surface_cap = gpu->get_surface_cap();
     _display_size = surface_cap.currentExtent;
 
     VkSwapchainCreateInfoKHR ci{};
     ci.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    ci.surface = surface;
+    ci.surface = gpu->get_instance()->get_surface();
     ci.queueFamilyIndexCount = 1;
-    ci.pQueueFamilyIndices = &physical_device->get_graphic_queue_family_idx();
+    ci.pQueueFamilyIndices = &gpu->get_graphic_queue_family_idx();
     ci.imageExtent = _display_size;
     ci.compositeAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
     ci.imageFormat = _suitable_fmt.format;

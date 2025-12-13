@@ -36,8 +36,6 @@ Instance::Instance(const std::string &app_name,
 #endif
     
     CALL_VK(vkCreateInstance(&instance_info, nullptr, &_vk_instance));
-
-    fetch_gpus();
 }
 
 void Instance::fetch_gpus() {
@@ -105,8 +103,8 @@ void Instance::choose_suitable_gpu(VkSurfaceKHR surface) {
 
 void Instance::set_surface(VkSurfaceKHR surface) {
     _vk_surface = surface;
+    fetch_gpus();
     choose_suitable_gpu(surface);
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_suitable_gpu->get(), _vk_surface, &_surface_cap);
 }
 
 Instance::~Instance() {

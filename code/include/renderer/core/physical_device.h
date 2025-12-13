@@ -30,12 +30,19 @@ namespace zr {
             inline const uint32_t&  get_graphic_queue_family_idx() const { return _graphic_queue_family_idx;};
             inline VkPhysicalDevice get() const { return _vk_physical_device; };
             inline const VkPhysicalDeviceProperties& get_properties() const { return _vk_physical_device_properties;};
+            inline Instance* get_instance() const { return _instance; };
+
+            inline const std::vector<VkSurfaceFormatKHR>& get_formats() const { return _formats; };
+
+            inline const VkSurfaceCapabilitiesKHR& get_surface_cap() const { return _surface_cap; };   
         private:
             std::vector<std::shared_ptr<Device>> _devices;
             VkPhysicalDevice _vk_physical_device;
             uint32_t _graphic_queue_family_idx{0};
             Instance* _instance;
             VkPhysicalDeviceProperties _vk_physical_device_properties{};
+            std::vector<VkSurfaceFormatKHR> _formats;
+            VkSurfaceCapabilitiesKHR _surface_cap;
 
         };
     }

@@ -31,6 +31,7 @@ namespace zr{
             inline std::shared_ptr<CommandPool> get_cmd_pool() {return _cmd_pool;};
             inline void set_cmd_pool(std::shared_ptr<CommandPool> cmd_pool) { _cmd_pool = cmd_pool;};
 
+            inline PhysicalDevice* get_gpu() {return _physical_device;};
             // inline std::weak_ptr<DescriptorPool> get_desc_pool() {return _desc_pool;};
             // inline void set_desc_pool(std::weak_ptr<DescriptorPool> desc_pool) {_desc_pool = desc_pool;};
             virtual ~Device();

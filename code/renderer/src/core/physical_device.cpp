@@ -8,6 +8,15 @@ using namespace zr::core;
 PhysicalDevice::PhysicalDevice(Instance* instance, VkPhysicalDevice vk_physical_device) :
         _vk_physical_device(vk_physical_device), _instance(instance) {
     vkGetPhysicalDeviceProperties(_vk_physical_device, &_vk_physical_device_properties);
+
+    auto surface = instance->get_surface();
+    
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(get(), surface, &_surface_cap);
+    
+    uint32_t count = 0;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(get(), surface, &count, nullptr);
+     _formats = std::vector<VkSurfaceFormatKHR>(count);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(get(), surface, &count, _formats.data());
 }
 
 bool PhysicalDevice::map_memory_type_to_idx(uint32_t type_bits, VkFlags req_mask,
@@ -44,6 +53,7 @@ bool PhysicalDevice::is_suitable(VkSurfaceKHR surface) const {
         }
     }
 
+    
     return false;
 }
 
@@ -69,6 +79,7 @@ std::shared_ptr<Device> PhysicalDevice::create_device() {
     // _devices.push_back(device);
     return device;
 }
+
 
 PhysicalDevice::~PhysicalDevice() {
 

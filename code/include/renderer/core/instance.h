@@ -29,7 +29,7 @@ namespace zr {
             void set_surface(VkSurfaceKHR surface);
             inline std::shared_ptr<PhysicalDevice> get_suitable_gpu() { return _suitable_gpu;};
             inline const std::vector<const char*>& enabled_extensions() const { return _enabled_extensions; };
-            inline const VkSurfaceCapabilitiesKHR surface_cap() const { return _surface_cap;};
+            inline VkSurfaceKHR get_surface() const { return _vk_surface;};
             inline VkInstance get() const { return _vk_instance;};
             virtual ~Instance();
         protected:
@@ -44,7 +44,6 @@ namespace zr {
             std::vector<std::shared_ptr<PhysicalDevice>> _gpus;
             std::shared_ptr<PhysicalDevice> _suitable_gpu;
             // VkFormat _fmt{VK_FORMAT_UNDEFINED};
-            VkSurfaceCapabilitiesKHR _surface_cap;
         };
     }
 }
