@@ -7,6 +7,7 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <memory>
+#include <vk_mem_alloc.h>
 
 namespace zr {
     namespace core {
@@ -103,6 +104,8 @@ namespace zr {
             std::shared_ptr<Device> _device{nullptr};
             VkImage _vk_image {VK_NULL_HANDLE};
             VkDeviceMemory _vk_image_memory{VK_NULL_HANDLE};
+
+            VmaAllocation _vma_alloc;
 
         };
     }

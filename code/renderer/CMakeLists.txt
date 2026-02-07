@@ -1,8 +1,7 @@
 
 project(z_renderer)
 
-include_directories(../include/renderer ../include/renderer/third_party ../include/renderer/third_party/jsoncpp )
-
+include_directories(../include/renderer ../include/renderer/third_party ../include/renderer/third_party/jsoncpp ../third_party/vma/include)
 
 add_library(z_renderer
         STATIC
@@ -88,6 +87,7 @@ add_library(z_renderer
         #src/utils/misc.c
         #src/utils/construct.c
         #src/utils/triangulate_warrper.cpp
+        src/utils/vma_impl.cpp
 
         #jsoncpp
         ../include/renderer/third_party/jsoncpp/jsoncpp.cpp

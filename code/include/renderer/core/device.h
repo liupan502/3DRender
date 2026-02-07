@@ -8,6 +8,7 @@
 #include <core/command_pool.h>
 #include <core/queue.h>
 #include <assert.h>
+#include <vk_mem_alloc.h>
 namespace zr{
     namespace core{
         class PhysicalDevice;
@@ -32,8 +33,8 @@ namespace zr{
             inline void set_cmd_pool(std::shared_ptr<CommandPool> cmd_pool) { _cmd_pool = cmd_pool;};
 
             inline PhysicalDevice* get_gpu() {return _physical_device;};
-            // inline std::weak_ptr<DescriptorPool> get_desc_pool() {return _desc_pool;};
-            // inline void set_desc_pool(std::weak_ptr<DescriptorPool> desc_pool) {_desc_pool = desc_pool;};
+            
+            inline VmaAllocator get_vma_allocator() {return _allocator;};
             virtual ~Device();
 
         protected:
@@ -46,6 +47,7 @@ namespace zr{
             std::shared_ptr<Queue> _queue;
             std::shared_ptr<CommandPool> _cmd_pool;
             // std::weak_ptr<DescriptorPool> _desc_pool;
+            VmaAllocator _allocator;
         };
     }
 }

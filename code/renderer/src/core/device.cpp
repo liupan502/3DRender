@@ -1,12 +1,12 @@
-//
-// Created by zhida.ji1 on 2022/8/8.
-//
 
-#include <core/device.h>
 #include <core/physical_device.h>
 #include <core/queue.h>
+#include <core/instance.h>
 #include <core/vk_common.h>
+
 #include <string>
+
+#include <core/device.h>
 
 using namespace zr::core;
 
@@ -17,7 +17,7 @@ bool Device::map_memory_type_to_idx(uint32_t type_bits, VkFlags req_mask, uint32
     return _physical_device->map_memory_type_to_idx(type_bits, req_mask, type_idx);
 }
 
-Device::Device(PhysicalDevice *physical_device) : _physical_device(physical_device){
+Device::Device(PhysicalDevice *physical_device) : _physical_device(physical_device), _allocator(nullptr){
     assert(physical_device);
 
     VkDeviceQueueCreateInfo queue_ci = create_queue_create_info(
@@ -39,6 +39,19 @@ Device::Device(PhysicalDevice *physical_device) : _physical_device(physical_devi
     VkQueue vk_queue;
     vkGetDeviceQueue(_vk_device, get_graphic_queue_family_idx(), 0, &vk_queue);
     _queue = std::make_shared<Queue>(vk_queue);
+
+    VmaVulkanFunctions vulkanFunctions = {};
+    vulkanFunctions.vkGetInstanceProcAddr = &vkGetInstanceProcAddr;
+    vulkanFunctions.vkGetDeviceProcAddr = &vkGetDeviceProcAddr;
+
+    VmaAllocatorCreateInfo allocatorCreateInfo = {};
+    allocatorCreateInfo.flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
+    allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_2;
+    allocatorCreateInfo.instance = _physical_device->get_instance()->get();
+    allocatorCreateInfo.physicalDevice = _physical_device->get();
+    allocatorCreateInfo.device = _vk_device;
+    allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
+    vmaCreateAllocator(&allocatorCreateInfo, &_allocator);
 }
 
 VkDeviceQueueCreateInfo Device::create_queue_create_info(uint32_t queue_family_idx) const {
@@ -62,6 +75,8 @@ uint32_t  Device::get_graphic_queue_family_idx() const {
 }
 
 Device::~Device() {
+    if (_allocator) {
+        vmaDestroyAllocator(_allocator);
+    }
     vkDestroyDevice(_vk_device, nullptr);
 }
-

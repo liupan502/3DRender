@@ -8,6 +8,7 @@
 #include <core/command_pool.h>
 #include <core/command_buffer.h>
 #include <utils/log.h>
+#include <vk_mem_alloc.h>
 using namespace  zr::core;
 
 const VkDevice& Image::get_device() const {
@@ -45,35 +46,10 @@ Image::Image(std::shared_ptr<Device> device, const VkExtent3D &extent, VkFormat 
     ci.queueFamilyIndexCount = num_queue_families;
     ci.pQueueFamilyIndices = queue_families;
 
-    CALL_VK(vkCreateImage(_device->get_device(), &ci, nullptr, &_vk_image));
+    VmaAllocationCreateInfo alloc_info{};
+    alloc_info.usage = VMA_MEMORY_USAGE_AUTO;
 
-    VkMemoryRequirements _mem_req;
-    vkGetImageMemoryRequirements(_device->get_device(), _vk_image, &_mem_req);
-    VkMemoryAllocateInfo _mem_alloc_info;
-    _mem_alloc_info.allocationSize = _mem_req.size;
-    _mem_alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    _mem_alloc_info.pNext = nullptr;
-
-    uint32_t mem_flag_bits = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-
-    if ((ci.usage & VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT) == VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT) {
-        mem_flag_bits |= VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
-    }
-    device->map_memory_type_to_idx(_mem_req.memoryTypeBits, mem_flag_bits,
-                           &_mem_alloc_info.memoryTypeIndex);
-    VkResult result = vkAllocateMemory(_device->get_device(), &_mem_alloc_info, nullptr, &_vk_image_memory);
-    if (result != VK_SUCCESS) {
-        LOGD("vkAllocateMemory FAILED , allocationSize-> %lu,_extent height -> %u,width -> %u,depth -> %u,"
-             "mip_levels_count -> %u"
-             "array_layers_count -> %u,",
-             _mem_alloc_info.allocationSize,
-             extent.height,
-             _extent.width,
-             _extent.depth,
-             mip_levels_count,
-             array_layers_count)
-    }
-    vkBindImageMemory(_device->get_device(), _vk_image, _vk_image_memory, 0);
+    vmaCreateImage(_device->get_vma_allocator(), &ci, &alloc_info, &_vk_image, &_vma_alloc, nullptr);
 }
 
 void Image::set_layout(VkCommandBuffer cmd_buf, VkImageLayout old_img_layout,
@@ -306,9 +282,9 @@ VkBufferImageCopy Image::create_buffer_imgage_copy(
 }
 
 Image::~Image() {
-    if (_vk_image_memory) {
-        vkFreeMemory(_device->get_device(), _vk_image_memory, nullptr);
-        vkDestroyImage(_device->get_device(), _vk_image, nullptr);
+
+    if (_vk_image && _vma_alloc) {
+        vmaDestroyImage(_device->get_vma_allocator(), _vk_image, _vma_alloc);
     }
 }
 
