@@ -1,3 +1,4 @@
+#version 450
 layout(location = 0) in highp vec2 uv;
 
 layout(binding = 0) uniform sampler2DArray surround_tex_sampler;

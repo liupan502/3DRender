@@ -119,7 +119,7 @@ void AvmRenderer::render_scene(std::shared_ptr<sg::Scene> scene) {
         return;
     }
 
-    _fg->excute(active_frame_idx, _context->get_device());
+    _fg->execute(active_frame_idx, _context->get_device());
 
     VkPipelineStageFlags wait_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     VkCommandBuffer vk_cmd_buf = _fg->get_command_buf(active_frame_idx)->get();

@@ -54,12 +54,12 @@ bool MultiPassRenderer::init_internel(VkSampleCountFlagBits sample_count) {
     init_sync_res();
     _sample_count = sample_count;
     _fg = std::make_shared<core::FrameGraph>();
-    add_transmittance_pass();
-    add_sky_view_pass();
-    // add_main_pass();
-    // add_taa_pass();
-    // add_bloom_pass();
-    // add_color_grading_pass();
+    // add_transmittance_pass();
+    // add_sky_view_pass();
+    add_main_pass();
+    add_taa_pass();
+    add_bloom_pass();
+    add_color_grading_pass();
     add_output_pass();
     if (_fg->need_bake()) {
         _fg->bake(_context->get_device(),
@@ -90,7 +90,7 @@ void MultiPassRenderer::render_scene(std::shared_ptr<sg::Scene> scene) {
         return;
     }
 
-    _fg->excute(active_frame_idx, _context->get_device());
+    _fg->execute(active_frame_idx, _context->get_device());
 
     VkPipelineStageFlags wait_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     VkCommandBuffer vk_cmd_buf = _fg->get_command_buf(active_frame_idx)->get();
@@ -279,10 +279,10 @@ void MultiPassRenderer::add_output_pass() {
     // output_pass->add_texture_sample("main_pass_color_resloved_output");
     // std::string tex_sample_name = "main_pass_color_output";
     // std::string tex_sample_name = "bloom_upsample_pass_color_output3";
-    // std::string tex_sample_name = "color_grading_pass_output";
+    std::string tex_sample_name = "color_grading_pass_output";
     // std::string tex_sample_name = "taa_pass_color_output";
     // std::string tex_sample_name = "bloom_downsample_pass_color_output3";
-    std::string tex_sample_name = "sky_view_pass_output";
+    // std::string tex_sample_name = "sky_view_pass_output";
     // std::string tex_sample_name = "transmittance_pass_output";
     output_pass->add_texture_sample(tex_sample_name);
     std::shared_ptr<core::Swapchain> sc = _context->get_swapchain();

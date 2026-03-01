@@ -76,7 +76,7 @@ namespace zr {
             void add_preserve(const std::string& name);
             bool add_texture_sample(const std::string& name);
             void prepare(std::shared_ptr<Device> device);
-            void excute(std::shared_ptr<CommandBuffer> cmd_buf, std::shared_ptr<Device> device);
+            void execute(std::shared_ptr<CommandBuffer> cmd_buf, std::shared_ptr<Device> device);
             std::unordered_set<std::string> get_outputs() const;
             void set_pipeline_mgr(std::shared_ptr<PipelineManager> mgr);
 
@@ -192,7 +192,7 @@ namespace zr {
 
             void prepare_renderpasses(std::shared_ptr<Device> device);
 
-            void excute(std::shared_ptr<Device> device, uint16_t active_frame_idx, 
+            void execute(std::shared_ptr<Device> device, uint16_t active_frame_idx, 
                         std::shared_ptr<CommandBuffer> cmd_buf);
 
             std::shared_ptr<ImageView> get_image_view(const std::string& tex_name);            

@@ -36,7 +36,7 @@ namespace zr {
             std::shared_ptr<FgRenderTextureResource> get_tex_res(const std::string& name);
             bool contains_tex_res(const std::string& name) const;
 
-            void excute(uint16_t active_frame_idx, std::shared_ptr<Device> device);
+            void execute(uint16_t active_frame_idx, std::shared_ptr<Device> device);
 
             inline std::shared_ptr<CommandBuffer> get_command_buf(uint16_t active_idx) {
                 return _cmd_bufs[active_idx];

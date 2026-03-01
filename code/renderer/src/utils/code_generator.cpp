@@ -6,7 +6,7 @@
 #include <utils/file_helper.h>
 using namespace zr::utils;
 
-void CodeGenerator::excute(std::stringstream &ss, const char *base_dir, const char *file_path,
+void CodeGenerator::execute(std::stringstream &ss, const char *base_dir, const char *file_path,
                            std::vector<std::string> defines) {
     ss.str("");
     std::vector<std::string> lines;

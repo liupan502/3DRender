@@ -38,7 +38,7 @@ std::string FileHelper::load_content(const char *path) {
 #else
 #ifdef WIN32
     std::string path_t = ss.str();
-    // ½«Ð±¸ÜÌæ»»Îª·´Ð±¸Ü
+    // ï¿½ï¿½Ð±ï¿½ï¿½ï¿½æ»»Îªï¿½ï¿½Ð±ï¿½ï¿½
     for (char& c : path_t) {
         if (c == '/') {
             c = '\\';
@@ -115,6 +115,7 @@ std::vector<std::string> FileHelper::get_lines_from_file(const char *file_path) 
 
 std::string FileHelper::get_dir_name_from_path(const std::string &path) {
     size_t pos = path.find_last_of("/");
+    pos = (pos == std::string::npos) ? path.find_last_of("\\") : pos;
     if (pos == std::string::npos) {
         return std::string();
     }

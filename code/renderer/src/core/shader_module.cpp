@@ -54,7 +54,7 @@ void ShaderModule::create_shader_from_file(const char* base_dir, const char *fil
 
     utils::CodeGenerator code_generator;
     std::stringstream  ss;
-    code_generator.excute(ss, base_dir, file_path, defines);
+    code_generator.execute(ss, base_dir, file_path, defines);
     std::string code = ss.str();
 
     shaderc::Compiler compiler;

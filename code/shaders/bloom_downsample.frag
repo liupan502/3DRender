@@ -1,3 +1,4 @@
+#version 450
 layout(binding = 50) uniform sampler2D source_sampler;
 layout(binding = 51) uniform BloomParams {
     float level;

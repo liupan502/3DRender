@@ -137,7 +137,7 @@ void FgRenderPass::prepare(std::shared_ptr<Device> device) {
     _setup_data.renderer_interface->prepare_renderpass(*_setup_data.pp_scene, this, device);
 }
 
-void FgRenderPass::excute(std::shared_ptr<CommandBuffer> cmd_buf,
+void FgRenderPass::execute(std::shared_ptr<CommandBuffer> cmd_buf,
                             std::shared_ptr<Device> device) {
     _setup_data.renderer_interface->render_scene(*_setup_data.pp_scene, cmd_buf);
 }
@@ -733,7 +733,7 @@ void FgRenderPassGroup::prepare_renderpasses(std::shared_ptr<Device> device) {
     }
 }
 
-void FgRenderPassGroup::excute(std::shared_ptr<Device> device, uint16_t active_frame_idx, 
+void FgRenderPassGroup::execute(std::shared_ptr<Device> device, uint16_t active_frame_idx, 
                 std::shared_ptr<CommandBuffer> cmd_buf) {
     // auto cmd_buf = _fg->_cmd_bufs[active_frame_idx];
     auto frame_buf = _frame_buffers[active_frame_idx];
@@ -748,7 +748,7 @@ void FgRenderPassGroup::excute(std::shared_ptr<Device> device, uint16_t active_f
         else {
             _render_pass->next(cmd_buf);
         }
-        pass->excute(cmd_buf, device);
+        pass->execute(cmd_buf, device);
     }
     _render_pass->end(cmd_buf);
     // cmd_buf->end();

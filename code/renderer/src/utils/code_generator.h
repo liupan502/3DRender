@@ -12,7 +12,7 @@ namespace zr{
         public:
             CodeGenerator() = default;
 
-            void excute(std::stringstream& ss, const char* base_dir, const char* file_path, std::vector<std::string> defines);
+            void execute(std::stringstream& ss, const char* base_dir, const char* file_path, std::vector<std::string> defines);
 
         private:
             void add_defines(std::vector<std::string>& lines, const std::vector<std::string>& defines);

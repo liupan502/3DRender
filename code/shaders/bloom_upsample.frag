@@ -1,3 +1,4 @@
+#version 450
 layout(binding = 60) uniform sampler2D source_sampler;
 layout(binding = 61) uniform BloomUpSampleParams {
     vec4 resolution;

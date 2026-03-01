@@ -14,8 +14,8 @@ CreatePipelineFunc ColorGradingRenderer::get_pipeline_creator() {
                      std::shared_ptr<FgRenderPass> renderpass ,
                      uint16_t subpass_idx) -> std::shared_ptr<Pipeline> {
         std::map<std::string, std::string> shader_path_map;
-        shader_path_map.insert({"vert", "shaders/quad.vert"});  
-        shader_path_map.insert({"frag", "shaders/color_grading.frag"});   
+        shader_path_map.insert({"vert", "shaders/spv/quad.vert.spv"});
+        shader_path_map.insert({"frag", "shaders/spv/color_grading.frag.spv"});   
 
         std::vector<DescriptorBindingInfo> binding_infos;   
 

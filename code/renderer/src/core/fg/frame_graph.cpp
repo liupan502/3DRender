@@ -163,7 +163,7 @@ void FrameGraph::create_cmd_bufs(std::shared_ptr<Device> device,
     }
 }
 
-void FrameGraph::excute(uint16_t active_frame_idx, std::shared_ptr<Device> device) {
+void FrameGraph::execute(uint16_t active_frame_idx, std::shared_ptr<Device> device) {
     _active_frame_idx = active_frame_idx;
 
     for (uint16_t i = 0; i < _groups.size(); i++) {
@@ -173,7 +173,7 @@ void FrameGraph::excute(uint16_t active_frame_idx, std::shared_ptr<Device> devic
     auto cmd_buf = _cmd_bufs[_active_frame_idx];
     cmd_buf->begin();
     for (uint16_t i = 0; i < _groups.size(); i++) {
-        _groups[i]->excute(device, active_frame_idx, cmd_buf);
+        _groups[i]->execute(device, active_frame_idx, cmd_buf);
     }
     cmd_buf->end();
 }

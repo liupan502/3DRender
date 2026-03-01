@@ -59,37 +59,18 @@ uint32_t frame_id = 0;
 void mainLoop() {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
-        auto nodes = scene->get_renderable_nodes();
-        static float radian = 0.0;
-        for (auto node : nodes) {
-            // node->rotate(0, 0, 1, radian);
-        }
-
-
-        // radian += 0.001;
-
-        /*scene->get_active_camera()->look_at(glm::vec3(0.0f, 10.0, 15.0f + radian),
-                                            glm::vec3(0.0, 0, 0.0f),
-                                            glm::vec3(0.0f, -1.0f, 0.0f));
-                                            */
+        
         static bool rendered = false;
-        // frame_id++;
         if (!rendered) {
             multi_pass_render->render_scene(scene);
-            // std::this_thread::sleep_for();
-            // printf("frame\n");
-            // rendered = true;
         }
-        // std::this_thread::sleep_for(std::chrono::milliseconds(10000));
-        // multi_pass_render->render_scene(scene);
-        // printf("frame\n");
     }
-    // vkDeviceWaitIdle(device);
+    
     multi_pass_render->wait_idle();
     scene = nullptr;
     geo_node = nullptr;
     multi_pass_render = nullptr;
-    // vkDeviceWaitIdle(device);
+    
 }
 
 void create_geometry_node(std::shared_ptr<sg::Scene> scene, uint16_t num) {
@@ -117,45 +98,16 @@ void create_geometry_node(std::shared_ptr<sg::Scene> scene, uint16_t num) {
 }
 
 void create_complex_car_node(std::shared_ptr<sg::Scene> scene) {
-    std::string node_path = "models/ziche525/ziche.gltf";
-    auto node = std::make_shared<sg::GltfNode>(node_path, "ziche.mat");
-    node->get_component<sg::Transform>()->set_scale(glm::vec3(5.0f));
+    std::string node_path = "models/Cube/glTF/Cube.gltf";
+    auto node = std::make_shared<sg::GltfNode>(node_path);
+    node->get_component<sg::Transform>()->set_scale(glm::vec3(1.0f));
     node->rotate(1, 0, 0, 0.5);
 
-    auto proxy_node = std::make_shared<sg::Node>("proxy_node");
-    proxy_node->add_child(node);
+    scene->add_node(node);
 
-    // std::string node_path = "models/people/pedestrian.gltf";
-    // auto node = std::make_shared<sg::GltfNode>(node_path, "pedestrian.mat");
-
-    // node->translate(0, 2, 0);
-    // node->rotate(0, 0, 1, -0.0);
-    scene->add_node(proxy_node);
-
-    glm::mat4 mat(0.0f);
-    /*mat[0][1] = -1.0f;
-    mat[1][2] = 1.0f;
-    mat[2][0] = -1.0f;*/
-    mat[0][2] = -1;
-    mat[1][0] = -1;
-    mat[2][1] = 1;
-    mat[3][3] = 1.0f;
-    // node->get_component<sg::Transform>()->set_matrix(mat);
-
-    // node->parent()->rotate(0.0, 1.0, 0.0, M_PI_2);
-
-
-    auto beijing_node = std::make_shared<sg::GltfNode>("models/beijing/beijing.gltf");
-    for (auto child : beijing_node->children()) {
-        child->get_component<sg::Material>()->set_light_enabled(false);
-    }
-    // beijing_node->translate(80.0, -2.0, 0.0);
-    // beijing_node->rotate(0, 0, 1, -1);
-    // beijing_node->get_component<sg::Transform>()->set_scale(glm::vec3(5, 5, 5));
-    scene->add_node(beijing_node);
-    scene->get_active_camera()->look_at(glm::vec3(0.0f, 10.0, 15.0f),
-                                             glm::vec3(0.0, 0, 0.0f),
-                                             glm::vec3(0.0f, -1.0f, 0.0f));
+    scene->get_active_camera()->look_at(glm::vec3(0, 0, 10.0f),
+                                             glm::vec3(0, 0, 0.0f),
+                                             glm::vec3(0.0f, 1.0f, 0.0f));
 
 }
 
@@ -315,20 +267,8 @@ void create_mipmap_node(std::shared_ptr<sg::Scene> scene) {
 
 void init_vulkan() {
 
-    // FILE* fp  = fopen("C:\\Users\\ASUS\\Documents\\test01.png", "rb");
-    // path_t =          "C:\\Users\\ASUS\\Documents\\asserts\\images\\test_01.png"   
-    // FILE* fp1 = fopen("C:\\Users\\ASUS\\Documents\\asserts\\images\\test01.png", "rb");
-
-    // zr::MultiPassRenderer::test = 0;
-    //zr::utils::FileHelper::test = 0;
-    // zr::utils::FileHelper::assert_base_dir = "/home/liup/Documents/assets/";
-    // utils::FileHelper::assert_base_dir = "/Users/liup/Documents/assets/";
-    // zr::utils::FileHelper helper;
+    
     zr::utils::FileHelper::set_assert_base_dir("C:/Users/ASUS/Documents/asserts/");
-
-    // renderer = std::make_shared<Renderer>();
-    // renderer->init(window, VK_SAMPLE_COUNT_8_BIT);
-
     multi_pass_render = std::make_shared<MultiPassRenderer>();
     multi_pass_render->init(window, VK_SAMPLE_COUNT_1_BIT);
     multi_pass_render->set_viewport(0, 0, 1080, 720);
@@ -336,12 +276,12 @@ void init_vulkan() {
     scene = std::make_shared<sg::Scene>();
 
     // add light
-    /*auto d_light_node = std::make_shared<sg::Node>("d_light");
+    auto d_light_node = std::make_shared<sg::Node>("d_light");
     auto d_light = d_light_node->add_component<sg::DirectionalLight>();
     d_light->set_params(glm::vec3(1.0, 0.5, 1.0), glm::vec4(1.0, 1.0,1.0, 4.1));
     scene->add_node(d_light_node);
 
-    auto env_light_node = std::make_shared<sg::Node>("env_light");
+    /*auto env_light_node = std::make_shared<sg::Node>("env_light");
     auto env_light = env_light_node->add_component<sg::EnvironmentLight>();
     std::vector<float> sh_params = {
         3.774761, 4.645618, 3.984279,
@@ -373,8 +313,8 @@ void init_vulkan() {
     // create_rect_node(scene);
 
     // create_mipmap_node(scene);
-    // create_complex_car_node(scene);
-    create_geometry_node(scene);
+    create_complex_car_node(scene);
+    // create_geometry_node(scene);
     // create_line_path_node(scene);
 
     // create_polygon_node(scene);

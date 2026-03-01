@@ -152,11 +152,13 @@ void QuadPipeline::create_dynamic_states() {
 }
 
 void QuadPipeline::create_shader_stage() {
-    _shader_modules.push_back(std::make_shared<ShaderModule>(_device, _shader_path_map["vert"].c_str(), false, _feature.get_defines()));
+    // vertex shader
+    bool vert_is_bin = _shader_path_map["vert"].ends_with(".spv");
+    _shader_modules.push_back(std::make_shared<ShaderModule>(_device, _shader_path_map["vert"].c_str(), vert_is_bin, _feature.get_defines()));
 
     // fragment shader
-    // _shader_modules.push_back(std::make_shared<ShaderModule>(_device, "shaders/base.frag.spv"));
-    _shader_modules.push_back(std::make_shared<ShaderModule>(_device, _shader_path_map["frag"].c_str(), false, _feature.get_defines()));
+    bool frag_is_bin = _shader_path_map["frag"].ends_with(".spv");
+    _shader_modules.push_back(std::make_shared<ShaderModule>(_device, _shader_path_map["frag"].c_str(), frag_is_bin, _feature.get_defines()));
 
     // std::vector<VkPipelineShaderStageCreateInfo> cis {};
 
@@ -180,8 +182,8 @@ CreatePipelineFunc QuadRenderer:: get_pipeline_creator() {
                      std::shared_ptr<FgRenderPass> renderpass ,
                      uint16_t subpass_idx) -> std::shared_ptr<Pipeline>{
         std::map<std::string, std::string> shader_path_map;
-        shader_path_map.insert({"vert", "shaders/quad.vert"});  
-        shader_path_map.insert({"frag", "shaders/quad.frag"}); 
+        shader_path_map.insert({"vert", "shaders/spv/quad.vert.spv"});
+        shader_path_map.insert({"frag", "shaders/spv/quad.frag.spv"}); 
 
         std::vector<DescriptorBindingInfo> binding_infos;
         DescriptorBindingInfo binding_info{};

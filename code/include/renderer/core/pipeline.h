@@ -68,7 +68,6 @@ namespace zr {
 
         private:
             LightInfo _light_info;
-            // std::shared_ptr<sg::Material> _material;
             sg::Material::MaterialAbility _material_ability;
             std::vector<std::vector<sg::VertexAttribute>> _vtx_attrs;
         };
