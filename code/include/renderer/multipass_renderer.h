@@ -42,7 +42,6 @@ namespace zr {
 
         protected:
             virtual bool init_internel(VkSampleCountFlagBits sample_count);
-            bool init_sync_res();
 
             void prepare_taa();
         protected:
@@ -65,8 +64,6 @@ namespace zr {
             std::shared_ptr<RenderContext> _context;
             uint32_t _active_frame;
             sg::Scene** _scene;
-            VkSemaphore _vk_semaphore;
-            VkFence _vk_fence;
             VkSampleCountFlagBits _sample_count;
             uint32_t _frame_id{0};
 

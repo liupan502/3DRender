@@ -51,7 +51,6 @@ void AvmRenderer::add_main_pass() {
 }
 
 bool AvmRenderer::init_internel(VkSampleCountFlagBits sample_count) {
-    init_sync_res();
     _sample_count = sample_count;
     _fg = std::make_shared<core::FrameGraph>();
     add_main_pass();
@@ -108,54 +107,26 @@ void AvmRenderer::update_texture(core::AvmMode mode, const unsigned char* data,
 void AvmRenderer::render_scene(std::shared_ptr<sg::Scene> scene) {
     upload_texs(_context->get_device());
 
-    uint32_t active_frame_idx = 8;
-    std::shared_ptr<core::Swapchain> swapchain = _context->get_swapchain();
-    VkDevice vk_device = _context->get_device()->get_device();
-
-    // printf("frame idx %d\n", active_frame_idx);
-    VkResult result=vkAcquireNextImageKHR(vk_device, swapchain->get(),
-    UINT64_MAX, _vk_semaphore, VK_NULL_HANDLE, &active_frame_idx);
-    if(VK_SUCCESS !=result){
+    // Acquire image using RenderContext
+    uint32_t active_frame_idx = _context->acquire_image(_context->get_semaphore());
+    if (active_frame_idx == UINT32_MAX) {
         return;
     }
 
     _fg->execute(active_frame_idx, _context->get_device());
 
-    VkPipelineStageFlags wait_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    VkCommandBuffer vk_cmd_buf = _fg->get_command_buf(active_frame_idx)->get();
-    VkSubmitInfo submit_info{
-            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-            .pNext = nullptr,
-            .waitSemaphoreCount = 1,
-            .pWaitSemaphores = &_vk_semaphore,
-            .pWaitDstStageMask = &wait_stage_mask,
-            .commandBufferCount = 1,
-            .pCommandBuffers = &vk_cmd_buf,
-            .signalSemaphoreCount = 0,
-            .pSignalSemaphores = nullptr,
-    };
+    // Submit and present using RenderContext
+    VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    _context->submit(
+        _context->get_queue()->get(),
+        _fg->get_command_buf(active_frame_idx)->get(),
+        _context->get_semaphore(),
+        wait_stage,
+        _context->get_fence()
+    );
 
-    VkQueue vk_queue = _context->get_queue()->get();
-    // VkDevice vk_device = _context->get_device()->get_device();
-    // CALL_VK(vkQueueSubmit(vk_queue, 1, &submit_info, _vk_fence));
-    CALL_VK(vkResetFences(vk_device, 1, &_vk_fence));
-    auto fence_status = vkGetFenceStatus(_context->get_device()->get_device(), _vk_fence);
-    auto tmp_ret = vkQueueSubmit(vk_queue, 1, &submit_info, _vk_fence);
-    CALL_VK(vkWaitForFences(vk_device, 1, &_vk_fence, VK_TRUE, 100000000));
+    _context->present(_context->get_queue()->get(), active_frame_idx);
 
-    VkSwapchainKHR vk_swapchain = _context->get_swapchain()->get();
-    VkResult ret;
-
-    VkPresentInfoKHR present_info{};
-    present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    present_info.pNext = nullptr;
-    present_info.waitSemaphoreCount = 0;
-    present_info.pWaitSemaphores = nullptr;
-    present_info.swapchainCount = 1;
-    present_info.pSwapchains = &vk_swapchain;
-    present_info.pImageIndices = &active_frame_idx;
-    present_info.pResults = &ret;
-    vkQueuePresentKHR(vk_queue, &present_info);
     ++_frame_id;
 }
 

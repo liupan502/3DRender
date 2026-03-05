@@ -51,7 +51,6 @@ MultiPassRenderer::~MultiPassRenderer() {
 }
 
 bool MultiPassRenderer::init_internel(VkSampleCountFlagBits sample_count) {
-    init_sync_res();
     _sample_count = sample_count;
     _fg = std::make_shared<core::FrameGraph>();
     // add_transmittance_pass();
@@ -79,70 +78,31 @@ void MultiPassRenderer::render_scene(std::shared_ptr<sg::Scene> scene) {
     camera->set_aspect_ratio(_viewport.width / (float)_viewport.height);
     prepare_taa();
 
-    uint32_t active_frame_idx = 8;
-    std::shared_ptr<core::Swapchain> swapchain = _context->get_swapchain();
-    VkDevice vk_device = _context->get_device()->get_device();
-
-    // printf("frame idx %d\n", active_frame_idx);
-    VkResult result=vkAcquireNextImageKHR(vk_device, swapchain->get(),
-    UINT64_MAX, _vk_semaphore, VK_NULL_HANDLE, &active_frame_idx);
-    if(VK_SUCCESS !=result){
+    // Acquire image using RenderContext
+    uint32_t active_frame_idx = _context->acquire_image(_context->get_semaphore());
+    if (active_frame_idx == UINT32_MAX) {
         return;
     }
 
     _fg->execute(active_frame_idx, _context->get_device());
 
-    VkPipelineStageFlags wait_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    VkCommandBuffer vk_cmd_buf = _fg->get_command_buf(active_frame_idx)->get();
-    VkSubmitInfo submit_info{
-            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-            .pNext = nullptr,
-            .waitSemaphoreCount = 1,
-            .pWaitSemaphores = &_vk_semaphore,
-            .pWaitDstStageMask = &wait_stage_mask,
-            .commandBufferCount = 1,
-            .pCommandBuffers = &vk_cmd_buf,
-            .signalSemaphoreCount = 0,
-            .pSignalSemaphores = nullptr,
-    };
+    // Submit and present using RenderContext
+    VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    _context->submit(
+        _context->get_queue()->get(),
+        _fg->get_command_buf(active_frame_idx)->get(),
+        _context->get_semaphore(),
+        wait_stage,
+        _context->get_fence()
+    );
 
-    VkQueue vk_queue = _context->get_queue()->get();
-    // VkDevice vk_device = _context->get_device()->get_device();
-    // CALL_VK(vkQueueSubmit(vk_queue, 1, &submit_info, _vk_fence));
-    CALL_VK(vkResetFences(vk_device, 1, &_vk_fence));
-    auto fence_status = vkGetFenceStatus(_context->get_device()->get_device(), _vk_fence);
-    auto tmp_ret = vkQueueSubmit(vk_queue, 1, &submit_info, _vk_fence);
-    CALL_VK(vkWaitForFences(vk_device, 1, &_vk_fence, VK_TRUE, 100000000));
+    
 
-    VkSwapchainKHR vk_swapchain = _context->get_swapchain()->get();
-    VkResult ret;
+    _context->present(_context->get_queue()->get(), active_frame_idx);
 
-    VkPresentInfoKHR present_info{};
-    present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    present_info.pNext = nullptr;
-    present_info.waitSemaphoreCount = 0;
-    present_info.pWaitSemaphores = nullptr;
-    present_info.swapchainCount = 1;
-    present_info.pSwapchains = &vk_swapchain;
-    present_info.pImageIndices = &active_frame_idx;
-    present_info.pResults = &ret;
-    vkQueuePresentKHR(vk_queue, &present_info);
     ++_frame_id;
 }
 
-
-bool MultiPassRenderer::init_sync_res() {
-    VkSemaphoreCreateInfo semapore_ci{};
-    semapore_ci.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-    CALL_VK(vkCreateSemaphore(_context->get_device()->get_device(), 
-            &semapore_ci, nullptr, &_vk_semaphore));
-
-    VkFenceCreateInfo fence_ci{};
-    fence_ci.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    CALL_VK(vkCreateFence(_context->get_device()->get_device(), &fence_ci, nullptr, &_vk_fence));
-
-    return true;
-}
 
 void MultiPassRenderer::prepare_taa() {
     // disable taa

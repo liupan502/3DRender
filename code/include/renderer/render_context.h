@@ -25,7 +25,7 @@ namespace zr{
 #ifdef PLATFORM_ANDROID
         bool init(AAssetManager* asset_mgr, ANativeWindow* window, VkFormat swapchain_fmt);
 #elif  PLATFORM_GLFW
-        bool init(GLFWwindow* window, VkFormat swapchain_fmt);  
+        bool init(GLFWwindow* window, VkFormat swapchain_fmt);
 #endif
         inline std::shared_ptr<core::Swapchain> get_swapchain() { return _swap_chain;};
         inline std::shared_ptr<core::CommandPool> get_cmd_pool() { return _cmd_pool;};
@@ -34,6 +34,21 @@ namespace zr{
         inline std::shared_ptr<core::PhysicalDevice> get_gpu() { return _physical_device;};
         inline std::shared_ptr<core::Queue> get_queue() { return _queue;};
         // inline std::shared_ptr<core::PipelineLayout> get_pipeline_layout() { return _pipeline_layout;};
+
+        // Swapchain management
+        uint32_t acquire_image(VkSemaphore signal_semaphore, uint64_t timeout = UINT64_MAX);
+        void present(VkQueue queue, uint32_t image_index, VkSemaphore wait_semaphore = VK_NULL_HANDLE);
+
+        // Command submission
+        void submit(VkQueue queue, VkCommandBuffer cmd_buf, VkSemaphore wait_semaphore,
+                   VkPipelineStageFlags wait_stage, VkFence fence);
+
+        // Sync objects
+        VkSemaphore get_semaphore() const { return _vk_semaphore; }
+        VkFence get_fence() const { return _vk_fence; }
+
+        // Frame index tracking
+        uint32_t get_current_frame_index() const { return _current_frame_index; }
 
     private:
         std::shared_ptr<core::PhysicalDevice> _physical_device;
@@ -45,5 +60,12 @@ namespace zr{
         // std::shared_ptr<core::DescriptorPool> _desc_pool;
         // std::shared_ptr<core::DescriptorLayout> _desc_layout;
         // std::shared_ptr<core::PipelineLayout> _pipeline_layout;
+
+        // Sync objects
+        VkSemaphore _vk_semaphore{VK_NULL_HANDLE};
+        VkFence _vk_fence{VK_NULL_HANDLE};
+
+        // Frame tracking
+        uint32_t _current_frame_index{0};
     };
 }
