@@ -69,12 +69,33 @@ endif()
 include_directories(/usr/local/include)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
+
+
+
 set(RENDERER_PROJECT_DIR ${PROJECT_SOURCE_DIR}/../../code)
 ADD_SUBDIRECTORY(${RENDERER_PROJECT_DIR}/renderer z_renderer)
 
-include_directories(${RENDERER_PROJECT_DIR}/include/renderer/third_party
+#imgui
+set(IMGUI_DIR ${RENDERER_PROJECT_DIR}/third_party/imgui)
+
+include_directories(${IMGUI_DIR} ${IMGUI_DIR}/backends)
+
+set(IMGUI_CORE_SOURCES
+    ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp 
+    ${IMGUI_DIR}/backends/imgui_impl_vulkan.cpp 
+    ${IMGUI_DIR}/imgui.cpp 
+    ${IMGUI_DIR}/imgui_draw.cpp 
+    ${IMGUI_DIR}/imgui_demo.cpp 
+    ${IMGUI_DIR}/imgui_tables.cpp 
+    ${IMGUI_DIR}/imgui_widgets.cpp
+)
+
+include_directories(
+    ${RENDERER_PROJECT_DIR}/include/renderer/third_party
+    ${RENDERER_PROJECT_DIR}/third_party/vma/include
     ${RENDERER_PROJECT_DIR}/include/renderer
-    ${RENDERER_PROJECT_DIR}/hmi_app include/renderer/third_party/jsoncpp)
+    ${RENDERER_PROJECT_DIR}/hmi_app 
+    include/renderer/third_party/jsoncpp)
 
 
 add_executable(qt_console
@@ -83,6 +104,7 @@ add_executable(qt_console
   polygon_node.cpp
   message.cpp
   point_set_optimize.cpp
+  ${IMGUI_CORE_SOURCES}
 )
 
 #set_property(TARGET qt_console PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")

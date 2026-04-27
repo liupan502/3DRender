@@ -40,6 +40,8 @@ namespace zr {
 
             void wait_idle();
 
+            inline std::weak_ptr<RenderContext> getRenderContext() const { return _context; };
+
         protected:
             virtual bool init_internel(VkSampleCountFlagBits sample_count);
 

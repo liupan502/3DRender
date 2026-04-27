@@ -2,6 +2,11 @@
 #define _USE_MATH_DEFINES // for C++
 #include <cmath>
 #include <GLFW/glfw3.h>
+
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_vulkan.h"
+
 #include <multipass_renderer.h>
 #include <thread>
 #include <utils/file_helper.h>
@@ -14,6 +19,12 @@
 #include <scenegraph/components/material.h>
 #include <scenegraph/components/animation/animation_manager.h>
 #include <scenegraph/components/animation/serialize_frame_animation.h>
+
+#include <render_context.h>
+#include <core/physical_device.h>
+#include <core/device.h>
+#include <core/instance.h>
+
 #include "polygon_node.h"
 #include "point_set_optimze.h"
 #define WIDTH 1080
@@ -337,6 +348,39 @@ void initWindow() {
     window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 }
 
+void initImgui() {
+    
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplGlfw_InitForVulkan(window, true);
+
+    auto rc = multi_pass_render->getRenderContext().lock();
+    
+    ImGui_ImplVulkan_InitInfo init_info = {};
+    //init_info.ApiVersion = VK_API_VERSION_1_3;              // Pass in your value of VkApplicationInfo::apiVersion, otherwise will default to header version.
+    init_info.Instance = rc->get_instance()->get();
+    init_info.PhysicalDevice = rc->get_gpu()->get();
+    init_info.Device = rc->get_device()->get_device();
+    init_info.QueueFamily = VK_QUEUE_GRAPHICS_BIT;
+    init_info.Queue = rc->get_queue()->get();
+    init_info.PipelineCache = nullptr;
+    init_info.DescriptorPool = nullptr;
+    init_info.DescriptorPoolSize = 256;
+
+    init_info.MinImageCount = 2;
+    init_info.ImageCount = 3;
+    init_info.Allocator = nullptr;
+    init_info.PipelineInfoMain.RenderPass = nullptr;
+    init_info.PipelineInfoMain.Subpass = 0;
+    init_info.PipelineInfoMain.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+    init_info.CheckVkResultFn = nullptr;
+    ImGui_ImplVulkan_Init(&init_info);    
+}
+
 int main(int argc, char *argv[])
 {
      // QCoreApplication a(argc, argv);
@@ -344,6 +388,8 @@ int main(int argc, char *argv[])
      initWindow();
 
      init_vulkan();
+
+     initImgui();
 
      mainLoop();
 

@@ -33,6 +33,7 @@ namespace zr{
         // inline std::shared_ptr<core::DescriptorPool> get_desc_pool() { return _desc_pool;};
         inline std::shared_ptr<core::PhysicalDevice> get_gpu() { return _physical_device;};
         inline std::shared_ptr<core::Queue> get_queue() { return _queue;};
+        inline std::shared_ptr<core::Instance> get_instance() { return _instance; };
         // inline std::shared_ptr<core::PipelineLayout> get_pipeline_layout() { return _pipeline_layout;};
 
         // Swapchain management
