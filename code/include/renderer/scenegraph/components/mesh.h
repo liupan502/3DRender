@@ -7,13 +7,11 @@
 #include <unordered_map>
 #include <scenegraph/node.h>
 #include <scenegraph/component.h>
+
+namespace rhi{
+    class Buffer;
+}
 namespace zr {
-
-    namespace core{
-        class Buffer;
-        class Device;
-
-    }
 
     namespace sg {
 
@@ -41,33 +39,14 @@ namespace zr {
             bool operator < (const VertexAttribute& other) const;
         };
 
-        class SubMesh{
-
-        public:
-            void set_attribute(const std::string& name, const VertexAttribute& attribute);
-            bool get_attribute(const std::string& name, VertexAttribute& attribute);
-
-            inline std::shared_ptr<core::Buffer> get_vtx_buffer() { return _vtx_buffer;} ;
-            inline std::shared_ptr<core::Buffer> get_index_buffer() { return _index_buffer;};
-            inline uint32_t  get_indice_count(){ return _indice_count;};
-        private:
-            // uint32_t _idx_offset = 0;
-            // uint32_t vertices_cnt = 0;
-            // uint32_t vtx_indices = 0;
-            std::unordered_map<std::string, VertexAttribute> _vtx_attributes;
-            std::shared_ptr<core::Buffer> _vtx_buffer;
-            std::shared_ptr<core::Buffer> _index_buffer;
-            uint32_t _indice_count{0};
-        };
-
         class Mesh : public Component{
 
         public:
             virtual std::type_index get_type() const override;
             virtual ~Mesh() = default;
 
-            inline std::vector<std::shared_ptr<core::Buffer>> get_vtx_buffers() { return _vtx_buffers;} ;
-            inline std::shared_ptr<core::Buffer> get_index_buffer() { return _index_buffer;};
+            inline std::vector<std::shared_ptr<rhi::Buffer>> get_vtx_buffers() { return _vtx_buffers;} ;
+            inline std::shared_ptr<rhi::Buffer> get_index_buffer() { return _index_buffer;};
             inline uint32_t  get_indice_count(){ return _indice_count;};
             inline void set_indice_count(uint32_t indice_count) { _indice_count = indice_count;};
 
@@ -75,8 +54,8 @@ namespace zr {
             inline void set_vtx_attrs(std::vector<std::vector<VertexAttribute>> vtx_attrs) { _vtx_attrs = vtx_attrs;};
             std::vector<std::vector<VertexAttribute>>  get_vtx_attrs() { return _vtx_attrs;};
         protected:
-            std::vector<std::shared_ptr<core::Buffer>> _vtx_buffers;
-            std::shared_ptr<core::Buffer> _index_buffer;
+            std::vector<std::shared_ptr<rhi::Buffer>> _vtx_buffers;
+            std::shared_ptr<rhi::Buffer> _index_buffer;
             uint32_t _indice_count{0};
 
             std::vector<std::weak_ptr<Node>> _nodes;
@@ -93,7 +72,7 @@ namespace zr {
 
         public:
             StaticMesh(Node* node) : Mesh(node) {};
-            virtual void upload_data(std::shared_ptr<core::Device> device) override;
+            virtual void upload_data() override;
             inline void add_vtx_mesh_buffer(MeshBuffer vtx_mesh_buffer) { _vtx_mesh_buffers.emplace_back(vtx_mesh_buffer);};
             inline void set_indice_mesh_buffer(MeshBuffer indice_mesh_buffer) { _indice_mesh_buffer = indice_mesh_buffer;};
         private:
@@ -130,15 +109,15 @@ namespace zr {
                     _is_dirty(true), _buf(nullptr) {};
             inline std::vector<Vertex>& get_vertices() { return _vertices;};
             inline std::vector<Triangle>& get_triangles() { return _triangles;};
-            virtual void upload_data(std::shared_ptr<core::Device> device) override;
+            virtual void upload_data() override;
             virtual ~DynamicMesh();
             void reset();
             void set_tri_size(uint16_t tri_size);
             inline uint32_t get_tri_size() const { return _tri_size; };
         protected:
             bool need_upload();  
-            void recreate_bufs(std::shared_ptr<core::Device> device);
-            void update_data(std::shared_ptr<core::Device> device);  
+            void recreate_bufs();
+            void update_data();  
         private:
             std::vector<Vertex> _vertices;
             std::vector<Triangle> _triangles;

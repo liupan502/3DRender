@@ -71,6 +71,13 @@ add_library(z_renderer
         src/core/renderers/avm_video_renderer.cpp
         src/core/renderers/sky_renderer.cpp
 
+        # rhi
+        src/core/rhi/rhi.cpp
+        src/core/rhi/rhi_resource.cpp
+        src/core/rhi/vulkan/vulkan_rhi.cpp
+        src/core/rhi/vulkan/vulkan_texture.cpp
+        src/core/rhi/vulkan/vulkan_buffer.cpp
+
         # fg
         src/core/fg/frame_graph.cpp
         src/core/fg/fg_render_pass.cpp

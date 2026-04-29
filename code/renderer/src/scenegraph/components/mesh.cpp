@@ -5,6 +5,9 @@
 #include <scenegraph/components/mesh.h>
 #include <core/core.h>
 #include <utils/log.h>
+
+#include <rhi/rhi.h>
+#include <rhi/rhi_resource.h>
 using namespace zr::sg;
 
 std::type_index Mesh::get_type() const {
@@ -49,38 +52,55 @@ bool DynamicMesh::need_upload() {
     return false;
 }
 
-void DynamicMesh::recreate_bufs(std::shared_ptr<core::Device> device) {
-    VkDeviceSize idx_device_size = sizeof(Triangle) * _tri_size;
-    _index_buffer = std::make_shared<core::Buffer>(device, idx_device_size, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+void DynamicMesh::recreate_bufs() {
+    {
+        rhi::BufferCreateInfo ci;
+        ci.size = sizeof(Triangle) * _tri_size;
+        ci.stride = 0;
+        ci.usage = rhi::BufferUsageFlags::IndexBuffer;
+        _index_buffer = rhi::rhi_instance->create_buffer(ci);
+    }
 
-    uint32_t vertex_size = _vertices[0].get_size();
-    VkDeviceSize vtx_device_size = vertex_size * _tri_size * 3;
-    _vtx_buffers.clear();
-    std::shared_ptr<core::Buffer> vtx_buffer = std::make_shared<core::Buffer>(device, vtx_device_size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-    _vtx_buffers.emplace_back(vtx_buffer);
-
+    {
+        rhi::BufferCreateInfo ci;
+        ci.size = _vertices[0].get_size() * _tri_size * 3;
+        ci.stride = 0;
+        ci.usage = rhi::BufferUsageFlags::VertexBuffer;
+        auto vtx_buf = rhi::rhi_instance->create_buffer(ci);
+        _vtx_buffers.clear();
+        _vtx_buffers.emplace_back(vtx_buf);
+    }
+    
     if (_buf) {
         delete [] _buf;
     }
     _buf = new uint8_t [_vertices[0].get_size() * _tri_size * 3];
 }
 
-void DynamicMesh::update_data(std::shared_ptr<core::Device> device) {
-    VkDeviceSize idx_device_size = sizeof(Triangle) * _triangles.size();
-    if(!_index_buffer) {
-        LOGD("_index_buffer NULL");
-    }
-    _index_buffer->update((const uint8_t*)(_triangles.data()), idx_device_size);
+void DynamicMesh::update_data() {
 
-    uint32_t vertex_size = _vertices[0].get_size();
-    VkDeviceSize vtx_device_size = vertex_size * _vertices.size();
-    for (int i = 0; i < _vertices.size(); i++) {
-        memcpy(_buf + i * vertex_size, _vertices[i].get_data(), vertex_size);
+    {
+        if(!_index_buffer) {
+        LOGD("_index_buffer NULL");
+        }
+        uint32_t idx_device_size = sizeof(Triangle) * _triangles.size();
+        rhi::rhi_instance->update_buffer(_index_buffer, 
+            (const uint8_t*)(_triangles.data()), idx_device_size, 0);
     }
-    _vtx_buffers[0]->update((const uint8_t*)(_buf), vtx_device_size);
+
+    {
+        uint32_t vertex_size = _vertices[0].get_size();
+        uint32_t vtx_device_size = vertex_size * _vertices.size();
+        for (int i = 0; i < _vertices.size(); i++) {
+            memcpy(_buf + i * vertex_size, _vertices[i].get_data(), vertex_size);
+        }
+        rhi::rhi_instance->update_buffer(_vtx_buffers[0], 
+            (const uint8_t*)(_buf), vtx_device_size, 0);    
+    }
+    
 }
 
-void DynamicMesh::upload_data(std::shared_ptr<core::Device> device) {
+void DynamicMesh::upload_data() {
     if (!_is_dirty) {
         return;
     }
@@ -94,31 +114,6 @@ void DynamicMesh::upload_data(std::shared_ptr<core::Device> device) {
     _is_dirty = false;
     _has_uploaded = true;
 }
-
-/*void DynamicMesh::upload_data(std::shared_ptr<core::Device> device) {
-    if (_has_uploaded) {
-        return;
-    }
-    _vtx_buffers.clear();
-    // upload indices data
-    _indice_count = _triangles.size() * 3;
-    VkDeviceSize device_size = sizeof(Triangle) * _triangles.size();
-    _index_buffer = std::make_shared<core::Buffer>(device, device_size, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
-    _index_buffer->update((const uint8_t*)(_triangles.data()), device_size);
-
-    // upload vertex data
-    uint32_t vertex_size = _vertices[0].get_size();
-    VkDeviceSize vtx_device_size = vertex_size * _vertices.size();
-    std::shared_ptr<core::Buffer> vtx_buffer = std::make_shared<core::Buffer>(device, vtx_device_size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-    uint8_t* buf = new uint8_t [_vertices[0].get_size() * _vertices.size()];
-    for (int i = 0; i < _vertices.size(); i++) {
-        memcpy(buf + i * vertex_size, _vertices[i].get_data(), vertex_size);
-    }
-    vtx_buffer->update((const uint8_t*)(buf), vtx_device_size);
-    _vtx_buffers.emplace_back(vtx_buffer);
-    delete [] buf;
-    _has_uploaded = true;
-}*/
 
 void DynamicMesh::Vertex::set_data(const float *data, uint32_t data_len) {
     if (buf) {
@@ -203,7 +198,7 @@ bool VertexAttribute::operator<(const VertexAttribute &other) const {
     return false;
 }
 
-void StaticMesh::upload_data(std::shared_ptr<core::Device> device) {
+void StaticMesh::upload_data() {
     if (_has_uploaded) {
         return;
     }
@@ -214,18 +209,27 @@ void StaticMesh::upload_data(std::shared_ptr<core::Device> device) {
 
     // upload indices data
     {
-        VkDeviceSize device_size = _indice_mesh_buffer.len;
-        _index_buffer = std::make_shared<core::Buffer>(device, device_size,
-                                                       VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
-        _index_buffer->update((const uint8_t *) (_indice_mesh_buffer.ptr), device_size);
+        rhi::BufferCreateInfo ci;
+        ci.size = _indice_mesh_buffer.len;
+        ci.stride = 0;
+        ci.usage = rhi::BufferUsageFlags::IndexBuffer;
+
+        _index_buffer = rhi::rhi_instance->create_buffer(ci);
+        rhi::rhi_instance->update_buffer(_index_buffer, 
+            (const uint8_t *) (_indice_mesh_buffer.ptr), _indice_mesh_buffer.len, 0);
     }
 
     for (uint32_t i = 0; i < _vtx_mesh_buffers.size(); i++) {
-        VkDeviceSize device_size = _vtx_mesh_buffers[i].len;
-        std::shared_ptr<core::Buffer> vtx_buf = std::make_shared<core::Buffer>(device, device_size,
-                                                                               VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-        uint8_t  a = sizeof(char);
-        vtx_buf->update((const uint8_t *) (_vtx_mesh_buffers[i].ptr), device_size);
+
+        rhi::BufferCreateInfo ci;
+        ci.size = _vtx_mesh_buffers[i].len;
+        ci.stride = 0;
+        ci.usage = rhi::BufferUsageFlags::VertexBuffer;
+
+        auto vtx_buf = rhi::rhi_instance->create_buffer(ci);
+        rhi::rhi_instance->update_buffer(vtx_buf, (const uint8_t *) (_vtx_mesh_buffers[i].ptr), 
+            _vtx_mesh_buffers[i].len, 0);
+
         _vtx_buffers.emplace_back(vtx_buf);
     }
     _has_uploaded = true;
