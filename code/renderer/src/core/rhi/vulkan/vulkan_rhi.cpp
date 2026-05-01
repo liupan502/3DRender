@@ -49,10 +49,17 @@ TextureRef VulkanRHI::create_texture(const TextureCreateInfo& info)
     return std::make_shared<vulkan::VulkanTexture>(_context, info);
 }
 
-void VulkanRHI::update_texture(TextureRef tex, void* data, uint32_t len)
+void VulkanRHI::update_texture(TextureRef tex, void* data, uint32_t len， 
+            uint32_t base_layer, uint32_t mip_level, bool generated_mip_map)
 {
     auto vk_tex = std::static_pointer_cast<vulkan::VulkanTexture>(tex);
-    vk_tex->update_data(static_cast<unsigned char*>(data), len, 0);
+    vk_tex->update_data(static_cast<unsigned char*>(data), 
+        len, base_layer, mip_level, generated_mip_map);
+}
+
+SampleStateRef VulkanRHI::create_sample_state(const SampleStateCreateInfo& info)
+{
+    return std::make_shared<vulkan::VulkanSampleState>(_context, info);
 }
 
 }

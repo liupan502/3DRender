@@ -24,6 +24,7 @@ public:
 
     // Accessors
     inline VkImage get_image() const { return _vk_image; }
+    inline VkImageView get_image_view() const { return _vk_image_view; }
     inline VkFormat get_vk_format() const { return _vk_format; }
     inline VkExtent3D get_extent() const { return _extent; }
     inline VkImageUsageFlags get_vk_usage() const { return _vk_usage; }
@@ -36,10 +37,7 @@ public:
                     VkPipelineStageFlags src_stages, VkPipelineStageFlags dst_stages);
 
     void update_data(unsigned char* data, uint32_t size, uint8_t base_layer,
-                     VkFormat fmt = VK_FORMAT_R8G8B8A8_SRGB);
-
-    void update_data(unsigned char* data, uint32_t size, uint8_t mip_level,
-                     uint8_t base_layer, VkFormat fmt = VK_FORMAT_R8G8B8A8_SRGB);
+                     uint8_t mip_level, bool generated_mip_map);
 
     void transition_image_layout(VkFormat fmt,
                                  VkImageLayout old_layout, VkImageLayout new_layout,
@@ -47,8 +45,10 @@ public:
 
 private:
     void create_image();
+    void create_image_view();
     VkFormat color_format_to_vk(ColorFormat fmt) const;
     VkImageType texture_type_to_vk_image_type(TextureType type) const;
+    VkImageViewType texture_type_to_vk_image_view_type(TextureType type) const;
     VkImageUsageFlags texture_flags_to_vk_usage(TextureCreateFlags flags) const;
 
     void transition_image_layout_internal(VkFormat fmt,
@@ -65,6 +65,7 @@ private:
 private:
     std::shared_ptr<zr::RenderContext> _context;
     VkImage _vk_image{VK_NULL_HANDLE};
+    VkImageView _vk_image_view{VK_NULL_HANDLE};
     VmaAllocation _vma_alloc{VK_NULL_HANDLE};
     bool _owns_image{true};
 
@@ -76,6 +77,28 @@ private:
     VkImageSubresource _subresource{};
     uint32_t _array_layer_count{1};
     VkImageType _img_type{VK_IMAGE_TYPE_2D};
+};
+
+class VulkanSampleState : public rhi::SampleState {
+public:
+    VulkanSampleState(std::shared_ptr<zr::RenderContext> context,
+                      const SampleStateCreateInfo& create_info);
+
+    ~VulkanSampleState() override;
+
+    VulkanSampleState(const VulkanSampleState&) = delete;
+    VulkanSampleState& operator=(const VulkanSampleState&) = delete;
+
+    inline VkSampler get_vk_sampler() const { return _vk_sampler; }
+
+private:
+    static VkFilter filter_type_to_vk(SamplerFilterType type);
+    static VkSamplerAddressMode address_mode_to_vk(SamplerAddressMode mode);
+    static VkCompareOp compare_function_to_vk(SamplerCompareFunction scf);
+
+private:
+    std::shared_ptr<zr::RenderContext> _context;
+    VkSampler _vk_sampler{VK_NULL_HANDLE};
 };
 
 } // namespace vulkan
