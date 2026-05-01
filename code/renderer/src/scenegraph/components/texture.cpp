@@ -14,19 +14,19 @@
 using namespace zr::sg;
 using namespace zr;
 
-void Texture::update_2d_data(std::shared_ptr<core::Device> device, const TextureContent& tc,
-                             std::shared_ptr<core::Image> img, uint8_t img_data_idx, bool auto_blit) {
+void Texture::update_2d_data(const TextureContent& tc,
+                             rhi::TextureRef rhi_texture, uint8_t img_data_idx, bool auto_blit) {
     auto img_data_info = tc.img_data_infos[img_data_idx];
     if (auto_blit && img_data_idx == 0) {
-        img->update_data(img_data_info.ptr,
+
+        rhi::rhi_instance->update_texture(rhi_texture, img_data_info.ptr,
                               img_data_info.data_len, 
-                              img_data_info.layer_idx, img_data_info.fmt);
+                              img_data_info.layer_idx, 0, auto_blit);
     }
     else {
-        img->update_data(img_data_info.ptr,
+        rhi::rhi_instance->update_texture(rhi_texture, img_data_info.ptr,
                               img_data_info.data_len, 
-                              img_data_info.mipmap_level, 
-                              img_data_info.layer_idx, img_data_info.fmt);
+                              img_data_info.layer_idx, img_data_info.mipmap_level, auto_blit);
     }
     // tc.image->update_data(img_data_info.ptr, img_data_info.width * img_data_info.height * 4, 0);
 }
@@ -64,8 +64,9 @@ void Texture::get_cube_face_offset(uint16_t size, uint8_t face, uint16_t& row_nu
     }
 }
 
-void Texture::update_cube_data(std::shared_ptr<core::Device> device, const TextureContent& tc,
-                               std::shared_ptr<core::Image> img, uint8_t img_data_idx, bool auto_blit) {
+void Texture::update_cube_data(const TextureContent& tc, 
+                                rhi::TextureRef rhi_texture, uint8_t img_data_idx,
+                                bool auto_blit) {
     auto img_data_info = tc.img_data_infos[img_data_idx];
     assert(img_data_info.width / 4 == img_data_info.height / 3);
     uint16_t size = img_data_info.width / 4;
@@ -82,10 +83,10 @@ void Texture::update_cube_data(std::shared_ptr<core::Device> device, const Textu
             dst_offset += size * img_data_info.com;
         }
         if (auto_blit && img_data_idx == 0) {
-            img->update_data(buf, size * size * img_data_info.com, i);
+            rhi::rhi_instance->update_data(rhi_texture, buf, size * size * img_data_info.com, i, 0, true);
         }
         else {
-            img->update_data(buf, size * size * img_data_info.com, img_data_idx, i);
+            rhi::rhi_instance->update_data(rhi_texture, buf, size * size * img_data_info.com, img_data_idx, i, false);
         }
     }
 
@@ -93,7 +94,7 @@ void Texture::update_cube_data(std::shared_ptr<core::Device> device, const Textu
     buf = nullptr;
 }
 
-void Texture::upload_data_for_single_src(std::shared_ptr<core::Device> device) {
+void Texture::upload_data_internal() {
     TextureContent& tc = _tex_contents[_active_idx];
 
     bool need_upload = false;
@@ -110,13 +111,34 @@ void Texture::upload_data_for_single_src(std::shared_ptr<core::Device> device) {
 
     auto img_data_info = tc.img_data_infos[0];
 
+    rhi::TextureCreateInfo ci;
+    ci.format = img_data_info.fmt;
+    ci.type = tc.st;
+    ci.flags = rhi::TextureCreateFlags::ShaderResource;
+    ci.width = img_data_info.width;
+    ci.height = img_data_info.height;
+    ci.depth = img_data_info.depth;
+    ci.mip_num = tc.mipmap_level_count;
+    ci.layer_num = tc.layer_count;
+
+    /*bool cubemap_enabled = tc.st == rhi::TextureType::TextureCube || 
+            tc.st == rhi::TextureType::TextureCubeArray;
+
+    if (cubemap_enabled) {
+        ci.layer_num = 6;
+        ci.width = (uint32_t) (img_data_info.width / 4);
+        ci.height = (uint32_t) (img_data_info.height / 3);
+        assert(ci.width == ci.height && ci.depth == 1);
+    }
+
     VkExtent3D extent{
             .width = (uint32_t)img_data_info.width,
             .height = (uint32_t)img_data_info.height,
             .depth = (uint32_t)img_data_info.depth,
     };
 
-    bool cubemap_enabled = tc.st == TEXTURE_SAMPLER_CUBE || tc.st == TEXTURE_SAMPLER_CUBE_ARRAY;
+    bool cubemap_enabled = tc.st == rhi::TextureType::TextureCube || 
+            tc.st == rhi::TextureType::TextureCubeArray;
     if (cubemap_enabled) {
         extent.width = (uint32_t) (img_data_info.width / 4);
         extent.height = (uint32_t) (img_data_info.height / 3);
@@ -134,27 +156,25 @@ void Texture::upload_data_for_single_src(std::shared_ptr<core::Device> device) {
             it = VK_IMAGE_TYPE_3D; break;
         default:
             break;
-    }
+    }*/
 
-    std::shared_ptr<core::Image> img = nullptr;
+    rhi::TextureRef rhi_texture = nullptr;
 
-    if (tc.image == nullptr || tc.fmt != tc.img_data_infos[0].fmt) {
-        img = std::make_shared<core::Image>(device, extent,
+    if (tc.rhi_texture == nullptr || tc.fmt != tc.img_data_infos[0].fmt) {
+        /*img = std::make_shared<core::Image>(device, extent,
                                                  img_data_info.fmt,
                                                  VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                                                  static_cast<VkMemoryPropertyFlagBits>(
                                                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                                                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT),
                                                  VK_SAMPLE_COUNT_1_BIT, tc.mipmap_level_count, layer_count,
-                                                 VK_IMAGE_TILING_OPTIMAL, flags, it);
+                                                 VK_IMAGE_TILING_OPTIMAL, flags, it);*/
+        rhi_texture = rhi::rhi_instance->create_texture(ci);                                         
+        
     }
     else {
-        img = tc.image;
+        rhi_texture = tc.rhi_texture;
     }
-
-
-
-    // tc.image->update_data(img_data_info.ptr, img_data_info.width * img_data_info.height * 4, 0);
     
     for (uint8_t i = 0; i < tc.img_data_infos.size(); i++) {
         if (tc.img_data_infos[i].has_upload) {
@@ -165,102 +185,29 @@ void Texture::upload_data_for_single_src(std::shared_ptr<core::Device> device) {
             auto_blit = true;
         }
         if (cubemap_enabled) {
-            update_cube_data(device, tc, img, i, auto_blit);
+            update_cube_data(tc, rhi_texture, i, auto_blit);
         }
         else {
-            update_2d_data(device, tc, img, i, auto_blit);
+            update_2d_data(tc, rhi_texture, i, auto_blit);
         }
     }
     
-
-    if (img_data_info.fmt == tc.fmt) {
-        tc.image = img; 
-    }
-    else {
-        if (tc.image == nullptr) {
-            tc.image = std::make_shared<core::Image>(device, extent,
-                                                     tc.fmt,
-                                                     VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                                                     static_cast<VkMemoryPropertyFlagBits>(
-                                                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                                                         VK_MEMORY_PROPERTY_HOST_COHERENT_BIT),
-                                                     VK_SAMPLE_COUNT_1_BIT, tc.mipmap_level_count, layer_count,
-                                                     VK_IMAGE_TILING_OPTIMAL, flags, it);
-        }
-
-        core::Image::BlitParams src_params {0, 0,
-                                           (uint16_t)extent.width, (uint16_t)extent.height, (uint16_t)extent.depth};
-        core::Image::BlitParams dst_params = src_params;
-        auto fn = [&](std::shared_ptr<core::CommandBuffer> cmd_buf) {
-            tc.image->blit(*(img->get()), src_params, dst_params, cmd_buf); 
-        };
-
-        img->transition_image_layout(tc.fmt, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-
-        device->get_cmd_pool()->execute_single_cmd(fn);  
-
-        tc.image->transition_image_layout(tc.fmt, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);                      
-    }
+    tc.image = img; 
 }
 
-void Texture::upload_data_for_multi_src(std::shared_ptr<core::Device> device) {
-    TextureContent& tc = _tex_contents[_active_idx];
-    auto img_data_info = tc.img_data_infos[0];
-    VkExtent3D extent{
-            .width = (uint32_t)img_data_info.width,
-            .height = (uint32_t)img_data_info.height,
-            .depth = 1,
-    };
-    bool cubemap_enabled = tc.st == TEXTURE_SAMPLER_CUBE || tc.st == TEXTURE_SAMPLER_CUBE_ARRAY;
-    if (cubemap_enabled) {
-        extent.width = (uint32_t) (img_data_info.width / 4);
-        extent.height = (uint32_t) (img_data_info.height / 3);
-        assert(extent.width == extent.height);
-    }
-    uint8_t layer_count = cubemap_enabled ? 6 : 1;
-    VkImageCreateFlags flags = cubemap_enabled ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0;
-    tc.image = std::make_shared<core::Image>(device, extent,
-                                           VK_FORMAT_R8G8B8A8_SRGB,
-                                           VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                                           static_cast<VkMemoryPropertyFlagBits>(
-                                                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                                                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT),
-                                             VK_SAMPLE_COUNT_1_BIT, tc.mipmap_level_count,
-                                             layer_count, VK_IMAGE_TILING_OPTIMAL, flags);
-
-    std::vector<std::shared_ptr<core::Image>> mip_imgs;
-    for (uint8_t i = 0; i < tc.img_data_infos.size(); i++) {
-        auto tmp_img_data_info = tc.img_data_infos[i];
-        if (tmp_img_data_info.has_upload) {
-            continue;
-        }
-        // tc.image->update_data(tmp_img_data_info.ptr, tmp_img_data_info.width * tmp_img_data_info.height * 4, (uint8_t)i, 0);
-        if (cubemap_enabled) {
-            update_cube_data(device, tc, tc.image, i, false);
-        }
-        else {
-            update_2d_data(device, tc, tc.image, i, false);
-        }
-    }
-}
 
 void Texture::upload_data(std::shared_ptr<core::Device> device) {
     if (_tex_contents[_active_idx].has_upload) {
         return;
     }
-    if (true) {
-    // if (_tex_contents[_active_idx].img_data_infos.size() == 1) {
-        upload_data_for_single_src(device);
-    }
-    /*else if (_tex_contents[_active_idx].img_data_infos.size() > 1) {
-        upload_data_for_multi_src(device);
-    }*/
+    
+    upload_data_internal();
+    
     TextureContent& tc = _tex_contents[_active_idx];
-    bool cubemap_enabled = tc.st == TEXTURE_SAMPLER_CUBE || tc.st == TEXTURE_SAMPLER_CUBE_ARRAY;
-    uint8_t layer_count = cubemap_enabled ? 6 : tc.layer_count;
-    tc.image_view = std::make_shared<core::ImageView>(device, tc.image, tc.fmt,
-                                                      (VkImageViewType)tc.st, VK_IMAGE_ASPECT_COLOR_BIT,
-                                                      (uint32_t)0, (uint32_t)0, (uint32_t)tc.mipmap_level_count, layer_count);
+    
+    rhi::SampleStateCreateInfo ci;
+    tc->rhi_sampler = rhi::rhi_instance->create_sample_state(ci);
+
     tc.sampler = std::make_shared<core::Sampler>(device);
     tc.has_upload = true;
     for (auto& img_data_info : tc.img_data_infos) {
@@ -286,12 +233,12 @@ Texture::~Texture() {
     _tex_contents.clear();
 }
 
-std::shared_ptr<core::ImageView> Texture::get_image_view() {
-    return _tex_contents[_active_idx].image_view;
+rhi::TextureRef Texture::get_rhi_texture() {
+    return _tex_contents[_active_idx].rhi_texture;
 }
 
-std::shared_ptr<core::Sampler> Texture::get_sampler() {
-    return _tex_contents[_active_idx].sampler;
+rhi::SampleStateRef Texture::get_rhi_sampler() {
+    return _tex_contents[_active_idx].rhi_sampler;
 }
 
 void Texture::add_content(const std::string& path, uint16_t width, uint16_t height, uint16_t depth, VkFormat fmt,
