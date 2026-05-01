@@ -3,7 +3,7 @@
 #include <rhi/rhi_definitions.h>
 
 namespace rhi {
-    class Resoure {
+    class Resource {
 
     };
 
@@ -47,12 +47,13 @@ namespace rhi {
         uint16_t height = 1;
         uint16_t depth = 1;
         uint16_t mip_num = 1;
+        uint16_t layer_num = 1;
         TextureType type = TextureType::Texture2D;
         ColorFormat format = ColorFormat::R8G8B8A8_UNORM;
         TextureCreateFlags flags = TextureCreateFlags::None;
     };
 
-    class Texture : public Resoure {
+    class Texture : public Resource {
     public:
     
     protected:
@@ -81,14 +82,15 @@ namespace rhi {
     };
 
 
-    class Buffer : public Resoure {
+    class Buffer : public Resource {
     public:
     protected:
         BufferCreateInfo _create_info;
     };
 
     struct SampleStateCreateInfo {
-        SamplerFilterType filter_type = SamplerFilterType::SF_LINEAR;
+        SamplerFilterType min_filter_type = SamplerFilterType::SF_LINEAR;
+        SamplerFilterType mag_filter_type = SamplerFilterType::SF_LINEAR;
         SamplerAddressMode address_u = SamplerAddressMode::SAM_REPEAT;
         SamplerAddressMode address_v = SamplerAddressMode::SAM_REPEAT;
         SamplerAddressMode address_w = SamplerAddressMode::SAM_REPEAT;

@@ -6,6 +6,7 @@ namespace rhi
 {
     using BufferRef = std::shared_ptr<Buffer>;
     using TextureRef = std::shared_ptr<Texture>;
+    using SampleStateRef = std::shared_ptr<SampleState>;
 
     class RHI {
     public:
@@ -22,7 +23,10 @@ namespace rhi
 
         virtual TextureRef create_texture(const TextureCreateInfo& info) = 0;
 
-        virtual void update_texture(TextureRef tex, void* data, uint32_t len) = 0;
+        virtual void update_texture(TextureRef tex, void* data, uint32_t len， 
+            uint32_t base_layer, uint32_t mip_level, bool generated_mip_map) = 0;
+
+        virtual SampleStateRef create_sample_state(const SampleStateCreateInfo& info) = 0;
     };
 
     extern RHI* rhi_instance;
