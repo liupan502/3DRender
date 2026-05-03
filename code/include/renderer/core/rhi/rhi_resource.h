@@ -1,6 +1,8 @@
 #pragma once
 
 #include <rhi/rhi_definitions.h>
+#include <memory>
+#include <vector>
 
 namespace rhi {
     class Resource {
@@ -15,7 +17,9 @@ namespace rhi {
         R8G8B8A8_UINT = 4,
         R8G8B8A8_SINT = 5,
         R16G16B16A16_SFLOAT = 6,
-        R32G32B32A32_SFLOAT = 7
+        R32G32B32A32_SFLOAT = 7,
+        R32G32_SFLOAT = 8,
+        R32G32B32_SFLOAT = 9,
     };
 
     enum class TextureType : uint8_t {
@@ -104,5 +108,65 @@ namespace rhi {
 
     class SampleState : public Resource {
 
+    };
+
+    struct ShaderModuleCreateInfo {
+        ShaderModuleType type = ShaderModuleType::SMT_NONE;
+        uint8_t* content = nullptr;
+        uint32_t len = 0;
+        bool is_bin = true;
+    };
+
+    class ShaderModule : public Resource {
+
+    };
+
+    struct VertexAttributeDesc {
+        uint32_t location = 0;
+        uint32_t binding = 0;
+        ColorFormat format = ColorFormat::R32G32B32_SFLOAT;
+        uint32_t offset = 0;
+    };
+
+    struct VertexBindingDesc {
+        uint32_t binding = 0;
+        uint32_t stride = 0;
+        VertexInputRate input_rate = VertexInputRate::VIR_VERTEX;
+    };
+
+    struct ColorBlendAttachmentState {
+        bool blend_enable = false;
+        BlendFactor src_color_factor = BlendFactor::BF_SRC_ALPHA;
+        BlendFactor dst_color_factor = BlendFactor::BF_ONE_MINUS_SRC_ALPHA;
+        BlendOp color_blend_op = BlendOp::BO_ADD;
+        BlendFactor src_alpha_factor = BlendFactor::BF_ZERO;
+        BlendFactor dst_alpha_factor = BlendFactor::BF_ONE;
+        BlendOp alpha_blend_op = BlendOp::BO_ADD;
+        uint8_t color_write_mask = 0xF;
+    };
+
+    struct GraphicsPipelineCreateInfo {
+        std::shared_ptr<ShaderModule> vertex_shader = nullptr;
+        std::shared_ptr<ShaderModule> fragment_shader = nullptr;
+
+        std::vector<VertexBindingDesc> vertex_bindings;
+        std::vector<VertexAttributeDesc> vertex_attributes;
+
+        PrimitiveTopology topology = PrimitiveTopology::PT_TRIANGLE_LIST;
+        bool primitive_restart_enable = false;
+
+        PolygonMode polygon_mode = PolygonMode::PM_FILL;
+        CullMode cull_mode = CullMode::CM_BACK;
+        FrontFace front_face = FrontFace::FF_COUNTER_CLOCKWISE;
+        bool depth_clamp_enable = false;
+        float line_width = 1.0f;
+
+        SampleCount sample_count = SampleCount::SC_COUNT_1;
+
+        bool depth_test_enable = true;
+        bool depth_write_enable = true;
+        CompareOp depth_compare_op = CompareOp::CO_LESS;
+
+        std::vector<ColorBlendAttachmentState> color_blend_attachments;
     };
 };
