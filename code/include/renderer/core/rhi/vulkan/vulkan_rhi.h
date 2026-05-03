@@ -21,6 +21,8 @@ namespace rhi {
             uint32_t base_layer, uint32_t mip_level, bool generated_mip_map) override;
 
         SampleStateRef create_sample_state(const SampleStateCreateInfo& info) override;
+    
+        ShaderModuleRef create_shader_module(const ShaderModuleCreateInfo& info) override;
     private:
         std::shared_ptr<zr::RenderContext> _context;
     };

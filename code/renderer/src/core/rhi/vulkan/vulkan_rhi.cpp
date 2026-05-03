@@ -1,6 +1,7 @@
 #include <rhi/vulkan/vulkan_rhi.h>
 #include <rhi/vulkan/vulkan_buffer.h>
 #include <rhi/vulkan/vulkan_texture.h>
+#include <rhi/vulkan/vulkan_shader_module.h>
 
 #ifdef PLATFORM_ANDROID
 #include <android/native_window.h>
@@ -60,6 +61,11 @@ void VulkanRHI::update_texture(TextureRef tex, void* data, uint32_t len，
 SampleStateRef VulkanRHI::create_sample_state(const SampleStateCreateInfo& info)
 {
     return std::make_shared<vulkan::VulkanSampleState>(_context, info);
+}
+
+ShaderModuleRef VulkanRHI::create_shader_module(const ShaderModuleCreateInfo& info)
+{
+    return std::make_shared<vulkan::VulkanShaderModule>(_context, info);
 }
 
 }
