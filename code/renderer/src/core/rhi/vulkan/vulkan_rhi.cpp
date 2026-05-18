@@ -2,6 +2,7 @@
 #include <rhi/vulkan/vulkan_buffer.h>
 #include <rhi/vulkan/vulkan_texture.h>
 #include <rhi/vulkan/vulkan_shader_module.h>
+#include <rhi/vulkan/vulkan_pipeline.h>
 
 #ifdef PLATFORM_ANDROID
 #include <android/native_window.h>
@@ -66,6 +67,10 @@ SampleStateRef VulkanRHI::create_sample_state(const SampleStateCreateInfo& info)
 ShaderModuleRef VulkanRHI::create_shader_module(const ShaderModuleCreateInfo& info)
 {
     return std::make_shared<vulkan::VulkanShaderModule>(_context, info);
+}
+
+GraphicsPipelineRef VulkanRHI::create_graphics_pipeline(const GraphicsPipelineCreateInfo& info) {
+    return std::make_shared<vulkan::VulkanGraphicsPipeline>(info);
 }
 
 }

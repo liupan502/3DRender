@@ -114,7 +114,7 @@ void Texture::upload_data_internal() {
     rhi::TextureCreateInfo ci;
     ci.format = img_data_info.fmt;
     ci.type = tc.st;
-    ci.flags = rhi::TextureCreateFlags::ShaderResource;
+    ci.flags = rhi::TextureCreateFlagBit::ShaderResource;
     ci.width = img_data_info.width;
     ci.height = img_data_info.height;
     ci.depth = img_data_info.depth;

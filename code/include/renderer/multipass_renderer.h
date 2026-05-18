@@ -1,6 +1,6 @@
 #pragma once
 #include <core/fg/frame_graph.h>
-#include <vulkan/vulkan.h>
+#include <rhi/rhi_definitions.h>
 #include <vector>
 #include <memory>
 #include <render_context.h>
@@ -25,11 +25,11 @@ namespace zr {
             virtual ~MultiPassRenderer();
             #ifdef PLATFORM_ANDROID
             bool init(AAssetManager* asset_mgr, ANativeWindow* window,
-                    VkSampleCountFlagBits sample_count = VK_SAMPLE_COUNT_8_BIT,
+                    rhi::SampleCount sample_count = rhi::SampleCount::SC_COUNT_8,
                     VkFormat swapchain_fmt = VK_FORMAT_R8G8B8A8_SRGB);
             #elif  PLATFORM_GLFW
             bool init(GLFWwindow* window,
-                    VkSampleCountFlagBits sample_count = VK_SAMPLE_COUNT_8_BIT,
+                    rhi::SampleCount sample_count = rhi::SampleCount::SC_COUNT_8,
                     VkFormat swapchain_fmt = VK_FORMAT_B8G8R8A8_SRGB);
             #endif
             
@@ -43,7 +43,7 @@ namespace zr {
             inline std::weak_ptr<RenderContext> getRenderContext() const { return _context; };
 
         protected:
-            virtual bool init_internel(VkSampleCountFlagBits sample_count);
+            virtual bool init_internel(rhi::SampleCount sample_count);
 
             void prepare_taa();
         protected:
@@ -66,7 +66,7 @@ namespace zr {
             std::shared_ptr<RenderContext> _context;
             uint32_t _active_frame;
             sg::Scene** _scene;
-            VkSampleCountFlagBits _sample_count;
+            rhi::SampleCount _sample_count;
             uint32_t _frame_id{0};
 
             // taa

@@ -17,13 +17,13 @@ AttachmentInfo::AttachmentInfo() {
     width = 0;
     height = 0;
     depth = 1;
-    fmt = VK_FORMAT_UNDEFINED;
-    samples = VK_SAMPLE_COUNT_1_BIT;
-    load_op = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    store_op = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    fmt = ColorFormat::None;
+    samples = SampleCount::SC_COUNT_1;
+    load_op = AttachmentLoadOp::ALO_LOAD;
+    store_op = AttachmentStoreOp::ASO_STORE;
     level = 0;
     layer = 0;
-    img_usage = VK_IMAGE_USAGE_SAMPLED_BIT;
+    img_usage = TextureCreateFlagBit::ShaderResource;
     is_reused = true;
 }
 
@@ -44,7 +44,7 @@ void FgRenderPass::add_color_output(const std::string &output_name, const Attach
     std::string name = output_name;
     assert(_fg->contains_tex_res(name) == false);
     auto tex = _fg->get_tex_res(name);
-    tex->add_img_usage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+    tex->add_img_usage(TextureCreateFlagBit::RenderTargetable);
     // tex->add_img_usage(VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
     // tex->add_img_usage(VK_IMAGE_USAGE_TRANSFER_DST_BIT);
     tex->set_attachment_info(attachment_info);
@@ -72,7 +72,7 @@ void FgRenderPass::add_reslove_output(const std::string &name, const AttachmentI
     assert(_fg->contains_tex_res(name) == false);
     auto tex = _fg->get_tex_res(name);
     _resloved_outputs.emplace_back(name);
-    tex->add_img_usage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+    tex->add_img_usage(TextureCreateFlagBit::RenderTargetable);
     // tex->add_img_usage(VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
     // tex->add_img_usage(VK_IMAGE_USAGE_TRANSFER_DST_BIT);
     // tex->add_img_usage(VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT);
@@ -96,7 +96,7 @@ bool FgRenderPass::add_depth_stencil_input(const std::string &name) {
 void FgRenderPass::add_depth_stencil_output(const std::string &name, const AttachmentInfo &attachment_info) {
     assert(_fg->contains_tex_res(name) == false);
     auto tex = _fg->get_tex_res(name);
-    tex->add_img_usage(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+    tex->add_img_usage(TextureCreateFlagBit::DepthStencilTargetable);
     // tex->add_img_usage(VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
     // tex->add_img_usage(VK_IMAGE_USAGE_TRANSFER_DST_BIT);
     tex->set_attachment_info(attachment_info);
@@ -163,23 +163,6 @@ VkExtent2D FgRenderPass::get_display_size() {
     auto& attach_info =  _fg->get_tex_res(*_depth_stencil_outputs.begin())->get_attachment_info();
     return VkExtent2D {attach_info.width, attach_info.height};
 }
-
-/*std::shared_ptr<RenderPass> FgRenderPass::get_render_pass() {
-    return _fg->get_render_pass();
-}*/
-
-/*std::vector<std::shared_ptr<ImageView>> FgRenderPass::extenal_get_views(const std::vector<std::string>& names) {
-    std::vector<std::shared_ptr<ImageView>> views;
-    if (!_fg) {
-        return views;
-    }
-
-    for (auto& view_name : names) {
-        auto view = _fg->get_image_view(view_name);
-        views.emplace_back(view);
-    }
-    return views;
-}*/
 
 std::vector<std::shared_ptr<ImageView>> FgRenderPass::extenal_get_views(const std::vector<std::string>& names) {
     std::vector<std::shared_ptr<ImageView>> views;
@@ -300,17 +283,17 @@ void FgRenderPassGroup::bake(std::shared_ptr<Device> device,
 
     order_pass();
 
-    create_image_res(device, swapchain);
+    // create_image_res(device, swapchain);
 
-    create_subpass(device, swapchain);
+    // create_subpass(device, swapchain);
 
-    create_subpass_dependencies(device, swapchain);
+    // create_subpass_dependencies(device, swapchain);
 
-    create_renderpass(device, swapchain);
+    // create_renderpass(device, swapchain);
 
-    create_pipeline_mgrs(device, swapchain);
+    // create_pipeline_mgrs(device, swapchain);
 
-    create_framebuffer(device, swapchain);
+    // create_framebuffer(device, swapchain);
 
 }
 
@@ -339,10 +322,10 @@ void FgRenderPassGroup::create_attachment(const std::string &res_name,
     _clear_vals.emplace_back(atta_info.clear_val);
 
     bool use_as_depth_stencil_atta =
-            atta_info.img_usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+            atta_info.img_usage & TextureCreateFlagBit::DepthStencilTargetable;
 
     bool use_as_color_atta =
-            atta_info.img_usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+            atta_info.img_usage & TextureCreateFlagBit::RenderTargetable;
 
     VkAttachmentDescription attachment_desc{};
     attachment_desc.flags = 0;
@@ -357,10 +340,10 @@ void FgRenderPassGroup::create_attachment(const std::string &res_name,
     // 如果后续需要使用 final layout 为 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
     if (use_as_color_atta) {
         // last pass
-        if (is_swapchain_res && atta_info.samples == VK_SAMPLE_COUNT_1_BIT) {
+        if (is_swapchain_res && atta_info.samples == SampleCount::SC_COUNT_1) {
             attachment_desc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
         }
-        else if ((!is_swapchain_res) && atta_info.samples == VK_SAMPLE_COUNT_1_BIT){
+        else if ((!is_swapchain_res) && atta_info.samples == SampleCount::SC_COUNT_1){
             attachment_desc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         }
     }
@@ -386,16 +369,16 @@ void FgRenderPassGroup::create_image(const std::string& res_name,
     std::shared_ptr<FgRenderTextureResource> tex_res = _fg->_tex_res_map[res_name];
     const AttachmentInfo& atta_info = tex_res->get_attachment_info();
     bool use_as_depth_stencil_atta =
-            atta_info.img_usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+            atta_info.img_usage & TextureCreateFlagBit::DepthStencilTargetable;
 
     bool use_as_color_atta =
-            atta_info.img_usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+            atta_info.img_usage & TextureCreateFlagBit::RenderTargetable;
 
     auto& display_views = swapchain->get_display_image_views();
 
     if (is_swapchain_res &&
             use_as_color_atta &&
-            atta_info.samples == VK_SAMPLE_COUNT_1_BIT) {
+            atta_info.samples == SampleCount::SC_COUNT_1) {
         uint16_t idx = _img_views[0].size();
         _tex_index_map.insert({res_name, idx});
         for (uint8_t i = 0; i < display_views.size(); i++) {
@@ -425,6 +408,7 @@ void FgRenderPassGroup::create_image(const std::string& res_name,
     }
 }
 
+/*
 void FgRenderPassGroup::create_subpass(std::shared_ptr<Device> device, 
                             std::shared_ptr<Swapchain> swapchain) {
     _attachment_refs = std::vector<std::vector<VkAttachmentReference>>(1000,
@@ -493,7 +477,7 @@ void FgRenderPassGroup::create_subpass(std::shared_ptr<Device> device,
             atta_ref.attachment = tex_idx;
             atta_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
             if (is_swapchain_pass) {
-                atta_ref.layout = /*VK_IMAGE_LAYOUT_PRESENT_SRC_KHR*/VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                atta_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
             }
             resloved_refs.emplace_back(atta_ref);
         }
@@ -586,8 +570,9 @@ void FgRenderPassGroup::create_subpass(std::shared_ptr<Device> device,
 
         _subpass_descs.emplace_back(subpass_desc);
     }
-}
+}*/
 
+/*
 void FgRenderPassGroup::create_subpass_dependencies(std::shared_ptr<Device> device,
                                          std::shared_ptr<Swapchain> swapchain) {
     auto find_src_pass_idx = [this](const std::string& src_pass,
@@ -615,12 +600,6 @@ void FgRenderPassGroup::create_subpass_dependencies(std::shared_ptr<Device> devi
 
             dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
             dependency.dstSubpass = 0;
-
-            /*dependency.srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-            dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-            dependency.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-            dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-            */
 
             dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
                     VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
@@ -665,8 +644,9 @@ void FgRenderPassGroup::create_subpass_dependencies(std::shared_ptr<Device> devi
             _subpass_dependecies.emplace_back(sd);
         }
     }
-}
+}*/
 
+/*
 void FgRenderPassGroup::create_renderpass(std::shared_ptr<Device> device,
                                    std::shared_ptr<Swapchain> swapchain) {
     VkRenderPassCreateInfo rpc {};
@@ -692,24 +672,20 @@ void FgRenderPassGroup::create_renderpass(std::shared_ptr<Device> device,
     // _pipeline_manager = std::make_shared<PipelineManager>(device, _render_pass, 
     //                                 swapchain->get_display_size() );
 }
-
+*/
 void FgRenderPassGroup::create_pipeline_mgrs(std::shared_ptr<Device> device, 
                                     std::shared_ptr<Swapchain> swapchain) {
     for (uint32_t i = 0; i < _ordered_passes.size(); i++) {
         auto& pass_name = _ordered_passes[i];
         auto pass = _fg->_render_pass_map[pass_name];
-        /*auto res_name = *(pass->get_color_outputs().begin());
-        auto attachment_info = _fg->get_tex_res(res_name)->get_attachment_info();
-        VkExtent2D extent;
-        extent.width = attachment_info.width;
-        extent.height = attachment_info.height;*/
+        
         std::shared_ptr<PipelineManager> pipeline_mgr = std::make_shared<PipelineManager>(
             device, pass, i);
         pass->set_pipeline_mgr(pipeline_mgr);    
     }
 }
 
-void FgRenderPassGroup::create_framebuffer(std::shared_ptr<Device> device, 
+/*void FgRenderPassGroup::create_framebuffer(std::shared_ptr<Device> device, 
                             std::shared_ptr<Swapchain> swapchain) {
 
     auto& display_views = swapchain->get_display_image_views();
@@ -723,7 +699,7 @@ void FgRenderPassGroup::create_framebuffer(std::shared_ptr<Device> device,
     }
     // _frame_buffers = _render_pass->get_framebuffers();
 }
-
+*/
 void FgRenderPassGroup::prepare_renderpasses(std::shared_ptr<Device> device) {
     for (uint16_t i = 0; i < _ordered_passes.size(); i++) {
         auto& pass_name = _ordered_passes[i];
@@ -754,13 +730,13 @@ void FgRenderPassGroup::execute(std::shared_ptr<Device> device, uint16_t active_
     // cmd_buf->end();
 }
 
-std::shared_ptr<ImageView> FgRenderPassGroup::get_image_view(const std::string& tex_name) {
+/*std::shared_ptr<ImageView> FgRenderPassGroup::get_image_view(const std::string& tex_name) {
     if (_tex_index_map.find(tex_name) == _tex_index_map.end()) {
         return nullptr;
     }
     uint16_t tex_idx = _tex_index_map[tex_name];
     return _img_views[_fg->_active_frame_idx][tex_idx];
-}
+}*/
 
 
 

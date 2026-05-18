@@ -57,7 +57,7 @@ void DynamicMesh::recreate_bufs() {
         rhi::BufferCreateInfo ci;
         ci.size = sizeof(Triangle) * _tri_size;
         ci.stride = 0;
-        ci.usage = rhi::BufferUsageFlags::IndexBuffer;
+        ci.usage = rhi::BufferUsageFlagBit::IndexBuffer;
         _index_buffer = rhi::rhi_instance->create_buffer(ci);
     }
 
@@ -65,7 +65,7 @@ void DynamicMesh::recreate_bufs() {
         rhi::BufferCreateInfo ci;
         ci.size = _vertices[0].get_size() * _tri_size * 3;
         ci.stride = 0;
-        ci.usage = rhi::BufferUsageFlags::VertexBuffer;
+        ci.usage = rhi::BufferUsageFlagBit::VertexBuffer;
         auto vtx_buf = rhi::rhi_instance->create_buffer(ci);
         _vtx_buffers.clear();
         _vtx_buffers.emplace_back(vtx_buf);
@@ -212,7 +212,7 @@ void StaticMesh::upload_data() {
         rhi::BufferCreateInfo ci;
         ci.size = _indice_mesh_buffer.len;
         ci.stride = 0;
-        ci.usage = rhi::BufferUsageFlags::IndexBuffer;
+        ci.usage = rhi::BufferUsageFlagBit::IndexBuffer;
 
         _index_buffer = rhi::rhi_instance->create_buffer(ci);
         rhi::rhi_instance->update_buffer(_index_buffer, 
@@ -224,7 +224,7 @@ void StaticMesh::upload_data() {
         rhi::BufferCreateInfo ci;
         ci.size = _vtx_mesh_buffers[i].len;
         ci.stride = 0;
-        ci.usage = rhi::BufferUsageFlags::VertexBuffer;
+        ci.usage = rhi::BufferUsageFlagBit::VertexBuffer;
 
         auto vtx_buf = rhi::rhi_instance->create_buffer(ci);
         rhi::rhi_instance->update_buffer(vtx_buf, (const uint8_t *) (_vtx_mesh_buffers[i].ptr), 

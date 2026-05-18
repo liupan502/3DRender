@@ -23,6 +23,8 @@ namespace rhi {
         SampleStateRef create_sample_state(const SampleStateCreateInfo& info) override;
     
         ShaderModuleRef create_shader_module(const ShaderModuleCreateInfo& info) override;
+        
+        GraphicsPipelineRef create_graphics_pipeline(const GraphicsPipelineCreateInfo& info) override;
     private:
         std::shared_ptr<zr::RenderContext> _context;
     };

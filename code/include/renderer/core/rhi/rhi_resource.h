@@ -20,6 +20,10 @@ namespace rhi {
         R32G32B32A32_SFLOAT = 7,
         R32G32_SFLOAT = 8,
         R32G32B32_SFLOAT = 9,
+        R16G16_SFLOAT = 10,
+        B10G11R11_UFLOAT_PACK32 = 11,
+        D32_SFLOAT = 12,
+        B8G8R8A8_SRGB = 13,
     };
 
     enum class TextureType : uint8_t {
@@ -30,7 +34,7 @@ namespace rhi {
         TextureCubeArray
     };
 
-    enum class TextureCreateFlags : uint64_t {
+    enum class TextureCreateFlagBit : uint64_t {
         None = 0,
         RenderTargetable                  = 1ull << 0,
         ResolveTargetable                 = 1ull << 1,
@@ -44,6 +48,23 @@ namespace rhi {
         CPUReadback                       = 1ull << 9,
         DepthStencilResolveTarget         = 1ull << 10,
     };
+    using TextureCreateFlags = uint64_t;
+
+    inline constexpr TextureCreateFlags operator|(TextureCreateFlagBit lhs, TextureCreateFlagBit rhs) noexcept {
+        return static_cast<TextureCreateFlags>(lhs) | static_cast<TextureCreateFlags>(rhs);
+    }
+    inline constexpr TextureCreateFlags operator|(TextureCreateFlags lhs, TextureCreateFlagBit rhs) noexcept {
+        return lhs | static_cast<TextureCreateFlags>(rhs);
+    }
+    inline constexpr TextureCreateFlags operator|(TextureCreateFlagBit lhs, TextureCreateFlags rhs) noexcept {
+        return static_cast<TextureCreateFlags>(lhs) | rhs;
+    }
+    inline constexpr TextureCreateFlags& operator|=(TextureCreateFlags& lhs, TextureCreateFlagBit rhs) noexcept {
+        return lhs = lhs | static_cast<TextureCreateFlags>(rhs);
+    }
+    inline constexpr TextureCreateFlags operator&(TextureCreateFlags lhs, TextureCreateFlagBit rhs) noexcept {
+        return lhs & static_cast<TextureCreateFlags>(rhs);
+    }
 
     struct TextureCreateInfo {
     public:
@@ -54,7 +75,7 @@ namespace rhi {
         uint16_t layer_num = 1;
         TextureType type = TextureType::Texture2D;
         ColorFormat format = ColorFormat::R8G8B8A8_UNORM;
-        TextureCreateFlags flags = TextureCreateFlags::None;
+        TextureCreateFlags flags = 0;
     };
 
     class Texture : public Resource {
@@ -64,7 +85,7 @@ namespace rhi {
     TextureCreateInfo _create_info;
     };
 
-    enum class BufferUsageFlags : uint32_t {
+    enum class BufferUsageFlagBit : uint32_t {
         None = 0,
         VertexBuffer = 1u << 1,
         IndexBuffer = 1u << 2,
@@ -77,12 +98,29 @@ namespace rhi {
         CopySrc = 1u << 9,
         CopyDst = 1u << 10
     };
+    using BufferUsageFlags = uint32_t;
+
+    inline constexpr BufferUsageFlags operator|(BufferUsageFlagBit lhs, BufferUsageFlagBit rhs) noexcept {
+        return static_cast<BufferUsageFlags>(lhs) | static_cast<BufferUsageFlags>(rhs);
+    }
+    inline constexpr BufferUsageFlags operator|(BufferUsageFlags lhs, BufferUsageFlagBit rhs) noexcept {
+        return lhs | static_cast<BufferUsageFlags>(rhs);
+    }
+    inline constexpr BufferUsageFlags operator|(BufferUsageFlagBit lhs, BufferUsageFlags rhs) noexcept {
+        return static_cast<BufferUsageFlags>(lhs) | rhs;
+    }
+    inline constexpr BufferUsageFlags& operator|=(BufferUsageFlags& lhs, BufferUsageFlagBit rhs) noexcept {
+        return lhs = lhs | static_cast<BufferUsageFlags>(rhs);
+    }
+    inline constexpr BufferUsageFlags operator&(BufferUsageFlags lhs, BufferUsageFlagBit rhs) noexcept {
+        return lhs & static_cast<BufferUsageFlags>(rhs);
+    }
 
     struct BufferCreateInfo {
     public:
        uint32_t size = 0; 
        uint32_t stride = 0;
-       BufferUsageFlags usage = BufferUsageFlags::None;   
+       BufferUsageFlags usage = 0;   
     };
 
 
@@ -118,7 +156,10 @@ namespace rhi {
     };
 
     class ShaderModule : public Resource {
-
+        public:
+        ShaderModule(const ShaderModuleCreateInfo& info) : _ci(info) {};
+        protected:
+        ShaderModuleCreateInfo _ci;
     };
 
     struct VertexAttributeDesc {
@@ -169,4 +210,11 @@ namespace rhi {
 
         std::vector<ColorBlendAttachmentState> color_blend_attachments;
     };
+
+    class GraphicsPipeline : public Resource {
+        public:
+        GraphicsPipeline(const GraphicsPipelineCreateInfo& info) : _ci(info) {};
+        protected:
+        GraphicsPipelineCreateInfo _ci;
+    }
 };

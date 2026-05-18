@@ -8,7 +8,7 @@ namespace vulkan {
 
 VulkanShaderModule::VulkanShaderModule(std::shared_ptr<zr::RenderContext> context,
                                        const ShaderModuleCreateInfo& info)
-    : _context(context) {
+    : ShaderModule(info), _context(context)  {
     
     auto device = _context->get_device();
     VkShaderModuleCreateInfo shader_module_ci{};

@@ -8,21 +8,20 @@ namespace vulkan {
 
 VkBufferUsageFlagBits VulkanBuffer::buffer_usage_to_vk(BufferUsageFlags usage) {
     VkBufferUsageFlagBits vk_usage = static_cast<VkBufferUsageFlagBits>(0);
-    uint32_t flags = static_cast<uint32_t>(usage);
 
-    if (flags & static_cast<uint32_t>(BufferUsageFlags::VertexBuffer))
+    if (usage & static_cast<BufferUsageFlags>(BufferUsageFlagBit::VertexBuffer))
         vk_usage = static_cast<VkBufferUsageFlagBits>(vk_usage | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-    if (flags & static_cast<uint32_t>(BufferUsageFlags::IndexBuffer))
+    if (usage & static_cast<BufferUsageFlags>(BufferUsageFlagBit::IndexBuffer))
         vk_usage = static_cast<VkBufferUsageFlagBits>(vk_usage | VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
-    if (flags & static_cast<uint32_t>(BufferUsageFlags::UniformBuffer))
+    if (usage & static_cast<BufferUsageFlags>(BufferUsageFlagBit::UniformBuffer))
         vk_usage = static_cast<VkBufferUsageFlagBits>(vk_usage | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
-    if (flags & static_cast<uint32_t>(BufferUsageFlags::StorageBuffer))
+    if (usage & static_cast<BufferUsageFlags>(BufferUsageFlagBit::StorageBuffer))
         vk_usage = static_cast<VkBufferUsageFlagBits>(vk_usage | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
-    if (flags & static_cast<uint32_t>(BufferUsageFlags::IndirectBuffer))
+    if (usage & static_cast<BufferUsageFlags>(BufferUsageFlagBit::IndirectBuffer))
         vk_usage = static_cast<VkBufferUsageFlagBits>(vk_usage | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT);
-    if (flags & static_cast<uint32_t>(BufferUsageFlags::CopySrc))
+    if (usage & static_cast<BufferUsageFlags>(BufferUsageFlagBit::CopySrc))
         vk_usage = static_cast<VkBufferUsageFlagBits>(vk_usage | VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-    if (flags & static_cast<uint32_t>(BufferUsageFlags::CopyDst))
+    if (usage & static_cast<BufferUsageFlags>(BufferUsageFlagBit::CopyDst))
         vk_usage = static_cast<VkBufferUsageFlagBits>(vk_usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 
     return vk_usage;

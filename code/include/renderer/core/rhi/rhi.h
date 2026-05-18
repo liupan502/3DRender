@@ -8,6 +8,7 @@ namespace rhi
     using TextureRef = std::shared_ptr<Texture>;
     using SampleStateRef = std::shared_ptr<SampleState>;
     using ShaderModuleRef = std::shared_ptr<ShaderModule>;
+    using GraphicsPipelineRef = std::shared_ptr<GraphicsPipeline>;
 
     class RHI {
     public:
@@ -30,6 +31,8 @@ namespace rhi
         virtual SampleStateRef create_sample_state(const SampleStateCreateInfo& info) = 0;
         
         virtual ShaderModuleRef create_shader_module(const ShaderModuleCreateInfo& info) = 0;
+
+        virtual GraphicsPipelineRef create_graphics_pipeline(const GraphicsPipelineCreateInfo& info) = 0;
     };
 
     extern RHI* rhi_instance;

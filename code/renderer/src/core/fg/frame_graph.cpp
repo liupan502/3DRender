@@ -12,6 +12,8 @@
 #include <string.h>
 #include <algorithm>
 
+#include <rhi/rhi_resource.h>
+
 
 using namespace zr::core;
 
@@ -131,9 +133,9 @@ void FrameGraph::seperate_render_pass() {
     }
 }
 
-void FrameGraph::bake(std::shared_ptr<Device> device, 
+void FrameGraph::bake(/*std::shared_ptr<Device> device, 
                         std::shared_ptr<Swapchain> swapchain,
-                        std::shared_ptr<CommandPool> cmd_pool) {
+                        std::shared_ptr<CommandPool> cmd_pool*/) {
     if (!need_bake()) {
         return;
     }
@@ -148,19 +150,9 @@ void FrameGraph::bake(std::shared_ptr<Device> device,
         _groups[i]->bake(device, swapchain);
     }
 
-    create_cmd_bufs(device, swapchain, cmd_pool);
+
 
     _need_bake = false;
-}
-
-void FrameGraph::create_cmd_bufs(std::shared_ptr<Device> device, 
-                                    std::shared_ptr<Swapchain> swapchain,
-                                    std::shared_ptr<CommandPool> cmd_pool) {
-    uint32_t count = swapchain->get_display_image_views().size();
-    _cmd_bufs.clear();
-    for (uint32_t i = 0; i < count; i++) {
-        _cmd_bufs.emplace_back(std::make_shared<CommandBuffer>(device, cmd_pool));
-    }
 }
 
 void FrameGraph::execute(uint16_t active_frame_idx, std::shared_ptr<Device> device) {
@@ -294,10 +286,22 @@ void FrameGraph::create_images(std::shared_ptr<Device> device, uint8_t swapchain
         std::vector<std::shared_ptr<core::Image>> imgs;
         uint8_t count = atta_info.is_reused ? swapchain_num : 1;
         for (uint8_t i = 0; i < count; i++) {
-            std::shared_ptr<Image> img = std::make_shared<Image>(device, extent, atta_info.fmt,
+            /*std::shared_ptr<Image> img = std::make_shared<Image>(device, extent, atta_info.fmt,
                                         atta_info.img_usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                                         atta_info.samples,
                                         atta_info.level + 1, atta_info.layer + 1);
+            imgs.emplace_back(img);*/
+
+            rhi::TextureCreateInfo ci;
+            ci.width = atta_info.width;
+            ci.height = atta_info.height;
+            ci.depth = atta_info.depth;
+            ci.layer_num = atta_layer + 1;
+            ci.level_num = atta_info.level + 1;
+            ci.format = atta_info.fmt;
+            ci.flags = atta_info.img_usage;
+
+            auto img = rhi::rhi_instance->create_texture(ci);
             imgs.emplace_back(img);
         }
         

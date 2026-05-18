@@ -7,6 +7,8 @@
 #include <vulkan/vulkan.h>
 
 #include <memory>
+
+#include <rhi/rhi_definitions.h>
 namespace zr {
 
     namespace sg {
@@ -40,14 +42,26 @@ namespace zr {
             uint32_t width;
             uint32_t height;
             uint32_t depth;
-            VkFormat fmt;
-            VkSampleCountFlagBits samples;
-            VkAttachmentLoadOp load_op;
-            VkAttachmentStoreOp store_op;
+            // VkFormat fmt;
+            // VkSampleCountFlagBits samples;
+            // VkAttachmentLoadOp load_op;
+            // VkAttachmentStoreOp store_op;
+            rhi::ColorFormat fmt;
+            rhi::SampleCount samples;
+            rhi::AttachmentLoadOp load_op;
+            rhi::AttachmentStoreOp store_op;
             uint16_t level;
             uint16_t layer;
-            VkImageUsageFlags img_usage;
-            VkClearValue clear_val;
+            // VkImageUsageFlags img_usage;
+            // VkClearValue clear_val;
+
+            rhi::TextureCreateFlags img_usage;
+            glm::vec4 color_clear_val;
+            float depth_clear_val;
+            uint32_t stencil_clear_val;
+
+
+
             std::string img_name;
 
             // 对应的image是否在不同的frame buffer 中复用，如果复用则不同的frame buffer 中的image view 指向
@@ -181,8 +195,8 @@ namespace zr {
 
             virtual ~FgRenderPassGroup();
 
-            void bake(std::shared_ptr<Device> device, 
-                        std::shared_ptr<Swapchain> swapchain);
+            void bake(/*std::shared_ptr<Device> device, 
+                        std::shared_ptr<Swapchain> swapchain*/);
 
             void insert_pass(const std::string& pass_name); 
 
@@ -192,8 +206,8 @@ namespace zr {
 
             void prepare_renderpasses(std::shared_ptr<Device> device);
 
-            void execute(std::shared_ptr<Device> device, uint16_t active_frame_idx, 
-                        std::shared_ptr<CommandBuffer> cmd_buf);
+            void execute(/*std::shared_ptr<Device> device, uint16_t active_frame_idx, 
+                        std::shared_ptr<CommandBuffer> cmd_buf*/);
 
             std::shared_ptr<ImageView> get_image_view(const std::string& tex_name);            
 

@@ -106,4 +106,15 @@ namespace rhi{
         VIR_VERTEX,
         VIR_INSTANCE,
     };
+
+    enum AttachmentLoadOp {
+        ALO_LOAD = 0,
+        ALO_CLEAR = 1,
+        ALO_DONT_CARE = 2
+    };
+
+    enum AttachmentStoreOp {
+        ASO_STORE = 0,
+        ASO_DONT_CARE = 1
+    };
 };

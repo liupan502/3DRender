@@ -34,17 +34,17 @@ VkImageType VulkanTexture::texture_type_to_vk_image_type(TextureType type) const
 
 VkImageUsageFlags VulkanTexture::texture_flags_to_vk_usage(TextureCreateFlags flags) const {
     VkImageUsageFlags usage = 0;
-    if (static_cast<uint64_t>(flags) & static_cast<uint64_t>(TextureCreateFlags::RenderTargetable))
+    if (flags & static_cast<TextureCreateFlags>(TextureCreateFlagBit::RenderTargetable))
         usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    if (static_cast<uint64_t>(flags) & static_cast<uint64_t>(TextureCreateFlags::ResolveTargetable))
+    if (flags & static_cast<TextureCreateFlags>(TextureCreateFlagBit::ResolveTargetable))
         usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    if (static_cast<uint64_t>(flags) & static_cast<uint64_t>(TextureCreateFlags::DepthStencilTargetable))
+    if (flags & static_cast<TextureCreateFlags>(TextureCreateFlagBit::DepthStencilTargetable))
         usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-    if (static_cast<uint64_t>(flags) & static_cast<uint64_t>(TextureCreateFlags::ShaderResource))
+    if (flags & static_cast<TextureCreateFlags>(TextureCreateFlagBit::ShaderResource))
         usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
-    if (static_cast<uint64_t>(flags) & static_cast<uint64_t>(TextureCreateFlags::CPUWritable))
+    if (flags & static_cast<TextureCreateFlags>(TextureCreateFlagBit::CPUWritable))
         usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-    if (static_cast<uint64_t>(flags) & static_cast<uint64_t>(TextureCreateFlags::InputAttachmentRead))
+    if (flags & static_cast<TextureCreateFlags>(TextureCreateFlagBit::InputAttachmentRead))
         usage |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
     return usage;
 }
@@ -321,7 +321,7 @@ void VulkanTexture::update_data(unsigned char* data, uint32_t size,
     
     BufferCreateInfo ci;
     ci.size = size;
-    ci.usage = rhi::BufferUsageFlags::CopySrc;
+    ci.usage = rhi::BufferUsageFlagBit::CopySrc;
     auto stage_buf = std::make_shared<VulkanBuffer>(ci);
     stage_buf->update(data, size);
     

@@ -5,20 +5,22 @@
 #include <string>
 #include <memory>
 #include <core/fg/fg_render_pass.h>
+#include <rhi/rhi_resource.h>
+
 namespace zr{
     namespace core{
         
 
         struct ResourceDimensions
         {
-            VkFormat fmt = VK_FORMAT_UNDEFINED;
+            rhi::ColorFormat fmt = VK_FORMAT_UNDEFINED;
             uint16_t width = 0;
             uint16_t height = 0;
             uint16_t depth = 1;
             uint16_t layers = 1;
             uint16_t levels = 1;
             uint16_t samples = 1;
-            VkImageUsageFlags img_usage = 0;
+            rhi::TextureCreateFlags img_usage = 0;
         };
 
         enum RenderResourceType {
@@ -77,11 +79,11 @@ namespace zr{
         class FgRenderTextureResource : public FgRenderResource {
             public:
             FgRenderTextureResource(const std::string& name = "");
-            inline void add_img_usage(VkImageUsageFlags new_img_usage) {
+            inline void add_img_usage(rhi::TextureCreateFlagBit new_img_usage) {
                 _img_usage |= new_img_usage;
                 _attachment_info.img_usage = _img_usage;
             }
-            inline VkImageUsageFlags get_img_usage() const {
+            inline rhi::TextureCreateFlags get_img_usage() const {
                 return _img_usage;
             }
 
@@ -99,7 +101,7 @@ namespace zr{
             private:
             
             AttachmentInfo _attachment_info;
-            VkImageUsageFlags _img_usage;
+            rhi::TextureCreateFlags _img_usage;
         };
     }
 }

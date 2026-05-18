@@ -10,6 +10,7 @@
 #include <core/renderers/sky_renderer.h>
 #include <core/pipeline_manager.h>
 #include <core/command_buffer.h>
+#include <rhi/rhi_resource.h>
 #include <memory>
 #include <sstream>
 #include <utils/log.h>
@@ -50,7 +51,7 @@ MultiPassRenderer::~MultiPassRenderer() {
 
 }
 
-bool MultiPassRenderer::init_internel(VkSampleCountFlagBits sample_count) {
+bool MultiPassRenderer::init_internel(rhi::SampleCount sample_count) {
     _sample_count = sample_count;
     _fg = std::make_shared<core::FrameGraph>();
     // add_transmittance_pass();
@@ -152,60 +153,53 @@ void MultiPassRenderer::add_main_pass() {
     std::shared_ptr<core::Swapchain> sc = _context->get_swapchain();
 
     core::AttachmentInfo color_output_info{};
-    color_output_info.fmt = /*VK_FORMAT_R16G16B16A16_SFLOAT*/VK_FORMAT_B10G11R11_UFLOAT_PACK32 /*sc->get_suitable_format()*/;
+    color_output_info.fmt = rhi::ColorFormat::R8G8B8A8_SRGB;
     color_output_info.depth = 1;
     color_output_info.width = sc->get_display_size().width;
     color_output_info.height = sc->get_display_size().height;
-    color_output_info.img_usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    if (_sample_count != VK_SAMPLE_COUNT_1_BIT) {
-        color_output_info.img_usage |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+    color_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable;
+    if (_sample_count != rhi::SampleCount::SC_COUNT_1) {
+        color_output_info.img_usage |= rhi::TextureCreateFlagBit::Memoryless;
     }
     color_output_info.layer = 0;
     color_output_info.level = 0;
     color_output_info.samples = _sample_count;
-    color_output_info.clear_val = VkClearValue {
-        .color = {1.0f, 1.0f, 1.0f, 1.0f}
-    };
+    color_output_info.color_clear_val = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
     color_output_info.is_reused = false;
-    // color_output_info.store_op = VK_ATTACHMENT_STORE_OP_STORE;
     color_output_info.img_name = "main_pass_color_output_img";
 
     std::string pass_name = "main_pass_color_output";
-    if (_sample_count != VK_SAMPLE_COUNT_1_BIT) {
+    if (_sample_count != rhi::SampleCount::SC_COUNT_1) {
         pass_name = "tmp_main_pass_color_output";
     }
     else {
-        color_output_info.store_op = VK_ATTACHMENT_STORE_OP_STORE;
+        color_output_info.store_op = rhi::AttachmentStoreOp::ASO_STORE;
     }
     main_pass->add_color_output(pass_name, color_output_info);
 
     core::AttachmentInfo velocity_output_info{};
-    velocity_output_info.fmt = VK_FORMAT_R16G16_SFLOAT /*VK_FORMAT_B10G11R11_UFLOAT_PACK32*/;
+    velocity_output_info.fmt = rhi::ColorFormat::R16G16_SFLOAT;
     velocity_output_info.depth = 1;
     velocity_output_info.width = sc->get_display_size().width;
     velocity_output_info.height = sc->get_display_size().height;
-    velocity_output_info.img_usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    velocity_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable;
     velocity_output_info.layer = 0;
     velocity_output_info.level = 0;
     velocity_output_info.samples = _sample_count;
-    velocity_output_info.clear_val = VkClearValue {
-        .color = {0.0f, 0.0f, 0.0f, 0.0f}
-    };
+    velocity_output_info.color_clear_val = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
     velocity_output_info.is_reused = false;
     velocity_output_info.img_name = "main_pass_velocity_output_img";
-    velocity_output_info.store_op = VK_ATTACHMENT_STORE_OP_STORE;
+    velocity_output_info.store_op = rhi::AttachmentStoreOp::ASO_STORE;
     std::string attachment_name = "main_pass_velocity_output";
     main_pass->add_color_output(attachment_name, velocity_output_info);
 
 
     // resloved attchment
-    if (_sample_count != VK_SAMPLE_COUNT_1_BIT) {
+    if (_sample_count != rhi::SampleCount::SC_COUNT_1) {
         core::AttachmentInfo resloved_output_info = color_output_info;
-        resloved_output_info.samples = VK_SAMPLE_COUNT_1_BIT;
-        resloved_output_info.clear_val = VkClearValue {
-            .color = {0.0f, 1.0f, 0.0f, 1.0f}
-        };
-        resloved_output_info.store_op = VK_ATTACHMENT_STORE_OP_STORE;
+        resloved_output_info.samples = rhi::SampleCount::SC_COUNT_1;
+        resloved_output_info.color_clear_val = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+        resloved_output_info.store_op = rhi::AttachmentStoreOp::ASO_STORE;
         resloved_output_info.img_name = "main_pass_resloved_output_img";
         main_pass->add_reslove_output("main_pass_color_output", resloved_output_info);
     }
@@ -214,14 +208,12 @@ void MultiPassRenderer::add_main_pass() {
     // main_pass->add_reslove_output("main_pass_reslove_output", reslove_output_info);
 
     core::AttachmentInfo depth_stencil_info = color_output_info;
-    depth_stencil_info.fmt = VK_FORMAT_D32_SFLOAT;
-    depth_stencil_info.img_usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT /*|
-                                     VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT*/;
+    depth_stencil_info.fmt = rhi::ColorFormat::D32_SFLOAT;
+    depth_stencil_info.img_usage = rhi::TextureCreateFlagBit::DepthStencilTargetable;
 
-    depth_stencil_info.clear_val = VkClearValue {
-        .depthStencil = {1.0f, 0}
-    };
-    depth_stencil_info.store_op = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depth_stencil_info.depth_clear_val = 1.0f;
+    depth_stencil_info.stencil_clear_val = 0;
+    depth_stencil_info.store_op = rhi::AttachmentStoreOp::ASO_DONT_CARE;
     depth_stencil_info.img_name = "main_pass_depth_stencil_output_img";
     depth_stencil_info.is_reused = false;
     main_pass->add_depth_stencil_output("main_pass_depth_stencil_output", depth_stencil_info);
@@ -247,18 +239,16 @@ void MultiPassRenderer::add_output_pass() {
     output_pass->add_texture_sample(tex_sample_name);
     std::shared_ptr<core::Swapchain> sc = _context->get_swapchain();
     core::AttachmentInfo color_output_info{};
-    color_output_info.fmt = sc->get_suitable_format();
+    color_output_info.fmt = rhi::ColorFormat::R8G8B8A8_SRGB;
     color_output_info.depth = 1;
     color_output_info.width = sc->get_display_size().width;
     color_output_info.height = sc->get_display_size().height;
-    color_output_info.img_usage =  VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    color_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable;
     color_output_info.layer = 0;
     color_output_info.level = 0;
-    color_output_info.samples = VK_SAMPLE_COUNT_1_BIT;
-    color_output_info.clear_val = VkClearValue {
-        .color = {1.0f, 0.0f, 1.0f, 1.0f}
-    };
-    color_output_info.store_op = VK_ATTACHMENT_STORE_OP_STORE;
+    color_output_info.samples = rhi::SampleCount::SC_COUNT_1;
+    color_output_info.color_clear_val = glm::vec4(1.0f, 0.0f, 1.0f, 1.0f);
+    color_output_info.store_op = rhi::AttachmentStoreOp::ASO_STORE;
     color_output_info.img_name = "output_pass_color_output_img";
     output_pass->add_color_output("output_pass_color_output", color_output_info);
 }
@@ -293,19 +283,17 @@ void MultiPassRenderer::add_taa_pass() {
 
     
     core::AttachmentInfo taa_output_info{};
-    taa_output_info.fmt = /*VK_FORMAT_R16G16B16A16_SFLOAT*/ VK_FORMAT_B10G11R11_UFLOAT_PACK32 /*sc->get_suitable_format()*/;
+    taa_output_info.fmt = rhi::ColorFormat::B10G11R11_UFLOAT_PACK32;
     taa_output_info.depth = 1;
     taa_output_info.width = width;
     taa_output_info.height = height;
-    taa_output_info.img_usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    taa_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable;
     taa_output_info.layer = 0;
     taa_output_info.level = 0;
-    taa_output_info.samples = VK_SAMPLE_COUNT_1_BIT;
-    taa_output_info.clear_val = VkClearValue {
-        .color = {0.0f, 0.0f, 1.0f, 1.0f}
-    };
+    taa_output_info.samples = rhi::SampleCount::SC_COUNT_1;
+    taa_output_info.color_clear_val = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
     taa_output_info.is_reused = true;
-    taa_output_info.store_op = VK_ATTACHMENT_STORE_OP_STORE;
+    taa_output_info.store_op = rhi::AttachmentStoreOp::ASO_STORE;
     taa_output_info.img_name = "taa_pass_color_output_img";
 
     taa_pass->add_color_output("taa_pass_color_output", taa_output_info);
@@ -344,19 +332,16 @@ void MultiPassRenderer::add_bloom_pass() {
         bloom_down_sample_pass->set_setup_data(set_up);
 
         core::AttachmentInfo color_output_info{};
-        color_output_info.fmt = VK_FORMAT_B10G11R11_UFLOAT_PACK32 /*VK_FORMAT_R16G16B16A16_SFLOAT*/;
+        color_output_info.fmt = rhi::ColorFormat::B10G11R11_UFLOAT_PACK32;
         color_output_info.depth = 1;
         color_output_info.width = width >> i;
         color_output_info.height = height >> i;
-        color_output_info.img_usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        color_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable;
         color_output_info.layer = 0;
         color_output_info.level = i;
-        color_output_info.samples = VK_SAMPLE_COUNT_1_BIT;
-        color_output_info.clear_val = VkClearValue {
-            .color = {0.0f, 0.0f, 0.0f, 1.0f}
-        };
-        color_output_info.store_op = VK_ATTACHMENT_STORE_OP_STORE;
-        // color_output_info.load_op = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        color_output_info.samples = rhi::SampleCount::SC_COUNT_1;
+        color_output_info.color_clear_val = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        color_output_info.store_op = rhi::AttachmentStoreOp::ASO_STORE;
         color_output_info.img_name = "bloom_downsample_pass_color_output_img";
         ss.str("");
         ss << "bloom_downsample_pass_color_output" << std::to_string(i);
@@ -397,19 +382,17 @@ void MultiPassRenderer::add_bloom_pass() {
         bloom_up_sample_pass->set_setup_data(set_up);
 
         core::AttachmentInfo color_output_info{};
-        color_output_info.fmt = VK_FORMAT_B10G11R11_UFLOAT_PACK32 /*VK_FORMAT_R16G16B16A16_SFLOAT*/;
+        color_output_info.fmt = rhi::ColorFormat::B10G11R11_UFLOAT_PACK32;
         color_output_info.depth = 1;
         color_output_info.width = width >> (level - i - 1);
         color_output_info.height = height >> (level - i - 1);
-        color_output_info.img_usage =  VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        color_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable;
         color_output_info.layer = 0;
         color_output_info.level = level - i - 1;
-        color_output_info.samples = VK_SAMPLE_COUNT_1_BIT;
-        color_output_info.clear_val = VkClearValue {
-            .color = {0.0f, 0.0f, 0.0f, 1.0f}
-        };
+        color_output_info.samples = rhi::SampleCount::SC_COUNT_1;
+        color_output_info.color_clear_val = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
         color_output_info.img_name = "bloom_upsample_pass_color_output_img";
-        color_output_info.store_op = VK_ATTACHMENT_STORE_OP_STORE;
+        color_output_info.store_op = rhi::AttachmentStoreOp::ASO_STORE;
         ss.str("");
         ss << "bloom_upsample_pass_color_output" << std::to_string(i);
         std::string color_output_name = ss.str();
@@ -445,18 +428,16 @@ void MultiPassRenderer::add_color_grading_pass() {
     uint16_t height = sc->get_display_size().height;
 
     core::AttachmentInfo color_output_info{};
-    color_output_info.fmt = /*VK_FORMAT_B10G11R11_UFLOAT_PACK32*/ sc->get_suitable_format()/*VK_FORMAT_R16G16B16A16_SFLOAT*/;
+    color_output_info.fmt = rhi::ColorFormat::R8G8B8A8_SRGB;
     color_output_info.depth = 1;
     color_output_info.width = width;
     color_output_info.height = height;
-    color_output_info.img_usage =  VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    color_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable;
     color_output_info.layer = 0;
     color_output_info.level = 0;
-    color_output_info.samples = VK_SAMPLE_COUNT_1_BIT;
-    color_output_info.clear_val = VkClearValue {
-        .color = {1.0f, 0.0f, 1.0f, 1.0f}
-    };
-    color_output_info.store_op = VK_ATTACHMENT_STORE_OP_STORE;
+    color_output_info.samples = rhi::SampleCount::SC_COUNT_1;
+    color_output_info.color_clear_val = glm::vec4(1.0f, 0.0f, 1.0f, 1.0f);
+    color_output_info.store_op = rhi::AttachmentStoreOp::ASO_STORE;
     color_output_info.img_name = "color_grading_output_img";
     color_grading_pass->add_color_output("color_grading_pass_output", color_output_info);
 
@@ -473,18 +454,16 @@ void MultiPassRenderer::add_transmittance_pass() {
     transmittance_pass->set_setup_data(set_up);
     
     core::AttachmentInfo color_output_info{};
-    color_output_info.fmt = VK_FORMAT_R16G16B16A16_SFLOAT;
+    color_output_info.fmt = rhi::ColorFormat::R16G16B16A16_SFLOAT;
     color_output_info.depth = 1;
     color_output_info.width = 256;
     color_output_info.height = 64;
-    color_output_info.img_usage =  VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    color_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable;
     color_output_info.layer = 0;
     color_output_info.level = 0;
-    color_output_info.samples = VK_SAMPLE_COUNT_1_BIT;
-    color_output_info.clear_val = VkClearValue {
-        .color = {1.0f, 0.0f, 1.0f, 1.0f}
-    };
-    color_output_info.store_op = VK_ATTACHMENT_STORE_OP_STORE;
+    color_output_info.samples = rhi::SampleCount::SC_COUNT_1;
+    color_output_info.color_clear_val = glm::vec4(1.0f, 0.0f, 1.0f, 1.0f);
+    color_output_info.store_op = rhi::AttachmentStoreOp::ASO_STORE;
     color_output_info.img_name = "transmittance_output_img";
 
     transmittance_pass->add_color_output("transmittance_pass_output", color_output_info);
@@ -499,18 +478,16 @@ void MultiPassRenderer::add_sky_view_pass() {
     sky_view_pass->set_setup_data(set_up);
     
     core::AttachmentInfo color_output_info{};
-    color_output_info.fmt = VK_FORMAT_B10G11R11_UFLOAT_PACK32;
+    color_output_info.fmt = rhi::ColorFormat::B10G11R11_UFLOAT_PACK32;
     color_output_info.depth = 1;
     color_output_info.width = 192;
     color_output_info.height = 108;
-    color_output_info.img_usage =  VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    color_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable;
     color_output_info.layer = 0;
     color_output_info.level = 0;
-    color_output_info.samples = VK_SAMPLE_COUNT_1_BIT;
-    color_output_info.clear_val = VkClearValue {
-        .color = {1.0f, 0.0f, 1.0f, 1.0f}
-    };
-    color_output_info.store_op = VK_ATTACHMENT_STORE_OP_STORE;
+    color_output_info.samples = rhi::SampleCount::SC_COUNT_1;
+    color_output_info.color_clear_val = glm::vec4(1.0f, 0.0f, 1.0f, 1.0f);
+    color_output_info.store_op = rhi::AttachmentStoreOp::ASO_STORE;
     color_output_info.img_name = "sky_view_output_img";
 
     sky_view_pass->add_color_output("sky_view_pass_output", color_output_info);

@@ -29,14 +29,14 @@ namespace zr {
             void reset();
             std::shared_ptr<FgRenderPass> add_pass(const std::string& pass_name, bool is_swapchain = false);
             
-            void bake(std::shared_ptr<Device> device, 
+            void bake(/*std::shared_ptr<Device> device, 
                         std::shared_ptr<Swapchain> swapchain, 
-                        std::shared_ptr<CommandPool> cmd_pool);
+                        std::shared_ptr<CommandPool> cmd_pool*/);
 
             std::shared_ptr<FgRenderTextureResource> get_tex_res(const std::string& name);
             bool contains_tex_res(const std::string& name) const;
 
-            void execute(uint16_t active_frame_idx, std::shared_ptr<Device> device);
+            void execute(/*uint16_t active_frame_idx, std::shared_ptr<Device> device*/);
 
             inline std::shared_ptr<CommandBuffer> get_command_buf(uint16_t active_idx) {
                 return _cmd_bufs[active_idx];
@@ -63,10 +63,6 @@ namespace zr {
 
             void order_group();
 
-            void create_cmd_bufs(std::shared_ptr<Device> device, 
-                                    std::shared_ptr<Swapchain> swapchain,
-                                    std::shared_ptr<CommandPool> cmd_pool); 
-
             void create_images(std::shared_ptr<Device> device, uint8_t swapchain_num);     
                    
 
@@ -75,12 +71,10 @@ namespace zr {
             bool _need_bake;
             
             std::unordered_map<std::string, std::shared_ptr<FgRenderTextureResource>> _tex_res_map;
-            std::unordered_map<std::string, std::vector<std::shared_ptr<Image>>> _imgs_map;
+            std::unordered_map<std::string, std::vector<std::shared_ptr<rhi::Texture>>> _imgs_map;
             std::unordered_map<std::string, std::shared_ptr<FgRenderPass>> _render_pass_map;
             std::string _swapchain_pass_name;
       
-            std::vector<std::shared_ptr<CommandBuffer>> _cmd_bufs;
-
             uint16_t _active_frame_idx = 0; 
 
             std::vector<std::shared_ptr<FgRenderPassGroup>> _groups;

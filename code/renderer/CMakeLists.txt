@@ -12,7 +12,7 @@ add_library(z_renderer
         src/render_target.cpp
         #src/renderer.cpp
         src/multipass_renderer.cpp
-        src/avm_renderer.cpp
+        
 
         # scenegraph
         src/scenegraph/scene.cpp
@@ -68,7 +68,7 @@ add_library(z_renderer
         src/core/renderers/bloom.cpp
         src/core/renderers/color_grading.cpp
         src/core/renderers/taa_renderer.cpp
-        src/core/renderers/avm_video_renderer.cpp
+        
         src/core/renderers/sky_renderer.cpp
 
         # rhi
