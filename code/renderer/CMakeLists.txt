@@ -1,7 +1,9 @@
 
 project(z_renderer)
 
-include_directories(../include/renderer ../include/renderer/third_party ../include/renderer/third_party/jsoncpp ../third_party/vma/include)
+include_directories(../include/renderer ../include/renderer/core ../include/renderer/third_party ../include/renderer/third_party/jsoncpp ../third_party/vma/include)
+
+file(GLOB RHI_VULKAN_SOURCES src/core/rhi/vulkan/*.cpp)
 
 add_library(z_renderer
         STATIC
@@ -74,9 +76,7 @@ add_library(z_renderer
         # rhi
         src/core/rhi/rhi.cpp
         src/core/rhi/rhi_resource.cpp
-        src/core/rhi/vulkan/vulkan_rhi.cpp
-        src/core/rhi/vulkan/vulkan_texture.cpp
-        src/core/rhi/vulkan/vulkan_buffer.cpp
+        ${RHI_VULKAN_SOURCES}
 
         # fg
         src/core/fg/frame_graph.cpp

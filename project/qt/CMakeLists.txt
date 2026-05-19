@@ -94,6 +94,7 @@ include_directories(
     ${RENDERER_PROJECT_DIR}/include/renderer/third_party
     ${RENDERER_PROJECT_DIR}/third_party/vma/include
     ${RENDERER_PROJECT_DIR}/include/renderer
+    ${RENDERER_PROJECT_DIR}/include/renderer/core
     ${RENDERER_PROJECT_DIR}/hmi_app 
     include/renderer/third_party/jsoncpp)
 

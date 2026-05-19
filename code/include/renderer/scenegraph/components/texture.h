@@ -82,11 +82,11 @@ namespace zr{
             virtual ~Texture();
 
         protected:
-            void add_content(const std::string& path, uint16_t width, uint16_t height, uint16_t depth, VkFormat fmt,
+            void add_content(const std::string& path, uint16_t width, uint16_t height, uint16_t depth, rhi::ColorFormat fmt,
                 TextureSamplerType st, uint8_t mipmap_level_count = 1);
-            void add_content(const std::string& path, TextureSamplerType st, uint8_t mipmap_level_count = 1, VkFormat fmt = VK_FORMAT_R8G8B8A8_SRGB);
-            void add_content(const std::vector<std::string>& mipmap_img_paths, TextureSamplerType st, VkFormat fmt = VK_FORMAT_R8G8B8A8_SRGB);
-            void add_hdr_content(const std::string& path, VkFormat pixexl_fmt, VkFormat tex_fmt, uint8_t mipmap_level_count = 1);
+            void add_content(const std::string& path, TextureSamplerType st, uint8_t mipmap_level_count = 1, rhi::ColorFormat fmt = rhi::ColorFormat::R8G8B8A8_SRGB);
+            void add_content(const std::vector<std::string>& mipmap_img_paths, TextureSamplerType st, rhi::ColorFormat fmt = rhi::ColorFormat::R8G8B8A8_SRGB);
+            void add_hdr_content(const std::string& path, rhi::ColorFormat pixexl_fmt, rhi::ColorFormat tex_fmt, uint8_t mipmap_level_count = 1);
             void upload_data_internal();
             
             void update_2d_data(const TextureContent& tc, 

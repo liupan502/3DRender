@@ -13,7 +13,7 @@ namespace zr{
 
         struct ResourceDimensions
         {
-            rhi::ColorFormat fmt = VK_FORMAT_UNDEFINED;
+            rhi::ColorFormat fmt = rhi::ColorFormat::None;
             uint16_t width = 0;
             uint16_t height = 0;
             uint16_t depth = 1;
@@ -79,7 +79,7 @@ namespace zr{
         class FgRenderTextureResource : public FgRenderResource {
             public:
             FgRenderTextureResource(const std::string& name = "");
-            inline void add_img_usage(rhi::TextureCreateFlagBit new_img_usage) {
+            inline void add_img_usage(rhi::TextureCreateFlags new_img_usage) {
                 _img_usage |= new_img_usage;
                 _attachment_info.img_usage = _img_usage;
             }
@@ -87,20 +87,20 @@ namespace zr{
                 return _img_usage;
             }
 
-            inline void set_attachment_info(const AttachmentInfo& attachment_info) { 
+            inline void set_attachment_info(const rhi::AttachmentInfo& attachment_info) { 
                 _attachment_info = attachment_info;
                 add_img_usage(_attachment_info.img_usage);
                 _attachment_info.img_usage = _img_usage;
             };
 
-            inline const AttachmentInfo& get_attachment_info() const {
+            inline const rhi::AttachmentInfo& get_attachment_info() const {
                 return _attachment_info;
             }
 
             
             private:
             
-            AttachmentInfo _attachment_info;
+            rhi::AttachmentInfo _attachment_info;
             rhi::TextureCreateFlags _img_usage;
         };
     }

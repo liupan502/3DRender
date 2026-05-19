@@ -241,7 +241,7 @@ rhi::SampleStateRef Texture::get_rhi_sampler() {
     return _tex_contents[_active_idx].rhi_sampler;
 }
 
-void Texture::add_content(const std::string& path, uint16_t width, uint16_t height, uint16_t depth, VkFormat fmt,
+void Texture::add_content(const std::string& path, uint16_t width, uint16_t height, uint16_t depth, rhi::ColorFormat fmt,
                 TextureSamplerType st, uint8_t mipmap_level_count) {
     TextureContent tc;
     tc.mipmap_level_count = mipmap_level_count;

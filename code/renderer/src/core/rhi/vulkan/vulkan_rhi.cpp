@@ -3,6 +3,7 @@
 #include <rhi/vulkan/vulkan_texture.h>
 #include <rhi/vulkan/vulkan_shader_module.h>
 #include <rhi/vulkan/vulkan_pipeline.h>
+#include <rhi/vulkan/vulkan_render_target.h>
 
 #ifdef PLATFORM_ANDROID
 #include <android/native_window.h>

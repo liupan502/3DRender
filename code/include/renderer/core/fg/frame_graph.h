@@ -19,8 +19,6 @@ namespace zr {
         class 
         FrameGraph {
 
-            friend class FgRenderPassGroup;
-
             public:
             FrameGraph() : _need_bake(true){
 
@@ -29,18 +27,12 @@ namespace zr {
             void reset();
             std::shared_ptr<FgRenderPass> add_pass(const std::string& pass_name, bool is_swapchain = false);
             
-            void bake(/*std::shared_ptr<Device> device, 
-                        std::shared_ptr<Swapchain> swapchain, 
-                        std::shared_ptr<CommandPool> cmd_pool*/);
+            void bake();
 
             std::shared_ptr<FgRenderTextureResource> get_tex_res(const std::string& name);
             bool contains_tex_res(const std::string& name) const;
 
-            void execute(/*uint16_t active_frame_idx, std::shared_ptr<Device> device*/);
-
-            inline std::shared_ptr<CommandBuffer> get_command_buf(uint16_t active_idx) {
-                return _cmd_bufs[active_idx];
-            }
+            void execute();
 
             inline bool need_bake() const {
                 return _need_bake;
@@ -48,24 +40,13 @@ namespace zr {
 
             void add_image_view(const std::string& tex_name, std::shared_ptr<ImageView> img_view);
 
-            // void add_image(const std::string& img_name, std::shared_ptr<Image> img);
+            std::shared_ptr<rhi::Texture> get_image(const std::string& img_name, uint8_t idx = 0);
 
-            // bool has_image(const std::string& img_name);
-
-            std::shared_ptr<Image> get_image(const std::string& img_name, uint8_t idx = 0);
-
-            std::shared_ptr<ImageView> get_image_view(const std::string& tex_name);
-
-            void set_viewport(VkViewport viewport);    
             protected:
 
-            void seperate_render_pass();
+            void order_passes();
 
-            void order_group();
-
-            void create_images(std::shared_ptr<Device> device, uint8_t swapchain_num);     
-                   
-
+            void create_images(uint8_t swapchain_num);
 
             private:
             bool _need_bake;
@@ -77,9 +58,7 @@ namespace zr {
       
             uint16_t _active_frame_idx = 0; 
 
-            std::vector<std::shared_ptr<FgRenderPassGroup>> _groups;
-
-            std::unordered_map<std::string, std::vector<std::shared_ptr<ImageView>>> _img_views_map;
+            std::vector<std::string> _ordered_passes;
         };
     };
 };

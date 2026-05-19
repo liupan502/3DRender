@@ -45,6 +45,8 @@ namespace zr {
             virtual std::type_index get_type() const override;
             virtual ~Mesh() = default;
 
+            virtual void upload_data() = 0;
+
             inline std::vector<std::shared_ptr<rhi::Buffer>> get_vtx_buffers() { return _vtx_buffers;} ;
             inline std::shared_ptr<rhi::Buffer> get_index_buffer() { return _index_buffer;};
             inline uint32_t  get_indice_count(){ return _indice_count;};

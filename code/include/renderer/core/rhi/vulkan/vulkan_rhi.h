@@ -25,6 +25,8 @@ namespace rhi {
         ShaderModuleRef create_shader_module(const ShaderModuleCreateInfo& info) override;
         
         GraphicsPipelineRef create_graphics_pipeline(const GraphicsPipelineCreateInfo& info) override;
+    
+        // RenderTargetRef create_render_target(const RenderTargetCreateInfo& info) override;
     private:
         std::shared_ptr<zr::RenderContext> _context;
     };

@@ -3,6 +3,7 @@
 #include <rhi/rhi_definitions.h>
 #include <memory>
 #include <vector>
+#include <glm/glm.hpp>
 
 namespace rhi {
     class Resource {
@@ -212,9 +213,44 @@ namespace rhi {
     };
 
     class GraphicsPipeline : public Resource {
-        public:
+    public:
         GraphicsPipeline(const GraphicsPipelineCreateInfo& info) : _ci(info) {};
-        protected:
+    protected:
         GraphicsPipelineCreateInfo _ci;
-    }
+    };
+
+    struct AttachmentInfo {
+        public:
+        uint32_t width = 0;
+        uint32_t height = 0;
+        uint32_t depth = 1;        
+        rhi::ColorFormat fmt = ColorFormat::None;
+        rhi::SampleCount samples = SampleCount::SC_COUNT_1;
+        rhi::AttachmentLoadOp load_op = AttachmentLoadOp::ALO_LOAD;
+        rhi::AttachmentStoreOp store_op = AttachmentStoreOp::ASO_STORE;
+        uint16_t level = 0;
+        uint16_t layer = 0;    
+
+        rhi::TextureCreateFlags img_usage = static_cast<uint64_t>(TextureCreateFlagBit::ShaderResource);
+        glm::vec4 color_clear_val;
+        float depth_clear_val;
+        uint32_t stencil_clear_val;
+        std::string img_name;
+        // 对应的image是否在不同的frame buffer 中复用，如果复用则不同的frame buffer 中的image view 指向
+        // 相同的image，反之则image 与image view一一对应
+        bool is_reused = true;
+    };
+
+    struct RenderTargetCreateInfo {
+        std::vector<AttachmentInfo> attachmentInfos;
+        std::vector<std::shared_ptr<Texture>> textures;
+    };
+
+    class RenderTarget : public Resource {
+    public:
+        RenderTarget(const RenderTargetCreateInfo& info) : _ci(info) {};
+
+    protected:
+        RenderTargetCreateInfo _ci;
+    };
 };

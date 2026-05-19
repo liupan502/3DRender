@@ -62,8 +62,7 @@ bool MultiPassRenderer::init_internel(rhi::SampleCount sample_count) {
     add_color_grading_pass();
     add_output_pass();
     if (_fg->need_bake()) {
-        _fg->bake(_context->get_device(),
-                    _context->get_swapchain(), _context->get_cmd_pool());
+        _fg->bake();
     }
     return true;
 }
@@ -85,7 +84,7 @@ void MultiPassRenderer::render_scene(std::shared_ptr<sg::Scene> scene) {
         return;
     }
 
-    _fg->execute(active_frame_idx, _context->get_device());
+    _fg->execute(active_frame_idx);
 
     // Submit and present using RenderContext
     VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;

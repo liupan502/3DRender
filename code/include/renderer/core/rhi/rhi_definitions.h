@@ -1,3 +1,5 @@
+#pragma once
+
 namespace rhi{
     enum SamplerFilterType
     {
@@ -116,5 +118,13 @@ namespace rhi{
     enum AttachmentStoreOp {
         ASO_STORE = 0,
         ASO_DONT_CARE = 1
+    };
+
+    enum AttachmentType{
+        ATTACHMENT_TYPE_COLOR = 0,
+        ATTACHMENT_TYPE_DEPTH = 1,
+        ATTACHMENT_TYPE_RESLOVE = 2,
+        ATTACHMENT_TYPE_INPUT = 3,
+        ATTACHMENT_TYPE_PRESERVE = 4
     };
 };
