@@ -52,6 +52,7 @@ add_library(z_renderer
         src/core/command_pool.cpp
         src/core/descriptor.cpp
         src/core/framebuffer.cpp
+        src/core/texture_cache.cpp
         src/core/image.cpp
         src/core/image_view.cpp
         src/core/physical_device.cpp

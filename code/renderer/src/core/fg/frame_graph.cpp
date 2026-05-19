@@ -50,7 +50,7 @@ void FrameGraph::bake() {
     _need_bake = false;
 }
 
-void FrameGraph::execute(uint16_t active_frame_idx) {
+void FrameGraph::execute() {
     _active_frame_idx = active_frame_idx;
 
     for (uint16_t i = 0; i < _ordered_passes.size(); i++) {
