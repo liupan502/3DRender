@@ -97,11 +97,17 @@ namespace zr{
                 return _attachment_info;
             }
 
-            
+            inline uint16_t get_first_pass_idx() const { return _first_pass_idx; }
+            inline uint16_t get_last_pass_idx() const { return _last_pass_idx; }
+            inline void set_first_pass_idx(uint16_t idx) { _first_pass_idx = idx; }
+            inline void set_last_pass_idx(uint16_t idx) { _last_pass_idx = idx; }
+
             private:
             
             rhi::AttachmentInfo _attachment_info;
             rhi::TextureCreateFlags _img_usage;
+            uint16_t _first_pass_idx = UINT16_MAX;
+            uint16_t _last_pass_idx = 0;
         };
     }
 }

@@ -46,6 +46,8 @@ namespace zr {
 
             void order_passes();
 
+            void compute_texture_lifetimes();
+
             void create_images(uint8_t swapchain_num);
 
             private:

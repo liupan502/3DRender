@@ -47,6 +47,8 @@ void FrameGraph::bake() {
 
     order_passes();
 
+    compute_texture_lifetimes();
+
     _need_bake = false;
 }
 
@@ -131,6 +133,63 @@ void FrameGraph::order_passes() {
     }
 
     std::reverse(_ordered_passes.begin(), _ordered_passes.end());
+}
+
+void FrameGraph::compute_texture_lifetimes() {
+    std::unordered_map<std::string, uint16_t> pass_index_map;
+    for (uint16_t i = 0; i < _ordered_passes.size(); i++) {
+        pass_index_map[_ordered_passes[i]] = i;
+    }
+
+    for (auto& pair : _tex_res_map) {
+        auto& tex_res = pair.second;
+        tex_res->set_first_pass_idx(UINT16_MAX);
+        tex_res->set_last_pass_idx(0);
+    }
+
+    for (uint16_t i = 0; i < _ordered_passes.size(); i++) {
+        auto& pass = _render_pass_map[_ordered_passes[i]];
+
+        auto outputs = pass->get_outputs();
+        for (auto& tex_name : outputs) {
+            if (_tex_res_map.find(tex_name) == _tex_res_map.end()) continue;
+            auto& tex_res = _tex_res_map[tex_name];
+            if (i < tex_res->get_first_pass_idx()) {
+                tex_res->set_first_pass_idx(i);
+            }
+        }
+
+        const std::vector<std::string>& tex_samples = pass->get_texture_samples();
+        for (auto& tex_name : tex_samples) {
+            if (_tex_res_map.find(tex_name) == _tex_res_map.end()) continue;
+            auto& tex_res = _tex_res_map[tex_name];
+            if (i > tex_res->get_last_pass_idx()) {
+                tex_res->set_last_pass_idx(i);
+            }
+        }
+
+        const std::vector<std::string>& inputs = pass->get_inputs();
+        for (auto& tex_name : inputs) {
+            if (_tex_res_map.find(tex_name) == _tex_res_map.end()) continue;
+            auto& tex_res = _tex_res_map[tex_name];
+            if (i > tex_res->get_last_pass_idx()) {
+                tex_res->set_last_pass_idx(i);
+            }
+        }
+    }
+
+    for (auto& pair : _tex_res_map) {
+        auto& tex_res = pair.second;
+        if (tex_res->get_first_pass_idx() == UINT16_MAX) {
+            const auto& write_pass = tex_res->get_write_pass();
+            if (!write_pass.empty() && pass_index_map.find(write_pass) != pass_index_map.end()) {
+                tex_res->set_first_pass_idx(pass_index_map[write_pass]);
+            }
+        }
+        if (tex_res->get_last_pass_idx() < tex_res->get_first_pass_idx()) {
+            tex_res->set_last_pass_idx(tex_res->get_first_pass_idx());
+        }
+    }
 }
 
 void FrameGraph::create_images(uint8_t swapchain_num) {
