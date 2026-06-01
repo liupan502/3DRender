@@ -3,6 +3,7 @@
 #include <rhi/rhi_definitions.h>
 #include <memory>
 #include <vector>
+#include <string>
 #include <glm/glm.hpp>
 
 namespace rhi {
@@ -229,7 +230,9 @@ namespace rhi {
         rhi::AttachmentLoadOp load_op = AttachmentLoadOp::ALO_LOAD;
         rhi::AttachmentStoreOp store_op = AttachmentStoreOp::ASO_STORE;
         uint16_t level = 0;
-        uint16_t layer = 0;    
+        uint16_t layer = 0;
+        uint16_t mip_num = 1;
+        uint16_t layer_num = 1;    
 
         rhi::TextureCreateFlags img_usage = static_cast<uint64_t>(TextureCreateFlagBit::ShaderResource);
         glm::vec4 color_clear_val;
@@ -241,9 +244,11 @@ namespace rhi {
         bool is_reused = true;
     };
 
+    using Attachment = std::pair<AttachmentInfo, std::shared_ptr<Texture>>;
     struct RenderTargetCreateInfo {
-        std::vector<AttachmentInfo> attachmentInfos;
-        std::vector<std::shared_ptr<Texture>> textures;
+        std::vector<Attachment> color_attachments;
+        Attachment depth_attachment;
+        Attachment stencil_attachment;
     };
 
     class RenderTarget : public Resource {
@@ -252,5 +257,52 @@ namespace rhi {
 
     protected:
         RenderTargetCreateInfo _ci;
+    };
+
+    struct Viewport {
+        int32_t left = 0;
+        int32_t top = 0;
+        uint32_t width = 0;
+        uiint32_t height = 0;
+    };
+
+    struct RenderTargetClearInfo{
+        glm::vec4 color;
+        double depth;
+        uint32_t stencil;
+    };
+
+    struct RenderPassParams {
+        Viewport vp;
+        RenderTargetClearInfo ci;
+    };
+
+    struct RenderPrimitive {
+        BufferRef vtx_buf;
+        BufferRef idx_buf;
+    };
+
+    struct DescriptorBindingInfo {
+            uint32_t binding_idx;
+            ShaderStageType shader_stage;
+            DescriptorType desc_type;
+            uint32_t desc_count;
+    };
+
+    struct DescriptorSetLayoutCreateInfo {
+        std::vector<DescriptorBindingInfo> binding_infos;
+    }
+
+    class DescriptorSetLayout : public Resource {
+        public:
+        DescriptorSetLayout(const DescriptorSetLayoutCreateInfo& ci) : _ci(ci) {};
+
+        protected:
+        DescriptorSetLayoutCreateInfo _ci;
+    };
+
+    class DescriptorSet : public Resource {
+        public:
+        DescriptorSet(std::shared_ptr<DescriptorSetLayout> layout) {};
     };
 };

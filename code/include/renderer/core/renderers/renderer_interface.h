@@ -1,5 +1,6 @@
 #pragma once
 #include <core/pipeline_manager.h>
+#include <core/fg/fg_render_pass.h>
 #include <memory>
 namespace zr{
     namespace sg{
@@ -10,7 +11,6 @@ namespace zr{
         class FgRenderPass;
         class PipelineManager;
         class CommandBuffer;
-        // class CreatePipelineFunc;
 
         typedef enum AAOption{
             AA_OPTION_NONE,
@@ -27,10 +27,9 @@ namespace zr{
         class RendererInterface{
         public:
             virtual void prepare_renderpass(sg::Scene* scene, 
-                                FgRenderPass* renderpass,
-                                std::shared_ptr<Device> device) = 0;
+                                FgRenderPass* renderpass) = 0;
             virtual void render_scene(sg::Scene* scene, 
-                        std::shared_ptr<CommandBuffer> cmd_buf) = 0;
+                        const PassResources& res) = 0;
 
             virtual             
 

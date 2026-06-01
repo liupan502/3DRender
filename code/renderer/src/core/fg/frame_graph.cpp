@@ -13,6 +13,7 @@
 #include <algorithm>
 
 #include <rhi/rhi_resource.h>
+#include <texture_cache.h>
 
 
 using namespace zr::core;
@@ -43,7 +44,8 @@ void FrameGraph::bake() {
         return;
     }
 
-    create_images(swapchain->get_display_image_views().size());
+    create_images(/*swapchain->get_display_image_views().size()*/ 1);
+    create_images(/*swapchain->get_display_image_views().size()*/ 1);
 
     order_passes();
 
@@ -53,14 +55,70 @@ void FrameGraph::bake() {
 }
 
 void FrameGraph::execute() {
-    _active_frame_idx = active_frame_idx;
-
     for (uint16_t i = 0; i < _ordered_passes.size(); i++) {
-        _render_pass_map[_ordered_passes[i]]->prepare();
-    }
+        auto& pass = _render_pass_map[_ordered_passes[i]];
 
-    for (uint16_t i = 0; i < _ordered_passes.size(); i++) {
-        _render_pass_map[_ordered_passes[i]]->execute();
+        PassResources res;
+
+        const std::vector<std::string>& inputs = pass->get_inputs();
+        for (auto& tex_name : inputs) {
+            if (_tex_res_map.find(tex_name) == _tex_res_map.end()) continue;
+            auto& tex_res = _tex_res_map[tex_name];
+            auto& img_name = tex_res->get_attachment_info().img_name;
+            auto it = _tex_handle_map.find(img_name);
+            if (it != _tex_handle_map.end()) {
+                res.input_textures.emplace_back(it->second);
+            }
+        }
+
+        rhi::RenderTargetCreateInfo ci;
+        auto outputs = pass->get_outputs();
+        for (auto& tex_name : outputs) {
+            if (_tex_res_map.find(tex_name) == _tex_res_map.end()) continue;
+            auto& tex_res = _tex_res_map[tex_name];
+            auto& attach_info = tex_res->get_attachment_info();
+            auto& img_name = attach_info.img_name;
+
+            auto it = _tex_handle_map.find(img_name);
+            if (it == _tex_handle_map.end()) {
+                rhi::TextureCreateInfo ci;
+                ci.width = attach_info.width;
+                ci.height = attach_info.height;
+                ci.depth = attach_info.depth;
+                ci.layer_num = attach_info.layer_num;
+                ci.mip_num = attach_info.mip_num;
+                ci.format = attach_info.fmt;
+                ci.flags = attach_info.img_usage;
+
+                auto img = TexturePool::instance().acquire(ci);
+                _tex_handle_map[img_name] = img;
+            }
+
+            rhi::Attachment attachment = { attach_info, _tex_handle_map[img_name] };
+            if (attach_info.img_usage & rhi::TextureCreateFlagBit::RenderTargetable) {
+                ci.color_attachments.emplace_back(std::move(attachment));
+            }
+            else if (attach_info.img_usage & rhi::TextureCreateFlagBit::DepthStencilTargetable){
+                ci.depth_attachment = std::move(attachment);
+            }
+
+            res.render_target = rhi::rhi_instance->create_render_target(ci);
+        }
+
+        pass->prepare();
+        pass->execute(res);
+
+        for (auto& pair : _tex_res_map) {
+            auto& tex_res = pair.second;
+            if (tex_res->get_last_pass_idx() == i) {
+                auto& img_name = tex_res->get_attachment_info().img_name;
+                auto it = _tex_handle_map.find(img_name);
+                if (it != _tex_handle_map.end()) {
+                    TexturePool::instance().release(it->second);
+                    _tex_handle_map.erase(it);
+                }
+            }
+        }
     }
 }
 
@@ -258,7 +316,7 @@ void FrameGraph::create_images(uint8_t swapchain_num) {
             ci.format = atta_info.fmt;
             ci.flags = atta_info.img_usage;
 
-            auto img = rhi::rhi_instance->create_texture(ci);
+            auto img = TexturePool::instance().acquire(ci);
             imgs.emplace_back(img);
         }
         
@@ -287,6 +345,9 @@ void FrameGraph::reset() {
     }
     if (_ordered_passes.size() > 0) {
         _ordered_passes.clear();
+    }
+    if (_tex_handle_map.size() > 0) {
+        _tex_handle_map.clear();
     }
 }
 

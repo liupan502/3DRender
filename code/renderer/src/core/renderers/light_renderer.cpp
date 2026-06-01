@@ -63,13 +63,11 @@ void LightRenderer::try_update_light_data(std::shared_ptr<sg::Node> node,
 
 }
 
-void LightRenderer::prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass, 
-                                            std::shared_ptr<Device> device) {
-    try_init_uniform_buffers(device);                                            
-    return;
+void LightRenderer::prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass) {
+    try_init_uniform_buffers();                                            
 }
 
-void LightRenderer::try_init_uniform_buffers(std::shared_ptr<Device> device) {
+void LightRenderer::try_init_uniform_buffers() {
     if (_uniform_buf) {
         return;
     }
@@ -110,7 +108,8 @@ std::shared_ptr<Pipeline> LightRenderer::get_pipeline(std::shared_ptr<sg::Node> 
 }
 
 void LightRenderer::render_scene(sg::Scene* scene, 
-            std::shared_ptr<CommandBuffer> cmd_buf) {
+            std::shared_ptr<CommandBuffer> cmd_buf,
+            const PassResources& res) {
     core::LightInfo light_info = scene->get_light_info();
     auto tmp_nodes = scene->get_renderable_nodes();
     std::vector<std::shared_ptr<sg::Node>> opaque_nodes;

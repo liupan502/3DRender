@@ -9,6 +9,8 @@
 #include <memory>
 #include <vector>
 #include "vulkan_resource.h"
+
+#include <rhi/rhi.h>
 namespace zr {
     namespace core {
         class Device;
@@ -55,24 +57,26 @@ namespace zr {
             
         };
 
-        class UniformBuffer : public Buffer{
+        class UniformBuffer {
         public:
             // UniformBuffer() = default;
-            UniformBuffer(uint32_t  binding_idx, std::shared_ptr<Device> device, 
-                    VkDeviceSize size, uint32_t element_count = 1);
+            UniformBuffer(uint32_t  binding_idx, 
+                    uint32_t size, uint32_t element_count = 1);
             inline uint32_t get_binding_idx() const { return _binding_idx;};
             
             inline uint32_t get_data_size() const { return _data_size; };
 
             inline void set_active_element(uint32_t idx) { _active_element_idx = idx;};
 
-            virtual void update(const uint8_t* data, size_t size, size_t offset = 0, bool do_unmap = true) override;
+            virtual void update(const uint8_t* data, size_t size, size_t offset = 0, bool do_unmap = true);
 
-            virtual VkBuffer get() const override; 
+            virtual rhi::BufferRef get() const; 
         protected:
-            virtual bool init_device_memory(VkDeviceSize size) override;
+            void create_handles();
+            
+            // virtual bool init_device_memory(VkDeviceSize size);
 
-            virtual void create_handles(VkDeviceSize size, VkBufferUsageFlagBits usage) override;
+            virtual void create_handles(uint32_t size);
 
         private:
             uint32_t _binding_idx{};
@@ -82,6 +86,8 @@ namespace zr {
             uint32_t _active_element_idx{0};
 
             uint32_t _element_count{1};
+
+            std::vector<rhi::BufferRef> _hw_buffers;
         };
     }
 }

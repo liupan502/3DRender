@@ -127,4 +127,21 @@ namespace rhi{
         ATTACHMENT_TYPE_INPUT = 3,
         ATTACHMENT_TYPE_PRESERVE = 4
     };
+
+    enum class DescriptorType : uint8_t {
+        DT_NONE,
+        DT_SAMPLER_2D,
+        DT_UNIFORM_BUFFER,        
+        DT_SHADER_STORAGE_BUFFER,
+        DT_INPUT_ATTACHMENT
+    };
+
+    enum class ShaderStageType : uint8_t {
+        SST_NONE        =    0,
+        SST_VERTEX      =    0x1,
+        SST_FRAGMENT    =    0x2,
+        SST_COMPUTE     =    0x4,
+    };
+
+    
 };

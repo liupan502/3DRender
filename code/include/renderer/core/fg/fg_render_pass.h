@@ -10,6 +10,7 @@
 
 #include <rhi/rhi_definitions.h>
 #include <rhi/rhi_resource.h>
+#include <rhi/rhi.h>
 namespace zr {
 
     namespace sg {
@@ -27,6 +28,11 @@ namespace zr {
         class Swapchain;
         class Image;
         class Framebuffer;
+
+        struct PassResources {
+            std::vector<rhi::TextureRef> input_textures;
+            rhi::RenderTargetRef render_target;
+        };
 
         class FgRenderpassSetupData{
         public:
@@ -48,7 +54,7 @@ namespace zr {
             void add_preserve(const std::string& name);
             bool add_texture_sample(const std::string& name);
             void prepare();
-            void execute();
+            void execute(const PassResources& res);
             std::unordered_set<std::string> get_outputs() const;
             void set_pipeline_mgr(std::shared_ptr<PipelineManager> mgr);
 

@@ -100,8 +100,8 @@ void FgRenderPass::prepare() {
     _setup_data.renderer_interface->prepare_renderpass(*_setup_data.pp_scene, this, nullptr);
 }
 
-void FgRenderPass::execute() {
-    _setup_data.renderer_interface->render_scene(*_setup_data.pp_scene, nullptr);
+void FgRenderPass::execute(const PassResources& res) {
+    _setup_data.renderer_interface->render_scene(*_setup_data.pp_scene, nullptr, res);
 }
 
 void FgRenderPass::set_pipeline_mgr(std::shared_ptr<PipelineManager> mgr) {

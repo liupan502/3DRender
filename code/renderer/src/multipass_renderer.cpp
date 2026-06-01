@@ -84,7 +84,7 @@ void MultiPassRenderer::render_scene(std::shared_ptr<sg::Scene> scene) {
         return;
     }
 
-    _fg->execute(active_frame_idx);
+    _fg->execute(/*active_frame_idx*/);
 
     // Submit and present using RenderContext
     VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -151,12 +151,12 @@ void MultiPassRenderer::add_main_pass() {
 
     std::shared_ptr<core::Swapchain> sc = _context->get_swapchain();
 
-    core::AttachmentInfo color_output_info{};
+    rhi::AttachmentInfo color_output_info{};
     color_output_info.fmt = rhi::ColorFormat::R8G8B8A8_SRGB;
     color_output_info.depth = 1;
     color_output_info.width = sc->get_display_size().width;
     color_output_info.height = sc->get_display_size().height;
-    color_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable;
+    color_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable | 0;
     if (_sample_count != rhi::SampleCount::SC_COUNT_1) {
         color_output_info.img_usage |= rhi::TextureCreateFlagBit::Memoryless;
     }
@@ -176,12 +176,12 @@ void MultiPassRenderer::add_main_pass() {
     }
     main_pass->add_color_output(pass_name, color_output_info);
 
-    core::AttachmentInfo velocity_output_info{};
+    rhi::AttachmentInfo velocity_output_info{};
     velocity_output_info.fmt = rhi::ColorFormat::R16G16_SFLOAT;
     velocity_output_info.depth = 1;
     velocity_output_info.width = sc->get_display_size().width;
     velocity_output_info.height = sc->get_display_size().height;
-    velocity_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable;
+    velocity_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable | 0;
     velocity_output_info.layer = 0;
     velocity_output_info.level = 0;
     velocity_output_info.samples = _sample_count;
@@ -195,7 +195,7 @@ void MultiPassRenderer::add_main_pass() {
 
     // resloved attchment
     if (_sample_count != rhi::SampleCount::SC_COUNT_1) {
-        core::AttachmentInfo resloved_output_info = color_output_info;
+        rhi::AttachmentInfo resloved_output_info = color_output_info;
         resloved_output_info.samples = rhi::SampleCount::SC_COUNT_1;
         resloved_output_info.color_clear_val = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
         resloved_output_info.store_op = rhi::AttachmentStoreOp::ASO_STORE;
@@ -206,9 +206,9 @@ void MultiPassRenderer::add_main_pass() {
     // core::AttachmentInfo reslove_output_info{};
     // main_pass->add_reslove_output("main_pass_reslove_output", reslove_output_info);
 
-    core::AttachmentInfo depth_stencil_info = color_output_info;
+    rhi::AttachmentInfo depth_stencil_info = color_output_info;
     depth_stencil_info.fmt = rhi::ColorFormat::D32_SFLOAT;
-    depth_stencil_info.img_usage = rhi::TextureCreateFlagBit::DepthStencilTargetable;
+    depth_stencil_info.img_usage = rhi::TextureCreateFlagBit::DepthStencilTargetable | 0;
 
     depth_stencil_info.depth_clear_val = 1.0f;
     depth_stencil_info.stencil_clear_val = 0;
@@ -237,12 +237,12 @@ void MultiPassRenderer::add_output_pass() {
     // std::string tex_sample_name = "transmittance_pass_output";
     output_pass->add_texture_sample(tex_sample_name);
     std::shared_ptr<core::Swapchain> sc = _context->get_swapchain();
-    core::AttachmentInfo color_output_info{};
+    rhi::AttachmentInfo color_output_info{};
     color_output_info.fmt = rhi::ColorFormat::R8G8B8A8_SRGB;
     color_output_info.depth = 1;
     color_output_info.width = sc->get_display_size().width;
     color_output_info.height = sc->get_display_size().height;
-    color_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable;
+    color_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable | 0;
     color_output_info.layer = 0;
     color_output_info.level = 0;
     color_output_info.samples = rhi::SampleCount::SC_COUNT_1;
@@ -281,12 +281,12 @@ void MultiPassRenderer::add_taa_pass() {
 
 
     
-    core::AttachmentInfo taa_output_info{};
+    rhi::AttachmentInfo taa_output_info{};
     taa_output_info.fmt = rhi::ColorFormat::B10G11R11_UFLOAT_PACK32;
     taa_output_info.depth = 1;
     taa_output_info.width = width;
     taa_output_info.height = height;
-    taa_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable;
+    taa_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable | 0;
     taa_output_info.layer = 0;
     taa_output_info.level = 0;
     taa_output_info.samples = rhi::SampleCount::SC_COUNT_1;
@@ -330,12 +330,12 @@ void MultiPassRenderer::add_bloom_pass() {
         set_up.renderer_interface = renderer;
         bloom_down_sample_pass->set_setup_data(set_up);
 
-        core::AttachmentInfo color_output_info{};
+        rhi::AttachmentInfo color_output_info{};
         color_output_info.fmt = rhi::ColorFormat::B10G11R11_UFLOAT_PACK32;
         color_output_info.depth = 1;
         color_output_info.width = width >> i;
         color_output_info.height = height >> i;
-        color_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable;
+        color_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable | 0;
         color_output_info.layer = 0;
         color_output_info.level = i;
         color_output_info.samples = rhi::SampleCount::SC_COUNT_1;
@@ -380,12 +380,12 @@ void MultiPassRenderer::add_bloom_pass() {
         set_up.renderer_interface = renderer;
         bloom_up_sample_pass->set_setup_data(set_up);
 
-        core::AttachmentInfo color_output_info{};
+        rhi::AttachmentInfo color_output_info{};
         color_output_info.fmt = rhi::ColorFormat::B10G11R11_UFLOAT_PACK32;
         color_output_info.depth = 1;
         color_output_info.width = width >> (level - i - 1);
         color_output_info.height = height >> (level - i - 1);
-        color_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable;
+        color_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable | 0;
         color_output_info.layer = 0;
         color_output_info.level = level - i - 1;
         color_output_info.samples = rhi::SampleCount::SC_COUNT_1;
@@ -426,12 +426,12 @@ void MultiPassRenderer::add_color_grading_pass() {
     uint16_t width = sc->get_display_size().width;
     uint16_t height = sc->get_display_size().height;
 
-    core::AttachmentInfo color_output_info{};
+    rhi::AttachmentInfo color_output_info{};
     color_output_info.fmt = rhi::ColorFormat::R8G8B8A8_SRGB;
     color_output_info.depth = 1;
     color_output_info.width = width;
     color_output_info.height = height;
-    color_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable;
+    color_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable | 0;
     color_output_info.layer = 0;
     color_output_info.level = 0;
     color_output_info.samples = rhi::SampleCount::SC_COUNT_1;
@@ -452,12 +452,12 @@ void MultiPassRenderer::add_transmittance_pass() {
     set_up.renderer_interface = std::make_shared<core::TransmittanceLutRenderer>();
     transmittance_pass->set_setup_data(set_up);
     
-    core::AttachmentInfo color_output_info{};
+    rhi::AttachmentInfo color_output_info{};
     color_output_info.fmt = rhi::ColorFormat::R16G16B16A16_SFLOAT;
     color_output_info.depth = 1;
     color_output_info.width = 256;
     color_output_info.height = 64;
-    color_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable;
+    color_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable | 0;
     color_output_info.layer = 0;
     color_output_info.level = 0;
     color_output_info.samples = rhi::SampleCount::SC_COUNT_1;
@@ -476,12 +476,12 @@ void MultiPassRenderer::add_sky_view_pass() {
     set_up.renderer_interface = std::make_shared<core::SkyViewLutRenderer>();
     sky_view_pass->set_setup_data(set_up);
     
-    core::AttachmentInfo color_output_info{};
+    rhi::AttachmentInfo color_output_info{};
     color_output_info.fmt = rhi::ColorFormat::B10G11R11_UFLOAT_PACK32;
     color_output_info.depth = 1;
     color_output_info.width = 192;
     color_output_info.height = 108;
-    color_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable;
+    color_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable | 0;
     color_output_info.layer = 0;
     color_output_info.level = 0;
     color_output_info.samples = rhi::SampleCount::SC_COUNT_1;
@@ -502,7 +502,7 @@ void MultiPassRenderer::set_viewport(int offset_x, int offset_y, uint16_t width,
     _viewport.x = offset_x;
     _viewport.y = offset_y;
 
-    _fg->set_viewport(_viewport);
+    // _fg->set_viewport(_viewport);
     if (get_taa_render()) {
         get_taa_render()->set_frame_size(glm::vec2(width, height));
     }

@@ -83,9 +83,9 @@ namespace zr{
 
         protected:
             void add_content(const std::string& path, uint16_t width, uint16_t height, uint16_t depth, rhi::ColorFormat fmt,
-                TextureSamplerType st, uint8_t mipmap_level_count = 1);
-            void add_content(const std::string& path, TextureSamplerType st, uint8_t mipmap_level_count = 1, rhi::ColorFormat fmt = rhi::ColorFormat::R8G8B8A8_SRGB);
-            void add_content(const std::vector<std::string>& mipmap_img_paths, TextureSamplerType st, rhi::ColorFormat fmt = rhi::ColorFormat::R8G8B8A8_SRGB);
+                rhi::TextureType st, uint8_t mipmap_level_count = 1);
+            void add_content(const std::string& path, rhi::TextureType st, uint8_t mipmap_level_count = 1, rhi::ColorFormat fmt = rhi::ColorFormat::R8G8B8A8_SRGB);
+            void add_content(const std::vector<std::string>& mipmap_img_paths, rhi::TextureType st, rhi::ColorFormat fmt = rhi::ColorFormat::R8G8B8A8_SRGB);
             void add_hdr_content(const std::string& path, rhi::ColorFormat pixexl_fmt, rhi::ColorFormat tex_fmt, uint8_t mipmap_level_count = 1);
             void upload_data_internal();
             
@@ -104,20 +104,20 @@ namespace zr{
         class SingleLayerTexture : public Texture {
         public:
             // for 3d texture
-            SingleLayerTexture(const std::string& img_path, uint16_t width, uint16_t height, uint16_t depth, VkFormat fmt,
-                    TextureSamplerType st = TEXTURE_SAMPLER_2D, uint8_t mipmap_level_count = 1);
+            SingleLayerTexture(const std::string& img_path, uint16_t width, uint16_t height, uint16_t depth, rhi::ColorFormat fmt,
+                rhi::TextureType st = rhi::TextureType::Texture2D, uint8_t mipmap_level_count = 1);
 
             // for common texture
             SingleLayerTexture(const std::string& img_path,
-                               TextureSamplerType st = TEXTURE_SAMPLER_2D, 
+                rhi::TextureType st = rhi::TextureType::Texture2D,
                                 uint8_t mipmap_level_count = 1);
             // for multi source mipmap texture
             SingleLayerTexture(const std::vector<std::string>& mipmap_img_paths, 
-                        TextureSamplerType st = TEXTURE_SAMPLER_2D);
+                rhi::TextureType st = rhi::TextureType::Texture2D);
 
-            SingleLayerTexture(VkExtent3D extent, VkFormat fmt, TextureSamplerType st, 
+            SingleLayerTexture(int width, int height, int depth, rhi::ColorFormat fmt, rhi::TextureType st,
                     uint32_t layer_count, uint32_t mipmap_level_count, 
-                    std::shared_ptr<core::Sampler> sp, bool reused);
+                    rhi::SampleStateRef sp, bool reused);
 
             void update_content(const unsigned char* data, uint32_t data_len, 
                             uint32_t layer, uint32_t mipmap_level, uint8_t com);        

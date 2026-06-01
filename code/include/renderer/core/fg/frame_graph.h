@@ -61,6 +61,8 @@ namespace zr {
             uint16_t _active_frame_idx = 0; 
 
             std::vector<std::string> _ordered_passes;
+
+            std::unordered_map<std::string, rhi::TextureRef> _tex_handle_map;
         };
     };
 };

@@ -17,7 +17,7 @@ namespace rhi {
 
         TextureRef create_texture(const TextureCreateInfo& info) override;
 
-        void update_texture(TextureRef tex, void* data, uint32_t len， 
+        void update_texture(TextureRef tex, void* data, uint32_t len, 
             uint32_t base_layer, uint32_t mip_level, bool generated_mip_map) override;
 
         SampleStateRef create_sample_state(const SampleStateCreateInfo& info) override;
@@ -26,8 +26,14 @@ namespace rhi {
         
         GraphicsPipelineRef create_graphics_pipeline(const GraphicsPipelineCreateInfo& info) override;
     
-        // RenderTargetRef create_render_target(const RenderTargetCreateInfo& info) override;
-    private:
+        RenderTargetRef create_render_target(const RenderTargetCreateInfo& info) override;
+    
+        DescriptorSetLayoutRef create_descriptor_set_layout(const DescriptorSetLayoutCreateInfo& ci) override;
+
+        DescriptorSetRef create_descriptor_set(DescriptorSetLayoutRef layout) override;
+
+    
+        private:
         std::shared_ptr<zr::RenderContext> _context;
     };
 }

@@ -14,7 +14,7 @@ using namespace zr::core;
 
 extern const unsigned int MAX_UNIFORM_BUFFER_OBJECT_COUNT;
 
-DescriptorPool::~DescriptorPool() {
+/*DescriptorPool::~DescriptorPool() {
     vkDestroyDescriptorPool(_device->get_device(), _vk_desc_pool, nullptr);
 }
 
@@ -27,50 +27,38 @@ std::vector<VkDescriptorSet> DescriptorPool::create_vk_desc_sets(uint32_t set_co
     alloc_info.pSetLayouts = vk_desc_layouts.data();
     alloc_info.descriptorSetCount = set_count;
     alloc_info.descriptorPool = _vk_desc_pool;
-    /*VkResult ret = vkAllocateDescriptorSets(_device->get_device(), &alloc_info, sets.data());
-    if (ret != VK_SUCCESS) {
-        int a = 0;
-    }*/
+    
     CALL_VK(vkAllocateDescriptorSets(_device->get_device(), &alloc_info, sets.data()));
 
     return sets;
-}
+}*/
 
-DescriptorLayout::~DescriptorLayout()  {
+/*DescriptorLayout::~DescriptorLayout() {
     vkDestroyDescriptorSetLayout(_device->get_device(), _vk_desc_set_layout, nullptr);
-}
+}*/
 
-void DescriptorLayout::add_binding(uint32_t binding_idx, VkDescriptorType desc_type,
-                                   uint32_t desc_count, VkShaderStageFlags stage_flags) {
-    if (_is_created) {
-        return;
-    }
-    VkDescriptorSetLayoutBinding binding;
-    binding.binding = binding_idx;
-    binding.descriptorType = desc_type;
-    binding.descriptorCount = desc_count;
-    binding.stageFlags = stage_flags;
-    binding.pImmutableSamplers = nullptr;
-
-    _bindings.push_back(binding);
+void DescriptorLayout::add_binding(uint32_t binding_idx, rhi::DescriptorType desc_type,
+                                   uint32_t desc_count, rhi::ShaderStageType stage_flags) {
+    
+    _binding_infos.emplace_back(rhi::DescriptorBindingInfo({binding_idx, stage_flags, desc_type,  desc_count}));
 }
 
 void DescriptorLayout::add_vertex_uniform_binding(uint32_t binding, uint32_t desc_count) {
-    add_binding(binding, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                desc_count, VK_SHADER_STAGE_VERTEX_BIT);
+    add_binding(binding, rhi::DescriptorType::DT_UNIFORM_BUFFER,
+                desc_count, rhi::ShaderStageType::SST_VERTEX);
 }
 
 void DescriptorLayout::add_fragment_uniform_binding(uint32_t binding, uint32_t desc_count) {
-    add_binding(binding, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                desc_count, VK_SHADER_STAGE_FRAGMENT_BIT);
+    add_binding(binding, rhi::DescriptorType::DT_UNIFORM_BUFFER,
+                desc_count, rhi::ShaderStageType::SST_FRAGMENT);
 }
 
 void DescriptorLayout::add_fragment_image_sampler_binding(uint32_t binding, uint32_t desc_count) {
-    add_binding(binding, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                desc_count, VK_SHADER_STAGE_FRAGMENT_BIT);
+    add_binding(binding, rhi::DescriptorType::DT_SAMPLER_2D,
+                desc_count, rhi::ShaderStageType::SST_FRAGMENT);
 }
 
-std::map<VkDescriptorType, uint32_t> DescriptorLayout::get_types() const {
+/*std::map<VkDescriptorType, uint32_t> DescriptorLayout::get_types() const {
     std::map<VkDescriptorType, uint32_t> ret;
     for (auto binding : _bindings) {
         if (ret.find(binding.descriptorType) == ret.end()) {
@@ -79,75 +67,49 @@ std::map<VkDescriptorType, uint32_t> DescriptorLayout::get_types() const {
         ret[binding.descriptorType] += binding.descriptorCount;
     }
     return ret;
-}
+}*/
 
-DescriptorLayout::DescriptorLayout(std::shared_ptr<Device> device, PipelineFeature feature) : _device(device)
+DescriptorLayout::DescriptorLayout(PipelineFeature feature)
 {
 
 }
 
-DescriptorLayout::DescriptorLayout(std::shared_ptr<Device>  device) : _device(device){
+DescriptorLayout::DescriptorLayout(){
     // create_layout();
 }
 
-DescriptorLayout::DescriptorLayout(std::shared_ptr<Device> device,
-           const std::vector<DescriptorBindingInfo>& binding_infos) : _device(device){
-    for (uint16_t i = 0; i < binding_infos.size(); i++) {
-        auto& info = binding_infos[i];
-        add_binding(info.binding_idx, info.desc_type,
-                    info.desc_count, info.shader_stage);
-    }
-
-    if (_is_created) {
-        return;
-    }
-
-    VkDescriptorSetLayoutCreateInfo ci{};
-    ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    ci.bindingCount = _bindings.size();
-    ci.pBindings = _bindings.data();
-
-    CALL_VK(vkCreateDescriptorSetLayout(_device->get_device(), &ci, nullptr, &_vk_desc_set_layout));
-    _is_created = true;
+DescriptorLayout::DescriptorLayout(const std::vector<rhi::DescriptorBindingInfo>& binding_infos){
+    _binding_infos = binding_infos;
 }
 
 void DescriptorLayout::init_bindings(PipelineFeature feature) {
 
 }
 
-void DescriptorLayout::add_push_constant_range(uint32_t size, uint32_t offset,
+/*void DescriptorLayout::add_push_constant_range(uint32_t size, uint32_t offset,
                                                VkShaderStageFlagBits stage) {
     VkPushConstantRange range {};
     range.stageFlags = stage;
     range.offset = offset;
     range.size = size;
     _push_constant_ranges.emplace_back(range);
-}
+}*/
 
 void DescriptorLayout::init_push_constants(PipelineFeature feature) {
 
 }
 
 void DescriptorLayout::create_layout(PipelineFeature feature) {
-    if (_is_created) {
-        return;
-    }
+    
     init_bindings(feature);
-    VkDescriptorSetLayoutCreateInfo ci{};
-    ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    ci.bindingCount = _bindings.size();
-    ci.pBindings = _bindings.data();
-
-    CALL_VK(vkCreateDescriptorSetLayout(_device->get_device(), &ci, nullptr, &_vk_desc_set_layout));
-    _is_created = true;
+   
 }
 
-BaseDescriptorLayout::BaseDescriptorLayout(std::shared_ptr<Device> device) : DescriptorLayout(device){
+BaseDescriptorLayout::BaseDescriptorLayout(){
     create_layout(PipelineFeature(LightInfo{}, std::shared_ptr<sg::Material>(nullptr), std::vector<std::vector<sg::VertexAttribute>>()));
 }
 
-BaseDescriptorLayout::BaseDescriptorLayout(std::shared_ptr<Device> device,
-                                           PipelineFeature feature) : DescriptorLayout(device, feature){
+BaseDescriptorLayout::BaseDescriptorLayout(PipelineFeature feature) : DescriptorLayout(feature){
     create_layout(feature);
 }
 
@@ -161,7 +123,7 @@ void BaseDescriptorLayout::init_bindings(PipelineFeature feature) {
     try_enable_skin(feature);
 }
 
-void BaseDescriptorLayout::init_push_constants(PipelineFeature feature) {
+/*void BaseDescriptorLayout::init_push_constants(PipelineFeature feature) {
     uint32_t size = 0;
     LightInfo light_info = feature.get_light_info();
     if (!light_info.has_light() || !feature.get_material_ability().enable_light) {
@@ -180,7 +142,7 @@ void BaseDescriptorLayout::init_push_constants(PipelineFeature feature) {
     }
 
     add_push_constant_range(size, 0, VK_SHADER_STAGE_VERTEX_BIT);
-}
+}*/
 
 void BaseDescriptorLayout::try_enable_light(PipelineFeature feature) {
     LightInfo light_info = feature.get_light_info();
@@ -222,7 +184,7 @@ void BaseDescriptorLayout::try_enable_skin(PipelineFeature feature) {
     add_vertex_uniform_binding(2, 1);
 }
 
-void DescriptorPool::create_pool(uint32_t desc_count) {
+/*void DescriptorPool::create_pool(uint32_t desc_count) {
     std::vector<VkDescriptorPoolSize> pool_sizes;
     std::map<VkDescriptorType, uint32_t> types = _layout->get_types();
     for (auto it = types.begin(); it != types.end(); it++) {
@@ -285,7 +247,7 @@ void DescriptorSet::update_desc_set_buffer(std::vector<std::shared_ptr<UniformBu
                 .pTexelBufferView = nullptr,
     };
     _write_desc_sets.emplace_back(desc_write_set);
-}
+}*/
 
 /*void DescriptorSet::update_desc_set_buffer(std::vector<std::shared_ptr<Buffer>> buffers,
                                             uint32_t binding_idx, uint32_t desc_count, uint32_t arr_len) {
@@ -392,7 +354,7 @@ DescriptorSet::~DescriptorSet() {
 
 }
 
-std::vector<std::shared_ptr<DescriptorSet>> DescriptorPool::get_available_desc_sets(
+/*std::vector<std::shared_ptr<DescriptorSet>> DescriptorPool::get_available_desc_sets(
         uint32_t count) {
     std::vector<std::shared_ptr<DescriptorSet>> ret;
     for (auto desc_set : _desc_sets) {
@@ -406,5 +368,5 @@ std::vector<std::shared_ptr<DescriptorSet>> DescriptorPool::get_available_desc_s
         }
     }
     return ret;
-}
+}*/
 

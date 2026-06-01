@@ -1,6 +1,7 @@
 #pragma once
 
 #include <rhi/rhi_resource.h>
+#include <rhi/rhi_definitions.h>
 #include <memory>
 namespace rhi
 {
@@ -10,6 +11,8 @@ namespace rhi
     using ShaderModuleRef = std::shared_ptr<ShaderModule>;
     using GraphicsPipelineRef = std::shared_ptr<GraphicsPipeline>;
     using RenderTargetRef = std::shared_ptr<RenderTarget>;
+    using DescriptorSetRef = std::shared_ptr<DescriptorSet>;
+    using DescriptorSetLayoutRef = std::shared_ptr<DescriptorSetLayout>;
 
     class RHI {
     public:
@@ -35,9 +38,18 @@ namespace rhi
 
         virtual GraphicsPipelineRef create_graphics_pipeline(const GraphicsPipelineCreateInfo& info) = 0;
     
-        virtual RenderTargetRef create_render_target(const RenderTargetCreateInfo& info) {
-            return std::make_shared<RenderTarget>(info);
-        };
+        virtual RenderTargetRef create_render_target(const RenderTargetCreateInfo& info) = 0;
+
+        virtual DescriptorSetLayoutRef create_descriptor_set_layout(const DescriptorSetLayoutCreateInfo& ci) = 0;
+
+        virtual DescriptorSetRef create_descriptor_set(DescriptorSetLayoutRef layout) = 0;
+
+        virtual void begin_render_pass(RenderTargetRef rt, const RenderPassParams& params) = 0;
+
+        virtual void end_render_pass() = 0;
+
+        virtual void draw(GraphicsPipelineRef pipeline, const RenderPrimitive& primitive, 
+            uint32_t const indexOffset, uint32_t const indexCount, uint32_t const instanceCount) = 0;
     };
 
     extern RHI* rhi_instance;

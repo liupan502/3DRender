@@ -138,12 +138,13 @@ void TaaRenderer::prepare_desc(FgRenderPass* render_pass, std::shared_ptr<Device
     reset_viewport(render_pass);
 }
 
-void TaaRenderer::render_scene(sg::Scene* scene, std::shared_ptr<CommandBuffer> cmd_buf) {
+void TaaRenderer::render_scene(sg::Scene* scene, std::shared_ptr<CommandBuffer> cmd_buf,
+            const PassResources& res) {
     update_reproject_mat(scene);
     _taa_info_uniform_buf->update((const uint8_t*)(&_taa_info), sizeof(TaaInfo));
     _desc_set->update_desc_set_buffer({_taa_info_uniform_buf});
 
-    QuadRenderer::render_scene(scene, cmd_buf);
+    QuadRenderer::render_scene(scene, cmd_buf, res);
 
     if (_is_first_frame) {
         _is_first_frame = false;

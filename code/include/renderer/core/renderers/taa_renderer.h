@@ -39,7 +39,8 @@ namespace zr{
                 inline void set_filter_width(float filter_width) { _filter_width = filter_width ;};
                 inline float get_filter_width() const { return _filter_width; };
 
-                virtual void render_scene(sg::Scene* scene, std::shared_ptr<CommandBuffer> cmd_buf) override;
+                virtual void render_scene(sg::Scene* scene, std::shared_ptr<CommandBuffer> cmd_buf,
+                            const PassResources& res) override;
 
             protected:
             virtual void prepare_desc(FgRenderPass* render_pass, std::shared_ptr<Device> device) override;    

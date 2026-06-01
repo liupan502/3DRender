@@ -55,6 +55,8 @@ namespace zr {
             Mesh(Node* node) : Component(node) {};
             inline void set_vtx_attrs(std::vector<std::vector<VertexAttribute>> vtx_attrs) { _vtx_attrs = vtx_attrs;};
             std::vector<std::vector<VertexAttribute>>  get_vtx_attrs() { return _vtx_attrs;};
+        
+            rhi::RenderPrimitive render_primitive() const;
         protected:
             std::vector<std::shared_ptr<rhi::Buffer>> _vtx_buffers;
             std::shared_ptr<rhi::Buffer> _index_buffer;

@@ -17,7 +17,7 @@ public:
                   const TextureCreateInfo& create_info,
                   VkImage existing_image);
 
-    ~VulkanTexture() override;
+    virtual ~VulkanTexture() ;
 
     VulkanTexture(const VulkanTexture&) = delete;
     VulkanTexture& operator=(const VulkanTexture&) = delete;

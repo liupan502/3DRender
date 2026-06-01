@@ -140,61 +140,33 @@ void Buffer::update(const uint8_t *data, size_t size, size_t offset, bool do_unm
     }
 }
 
-UniformBuffer::UniformBuffer(uint32_t binding_idx, std::shared_ptr<Device> device,
-                             VkDeviceSize size, uint32_t element_count) :
+UniformBuffer::UniformBuffer(uint32_t binding_idx,
+                             uint32_t size, uint32_t element_count) :
                              _element_count(element_count),
                              _binding_idx(binding_idx), _data_size(size){
 
-    _device = device;
-    _is_valid = true;
+    
+    // _is_valid = true;
 
-    create_handles(size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
-
-    if (_is_valid) {
-        init_device_memory(size);
-    }
+    create_handles(size);
 }
 
 void UniformBuffer::update(const uint8_t* data, size_t size, 
             size_t offset, bool do_unmap) {
-    offset = offset + _active_element_idx * get_size();
-    Buffer::update(data, size, offset, do_unmap);
+    rhi::rhi_instance->update_buffer(_hw_buffers[_active_element_idx], (void*)data, size, offset);
 }
 
-void UniformBuffer::create_handles(VkDeviceSize size, VkBufferUsageFlagBits usage) {
+void UniformBuffer::create_handles(uint32_t size) {
 
-    std::vector<uint32_t> queue_family_indices{_device->get_graphic_queue_family_idx()};
-    VkBufferCreateInfo ci = get_create_info(size, usage, queue_family_indices);
-    
     for (uint32_t i = 0; i < _element_count; i++) {
-        VkBuffer vk_buf = VK_NULL_HANDLE;
-        VkResult  ret = vkCreateBuffer(_device->get_device(), &ci, nullptr, &vk_buf);
-        if (ret != VK_SUCCESS) {
-            _is_valid = false;
-            break;
-        }
-        _vk_buffers.emplace_back(vk_buf);
+        rhi::BufferCreateInfo ci;
+        ci.size = size;
+        ci.usage = rhi::BufferUsageFlagBit::UniformBuffer | 0;
+        auto buf = rhi::rhi_instance->create_buffer(ci);
+        _hw_buffers.emplace_back(buf);
     }
 }
 
-bool UniformBuffer::init_device_memory(VkDeviceSize size) {
-    VkMemoryRequirements mem_req = fetch_mem_req(_vk_buffers[0]);
-    
-    _size = mem_req.size;
-
-    if (!alloc_mem(_size * _element_count, mem_req.memoryTypeBits)) {
-        return false;
-    }
-
-    for (uint32_t i = 0; i < _vk_buffers.size(); i++) {
-        if (!bind_mem(_vk_buffers[i], i * _size)) {
-            return false;
-        }
-    }
-    
-    return true;
-}
-
-VkBuffer UniformBuffer::get() const {
-    return _vk_buffers[_active_element_idx];
+rhi::BufferRef UniformBuffer::get() const {
+    return _hw_buffers[_active_element_idx];
 }

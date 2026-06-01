@@ -5,6 +5,8 @@
 #include <core/command_pool.h>
 #include <core/command_buffer.h>
 
+#include <rhi/vulkan/vulkan_buffer.h>
+
 namespace rhi {
 namespace vulkan {
 
@@ -315,13 +317,13 @@ VkBufferImageCopy VulkanTexture::create_buffer_image_copy(
 
 void VulkanTexture::update_data(unsigned char* data, uint32_t size,
                                 uint8_t base_layer, uint8_t mip_level, 
-                                , bool generated_mip_map) {
+                                bool generated_mip_map) {
     auto device = _context->get_device();
-    fmt = get_vk_format();
+    auto fmt = get_vk_format();
     
     BufferCreateInfo ci;
     ci.size = size;
-    ci.usage = rhi::BufferUsageFlagBit::CopySrc;
+    ci.usage = rhi::BufferUsageFlagBit::CopySrc | 0;
     auto stage_buf = std::make_shared<VulkanBuffer>(ci);
     stage_buf->update(data, size);
     
@@ -333,10 +335,10 @@ void VulkanTexture::update_data(unsigned char* data, uint32_t size,
         uint16_t depth;
     };
 
-    auto blit = [](VkImage src_vk_image,
+    auto blit = [this](VkImage src_vk_image,
                  const BlitParams& src_blit_params, 
                  const BlitParams& dst_blit_params,
-                 std::shared_ptr<CommandBuffer> cmd_buf) {
+                 std::shared_ptr<zr::core::CommandBuffer> cmd_buf) {
         VkImageBlit vk_image_blit{};
 
         vk_image_blit.srcSubresource.layerCount = 1;
@@ -370,6 +372,9 @@ void VulkanTexture::update_data(unsigned char* data, uint32_t size,
                             VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, cmd_buf, dst_blit_params.mip_level, 1,
                                      vk_image_blit.dstSubresource.baseArrayLayer, 1);
     };
+
+    int width = _create_info.width;
+    int height = _create_info.height;
 
     auto fn = [&](std::shared_ptr<zr::core::CommandBuffer> cmd_buf, int blit_num) {
         transition_image_layout_internal(fmt, VK_IMAGE_LAYOUT_UNDEFINED,

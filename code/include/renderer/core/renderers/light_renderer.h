@@ -19,9 +19,8 @@ namespace core {
     class LightRenderer : public RendererInterface {
         public:
         LightRenderer();
-        virtual void prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass, 
-                                        std::shared_ptr<Device> device) override;
-        virtual void render_scene(sg::Scene* scene, std::shared_ptr<CommandBuffer> cmd_buf) override;
+        virtual void prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass) override;
+        virtual void render_scene(sg::Scene* scene, const PassResources& res) override;
         virtual CreatePipelineFunc get_pipeline_creator() override;
 
         protected:
@@ -40,7 +39,7 @@ namespace core {
 
         bool _is_first_frame = true;
 
-        void try_init_uniform_buffers(std::shared_ptr<Device> device);
+        void try_init_uniform_buffers();
 
         void try_update_light_data(std::shared_ptr<sg::Node> node, 
                                     sg::Scene* scene, std::shared_ptr<core::DescriptorSet> desc_set);                            

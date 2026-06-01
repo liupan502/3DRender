@@ -8,6 +8,7 @@
 #include <scenegraph/components/texture.h>
 #include <utils/file_helper.h>
 #include <core/core.h>
+#include <rhi/rhi.h>
 
 
 
@@ -83,10 +84,10 @@ void Texture::update_cube_data(const TextureContent& tc,
             dst_offset += size * img_data_info.com;
         }
         if (auto_blit && img_data_idx == 0) {
-            rhi::rhi_instance->update_data(rhi_texture, buf, size * size * img_data_info.com, i, 0, true);
+            rhi::rhi_instance->update_texture(rhi_texture, buf, size * size * img_data_info.com, i, 0, true);
         }
         else {
-            rhi::rhi_instance->update_data(rhi_texture, buf, size * size * img_data_info.com, img_data_idx, i, false);
+            rhi::rhi_instance->update_texture(rhi_texture, buf, size * size * img_data_info.com, img_data_idx, i, false);
         }
     }
 
@@ -114,17 +115,17 @@ void Texture::upload_data_internal() {
     rhi::TextureCreateInfo ci;
     ci.format = img_data_info.fmt;
     ci.type = tc.st;
-    ci.flags = rhi::TextureCreateFlagBit::ShaderResource;
+    ci.flags = rhi::TextureCreateFlagBit::ShaderResource | 0;
     ci.width = img_data_info.width;
     ci.height = img_data_info.height;
     ci.depth = img_data_info.depth;
     ci.mip_num = tc.mipmap_level_count;
     ci.layer_num = tc.layer_count;
 
-    /*bool cubemap_enabled = tc.st == rhi::TextureType::TextureCube || 
+    bool cubemap_enabled = tc.st == rhi::TextureType::TextureCube || 
             tc.st == rhi::TextureType::TextureCubeArray;
 
-    if (cubemap_enabled) {
+    /*if (cubemap_enabled) {
         ci.layer_num = 6;
         ci.width = (uint32_t) (img_data_info.width / 4);
         ci.height = (uint32_t) (img_data_info.height / 3);
@@ -192,7 +193,7 @@ void Texture::upload_data_internal() {
         }
     }
     
-    tc.image = img; 
+    tc.rhi_texture = rhi_texture;
 }
 
 
@@ -206,9 +207,9 @@ void Texture::upload_data(std::shared_ptr<core::Device> device) {
     TextureContent& tc = _tex_contents[_active_idx];
     
     rhi::SampleStateCreateInfo ci;
-    tc->rhi_sampler = rhi::rhi_instance->create_sample_state(ci);
+    tc.rhi_sampler = rhi::rhi_instance->create_sample_state(ci);
 
-    tc.sampler = std::make_shared<core::Sampler>(device);
+    // tc.rhi_sampler = std::make_shared<core::Sampler>(device);
     tc.has_upload = true;
     for (auto& img_data_info : tc.img_data_infos) {
         if (img_data_info.ptr && !img_data_info.reused) {
@@ -242,7 +243,7 @@ rhi::SampleStateRef Texture::get_rhi_sampler() {
 }
 
 void Texture::add_content(const std::string& path, uint16_t width, uint16_t height, uint16_t depth, rhi::ColorFormat fmt,
-                TextureSamplerType st, uint8_t mipmap_level_count) {
+    rhi::TextureType st, uint8_t mipmap_level_count) {
     TextureContent tc;
     tc.mipmap_level_count = mipmap_level_count;
     std::string content = utils::FileHelper().load_content(path.c_str());
@@ -268,7 +269,7 @@ void Texture::add_content(const std::string& path, uint16_t width, uint16_t heig
     _tex_contents.emplace_back(tc);
 }
 
-void Texture::add_content(const std::string& path, TextureSamplerType st, uint8_t mipmap_level_count, VkFormat fmt) {
+void Texture::add_content(const std::string& path, rhi::TextureType st, uint8_t mipmap_level_count, rhi::ColorFormat fmt) {
     TextureContent tc;
     tc.mipmap_level_count = mipmap_level_count;
     std::string content = utils::FileHelper().load_content(path.c_str());
@@ -292,7 +293,7 @@ void Texture::add_content(const std::string& path, TextureSamplerType st, uint8_
     _tex_contents.emplace_back(tc);
 }
 
-void Texture::add_content(const std::vector<std::string> &mipmap_img_paths, TextureSamplerType st, VkFormat fmt) {
+void Texture::add_content(const std::vector<std::string> &mipmap_img_paths, rhi::TextureType st, rhi::ColorFormat fmt) {
     TextureContent tc;
     tc.mipmap_level_count = mipmap_img_paths.size();
     for (uint16_t i = 0; i < mipmap_img_paths.size(); i++) {
@@ -317,7 +318,7 @@ void Texture::add_content(const std::vector<std::string> &mipmap_img_paths, Text
     _tex_contents.emplace_back(tc);
 }
 
-void Texture::add_hdr_content(const std::string& path, VkFormat pixel_fmt, VkFormat tex_fmt, uint8_t mipmap_level_count) {
+void Texture::add_hdr_content(const std::string& path, rhi::ColorFormat pixel_fmt, rhi::ColorFormat tex_fmt, uint8_t mipmap_level_count) {
     TextureContent tc;
     tc.mipmap_level_count = mipmap_level_count;
     std::string content = utils::FileHelper().load_content(path.c_str());
@@ -335,31 +336,31 @@ void Texture::add_hdr_content(const std::string& path, VkFormat pixel_fmt, VkFor
     
     tc.img_data_infos.emplace_back(img_data_info);
     tc.has_upload = false;
-    tc.st = TEXTURE_SAMPLER_2D;
+    tc.st = rhi::TextureType::Texture2D;
     tc.fmt = tex_fmt;
     tc.layer_count = 1;
     _tex_contents.emplace_back(tc);
 }
 
-SingleLayerTexture::SingleLayerTexture(const std::string& img_path, uint16_t width, uint16_t height, uint16_t depth, VkFormat fmt,
-                    TextureSamplerType st, uint8_t mipmap_level_count) {
+SingleLayerTexture::SingleLayerTexture(const std::string& img_path, uint16_t width, uint16_t height, uint16_t depth, rhi::ColorFormat fmt,
+                    rhi::TextureType st, uint8_t mipmap_level_count) {
     add_content(img_path, width, height, depth, fmt, st, mipmap_level_count);
     _active_idx = 0;
 }
 
-SingleLayerTexture::SingleLayerTexture(const std::string &img_path, TextureSamplerType st,  uint8_t mipmap_level_count) {
+SingleLayerTexture::SingleLayerTexture(const std::string &img_path, rhi::TextureType st,  uint8_t mipmap_level_count) {
     
     if (img_path.find(".hdr") == std::string::npos) {
         add_content(img_path, st, mipmap_level_count);
     }
     else {
-        add_hdr_content(img_path, VK_FORMAT_R32G32B32A32_SFLOAT, VK_FORMAT_R16G16B16A16_SFLOAT);
+        add_hdr_content(img_path, rhi::ColorFormat::R32G32B32A32_SFLOAT , rhi::ColorFormat::R16G16B16A16_SFLOAT);
     }
     
     _active_idx = 0;
 }
 
-SingleLayerTexture::SingleLayerTexture(const std::vector<std::string>& mipmap_img_paths, TextureSamplerType st) {
+SingleLayerTexture::SingleLayerTexture(const std::vector<std::string>& mipmap_img_paths, rhi::TextureType st) {
     add_content(mipmap_img_paths, st);
     _active_idx = 0;
 }
@@ -372,7 +373,7 @@ MultiLayerTexture::MultiLayerTexture(const std::string &dir_path, const std::str
     for (uint32_t i = 0; i < count; i++) {
         memset(buf, 0, 256);
         sprintf(buf, path_template.c_str(), dir_path.c_str(), i);
-        add_content(std::string(buf), TEXTURE_SAMPLER_2D, mipmap_level_count);
+        add_content(std::string(buf), rhi::TextureType::Texture2D, mipmap_level_count);
     }
     _active_idx = 0;
 }
@@ -381,26 +382,27 @@ void MultiLayerTexture::set_active_idx(uint32_t idx) {
     _active_idx = idx;
 }
 
-SingleLayerTexture::SingleLayerTexture(VkExtent3D extent, VkFormat fmt, TextureSamplerType st,
+SingleLayerTexture::SingleLayerTexture(int width, int height, int depth, 
+    rhi::ColorFormat fmt, rhi::TextureType st,
     uint32_t layer_count, uint32_t mipmap_level_count,
-    std::shared_ptr<core::Sampler> sp, bool reused) {
+    rhi::SampleStateRef sp, bool reused) {
     TextureContent tc;
     tc.fmt = fmt;
-    tc.image = nullptr;
-    tc.image_view = nullptr;
+    tc.rhi_texture = nullptr;
+    
     tc.has_upload = false;
     tc.layer_count = layer_count;
     tc.mipmap_level_count = mipmap_level_count;
     tc.st = st;
-    tc.sampler = sp;
+    tc.rhi_sampler = sp;
 
     for (uint8_t i = 0; i < layer_count; i++) {
         for (uint8_t j = 0; j < mipmap_level_count; j++) {
             ImageDataInfo img_data_info;
             img_data_info.fmt = fmt;
-            img_data_info.width = extent.width;
-            img_data_info.height = extent.height;
-            img_data_info.depth = extent.depth;
+            img_data_info.width = width;
+            img_data_info.height = height;
+            img_data_info.depth = depth;
             img_data_info.ptr = nullptr;
             img_data_info.reused = reused;
             img_data_info.has_upload = true;

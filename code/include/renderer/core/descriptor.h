@@ -7,6 +7,8 @@
 #include <vector>
 #include <memory>
 #include <map>
+
+#include <rhi/rhi.h>
 namespace zr {
 
     namespace sg {
@@ -23,26 +25,19 @@ namespace zr {
         class ImageView;
         class Sampler;
 
-        struct DescriptorBindingInfo {
-            uint32_t binding_idx;
-            VkShaderStageFlagBits shader_stage;
-            VkDescriptorType desc_type;
-            uint32_t desc_count;
-        };
-
+        
         class DescriptorLayout {
 
         public:
-            DescriptorLayout(std::shared_ptr<Device> device, PipelineFeature feature);
+            DescriptorLayout(PipelineFeature feature);
 
-            DescriptorLayout(std::shared_ptr<Device> device);
+            DescriptorLayout();
 
-            DescriptorLayout(std::shared_ptr<Device> device,
-                             const std::vector<DescriptorBindingInfo>& binding_infos);
+            DescriptorLayout(const std::vector<rhi::DescriptorBindingInfo>& binding_infos);
 
-            inline VkDescriptorSetLayout get() const { return _vk_desc_set_layout;};
-            std::map<VkDescriptorType, uint32_t> get_types() const;
-            virtual ~DescriptorLayout();
+            // inline VkDescriptorSetLayout get() const { return _vk_desc_set_layout;};
+            // std::map<VkDescriptorType, uint32_t> get_types() const;
+            virtual ~DescriptorLayout() = default;
         protected:
 
             void create_layout(PipelineFeature feature);
@@ -59,25 +54,27 @@ namespace zr {
 
             void add_binding(
                     uint32_t binding_idx,
-                    VkDescriptorType desc_type,
+                    rhi::DescriptorType desc_type,
                     uint32_t desc_count,
-                    VkShaderStageFlags stage_flags);
+                    rhi::ShaderStageType stage_flags);
 
-            void add_push_constant_range(uint32_t size, uint32_t offset, VkShaderStageFlagBits stage);
+            // void add_push_constant_range(uint32_t size, uint32_t offset, VkShaderStageFlagBits stage);
         private:
-            std::shared_ptr<Device> _device;
-            bool _is_created{false};
-            std::vector<VkDescriptorSetLayoutBinding> _bindings;
-            std::vector<VkPushConstantRange> _push_constant_ranges;
-            VkDescriptorSetLayout _vk_desc_set_layout{VK_NULL_HANDLE};
+            // std::shared_ptr<Device> _device;
+            // bool _is_created{false};
+            // std::vector<VkDescriptorSetLayoutBinding> _bindings;
+            // std::vector<VkPushConstantRange> _push_constant_ranges;
+            // VkDescriptorSetLayout _vk_desc_set_layout{VK_NULL_HANDLE};
+
+            std::vector<rhi::DescriptorBindingInfo> _binding_infos;
 
         };
 
         class BaseDescriptorLayout : public DescriptorLayout {
 
         public:
-            BaseDescriptorLayout(std::shared_ptr<Device> device, PipelineFeature feature);
-            BaseDescriptorLayout(std::shared_ptr<Device> device);
+            BaseDescriptorLayout(PipelineFeature feature);
+            BaseDescriptorLayout();
             virtual ~BaseDescriptorLayout() = default;
 
         protected:
@@ -127,12 +124,12 @@ namespace zr {
             std::vector<std::shared_ptr<Sampler>> _samplers;
         };
 
-        class DescriptorPool {
+        /*class DescriptorPool {
         public:
             DescriptorPool(std::shared_ptr<Device> device, std::shared_ptr<DescriptorLayout> layout, uint32_t size);
 
             DescriptorPool(std::shared_ptr<Device> device,
-                           const std::vector<DescriptorBindingInfo>& binding_infos, uint32_t size);
+                           const std::vector<rhi::DescriptorBindingInfo>& binding_infos, uint32_t size);
 
             virtual ~DescriptorPool();
 
@@ -155,6 +152,6 @@ namespace zr {
             std::shared_ptr<DescriptorLayout> _layout;
             std::vector<std::shared_ptr<DescriptorSet>> _desc_sets;
             VkDescriptorPool _vk_desc_pool {VK_NULL_HANDLE};
-        };
+        };*/
     }
 }

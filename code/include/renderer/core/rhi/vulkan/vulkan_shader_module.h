@@ -11,7 +11,7 @@ namespace rhi{
         public:
             VulkanShaderModule(std::shared_ptr<zr::RenderContext> context,
                                const ShaderModuleCreateInfo& info);
-            ~VulkanShaderModule() override;
+            virtual ~VulkanShaderModule();
 
             VulkanShaderModule(const VulkanShaderModule&) = delete;
             VulkanShaderModule& operator=(const VulkanShaderModule&) = delete;

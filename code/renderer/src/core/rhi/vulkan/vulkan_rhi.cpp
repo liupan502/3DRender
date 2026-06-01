@@ -52,7 +52,7 @@ TextureRef VulkanRHI::create_texture(const TextureCreateInfo& info)
     return std::make_shared<vulkan::VulkanTexture>(_context, info);
 }
 
-void VulkanRHI::update_texture(TextureRef tex, void* data, uint32_t len， 
+void VulkanRHI::update_texture(TextureRef tex, void* data, uint32_t len, 
             uint32_t base_layer, uint32_t mip_level, bool generated_mip_map)
 {
     auto vk_tex = std::static_pointer_cast<vulkan::VulkanTexture>(tex);
@@ -73,5 +73,18 @@ ShaderModuleRef VulkanRHI::create_shader_module(const ShaderModuleCreateInfo& in
 GraphicsPipelineRef VulkanRHI::create_graphics_pipeline(const GraphicsPipelineCreateInfo& info) {
     return std::make_shared<vulkan::VulkanGraphicsPipeline>(info);
 }
+
+RenderTargetRef VulkanRHI::create_render_target(const RenderTargetCreateInfo& info) {
+    return std::make_shared<vulkan::VulkanRenderTarget>(info);
+}
+
+DescriptorSetLayoutRef VulkanRHI::create_descriptor_set_layout(const DescriptorSetLayoutCreateInfo& ci) {
+    return std::make_shared<VulkanDescriptorSetLayout>(ci);
+}
+
+DescriptorSetRef VulkanRHI::create_descriptor_set(DescriptorSetLayoutRef layout) {
+    return std::make_shared<VulkanDescriptorSet>(layout);
+}
+
 
 }

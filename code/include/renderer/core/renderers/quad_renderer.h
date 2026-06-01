@@ -11,7 +11,8 @@ namespace zr {
         public:
             virtual void prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass,
                                 std::shared_ptr<Device> device) override;
-            virtual void render_scene(sg::Scene* scene, std::shared_ptr<CommandBuffer> cmd_buf) override;
+            virtual void render_scene(sg::Scene* scene, std::shared_ptr<CommandBuffer> cmd_buf,
+                        const PassResources& res) override;
             virtual CreatePipelineFunc get_pipeline_creator() override;
 
             

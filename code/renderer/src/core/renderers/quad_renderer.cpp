@@ -47,7 +47,8 @@ void QuadRenderer::prepare_desc(FgRenderPass* renderpass, std::shared_ptr<Device
 }
 
 void QuadRenderer::render_scene(sg::Scene* scene, 
-            std::shared_ptr<CommandBuffer> cmd_buf) {
+            std::shared_ptr<CommandBuffer> cmd_buf,
+            const PassResources& res) {
     /*auto pipeline = _pipeline_mgr->get_pipeline(LightInfo(),
                                                 std::make_shared<sg::Material>(nullptr),
                                 std::vector<std::vector<sg::VertexAttribute>>());

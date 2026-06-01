@@ -14,6 +14,13 @@ std::type_index Mesh::get_type() const {
     return std::type_index(typeid(Mesh));
 }
 
+rhi::RenderPrimitive Mesh::render_primitive() const {
+    if (_vtx_buffers.size() > 0 || !_vtx_buffers[0] || !_index_buffer) {
+        return {nullptr, nullptr};
+    }
+    return {_vtx_buffers[0], _index_buffer};
+}
+
 DynamicMesh::~DynamicMesh() {
     if (_buf) {
         delete [] _buf;

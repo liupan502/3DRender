@@ -1,5 +1,6 @@
 #include <rhi/vulkan/vulkan_shader_module.h>
 #include <core/vk_common.h>
+#include <core/device.h>
 #include <shaderc/shaderc.hpp>
 #include <cassert>
 
