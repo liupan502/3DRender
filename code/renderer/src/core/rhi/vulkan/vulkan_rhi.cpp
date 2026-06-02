@@ -86,5 +86,14 @@ DescriptorSetRef VulkanRHI::create_descriptor_set(DescriptorSetLayoutRef layout)
     return std::make_shared<VulkanDescriptorSet>(layout);
 }
 
+void VulkanRHI::update_desc_texture(DescriptorSetRef desc, SampleStateRef sampler, TextureRef tex, uint32_t binding_idx) } {
+
+}
+
+void VulkanRHI::begin_render_pass(RenderTargetRef rt, const RenderPassParams& params) {
+    
+}
+
+
 
 }

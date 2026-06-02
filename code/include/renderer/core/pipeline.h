@@ -10,6 +10,9 @@
 #include <scenegraph/components/material.h>
 #include <scenegraph/components/mesh.h>
 
+#include <rhi/rhi.h>
+#include <glm/glm.hpp>
+
 
 namespace zr {
     namespace sg{
@@ -46,6 +49,7 @@ namespace zr {
             uint16_t get_val();
             bool has_light();
         };
+
         class PipelineFeature{
 
         public:
@@ -75,7 +79,7 @@ namespace zr {
         class Pipeline {
         public:
 
-            Pipeline(std::shared_ptr<Device> device, PipelineFeature feature);
+            Pipeline(PipelineFeature feature);
 
             bool create(std::shared_ptr<FgRenderPass> fg_render_pass, uint32_t subpass_idx,
                         std::shared_ptr<PipelineLayout> layout);
@@ -101,9 +105,9 @@ namespace zr {
 
             virtual void create_color_blend_state();
 
-            virtual void create_multisample_state(VkSampleCountFlagBits sample_count_flags_bits);
+            virtual void create_multisample_state(rhi::SampleCount sample_count);
 
-            virtual void create_viewport_state(VkExtent2D extent);
+            virtual void create_viewport_state(glm::vec2 display_size);
 
             virtual void create_vtx_input_state();
 
@@ -128,7 +132,6 @@ namespace zr {
             VkPipelineViewportStateCreateInfo _viewport_state{.sType = VK_STRUCTURE_TYPE_MAX_ENUM};
             VkPipelineVertexInputStateCreateInfo _vtx_input_state{.sType = VK_STRUCTURE_TYPE_MAX_ENUM};
             VkPipelineShaderStageCreateInfo _shader_stage_ci{.sType = VK_STRUCTURE_TYPE_MAX_ENUM};
-            // VkPipelineTessellationStateCreateInfo _tess_stage_ci;
             VkPipelineCache _vk_pipeline_cache{VK_NULL_HANDLE};
             std::vector<VkVertexInputBindingDescription> _vk_input_binding_descs;
             VkRect2D _vk_scissor{};
@@ -147,6 +150,9 @@ namespace zr {
             std::shared_ptr<DescriptorPool> _desc_pool;
             std::shared_ptr<Device> _device;
             PipelineFeature _feature;
+
+
+            rhi::GraphicsPipelineCreateInfo _ci;
         private:
 
             VkPipeline _vk_pipeline{VK_NULL_HANDLE};

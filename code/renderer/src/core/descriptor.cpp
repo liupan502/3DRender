@@ -102,7 +102,10 @@ void DescriptorLayout::init_push_constants(PipelineFeature feature) {
 void DescriptorLayout::create_layout(PipelineFeature feature) {
     
     init_bindings(feature);
-   
+    
+    rhi::DescriptorSetLayoutCreateInfo ci;
+    ci.binding_infos = _binding_infos;
+    _rhi_layout = rhi::rhi_instance->create_descriptor_set_layout(ci);
 }
 
 BaseDescriptorLayout::BaseDescriptorLayout(){
@@ -215,11 +218,11 @@ DescriptorPool::DescriptorPool(std::shared_ptr<Device> device,
 DescriptorPool::DescriptorPool(std::shared_ptr<Device> device, std::shared_ptr<DescriptorLayout> layout, uint32_t desc_count) :
     _device(device), _layout(layout){
     create_pool(desc_count);
-}
+}*/
 
 void DescriptorSet::update_desc_set_buffer(std::vector<std::shared_ptr<UniformBuffer>> buffers, uint32_t desc_count, uint32_t dst_arr_ele) {
     
-    if (buffers.size() == 0) {
+    /*if (buffers.size() == 0) {
         return;
     }
 
@@ -246,8 +249,12 @@ void DescriptorSet::update_desc_set_buffer(std::vector<std::shared_ptr<UniformBu
                 .pBufferInfo = (_buffer_infos.data() + idx),
                 .pTexelBufferView = nullptr,
     };
-    _write_desc_sets.emplace_back(desc_write_set);
-}*/
+    _write_desc_sets.emplace_back(desc_write_set);*/
+
+    for (int i = 0; i < buffers.size(); i++) {
+        rhi::rhi_instance->update_desc_buffer(_rhi_desc_set, buffers[i]->get(), buffers[i]->get_binding_idx(), 0, buffers[i]->get_data_size());
+    }
+}
 
 /*void DescriptorSet::update_desc_set_buffer(std::vector<std::shared_ptr<Buffer>> buffers,
                                             uint32_t binding_idx, uint32_t desc_count, uint32_t arr_len) {
@@ -282,14 +289,14 @@ void DescriptorSet::update_desc_set_buffer(std::vector<std::shared_ptr<UniformBu
 
 void DescriptorSet::update_desc_set_texture(std::shared_ptr<sg::Texture> texture,
                                              uint32_t binding_idx) {
-    auto sampler = texture->get_sampler();
-    auto image_view = texture->get_image_view();
+    auto sampler = texture->get_rhi_sampler();
+    auto image_view = texture->get_rhi_texture();
     update_desc_set_texture(sampler, image_view, binding_idx);
 }
 
-void DescriptorSet::update_desc_set_texture(std::shared_ptr<Sampler> sampler, std::shared_ptr<ImageView> image_view, 
+void DescriptorSet::update_desc_set_texture(rhi::SampleStateRef sampler, rhi::TextureRef image_view, 
                                 uint32_t binding_idx) {
-    for (uint32_t i = 0; i < 1; i++) {
+    /*for (uint32_t i = 0; i < 1; i++) {
         _samplers[_img_current_idx] = sampler;
         VkDescriptorImageInfo& img_info = _img_infos[_img_current_idx++]; 
         
@@ -310,10 +317,12 @@ void DescriptorSet::update_desc_set_texture(std::shared_ptr<Sampler> sampler, st
         desc_write_set.pTexelBufferView = nullptr;
         
         _write_desc_sets.emplace_back(desc_write_set);
-    }
+    }*/
+
+    rhi::rhi_instance->update_desc_texture(_rhi_desc_set, sampler, image_view, binding_idx);
 }
 
-void DescriptorSet::update_desc_set_input_attachment(std::shared_ptr<ImageView> img_view, uint32_t binding_idx) {
+/*void DescriptorSet::update_desc_set_input_attachment(std::shared_ptr<ImageView> img_view, uint32_t binding_idx) {
     VkDescriptorImageInfo& img_info = _img_infos[_img_current_idx++]; 
         
     img_info.sampler = VK_NULL_HANDLE;
@@ -334,9 +343,9 @@ void DescriptorSet::update_desc_set_input_attachment(std::shared_ptr<ImageView> 
     
     _write_desc_sets.emplace_back(desc_write_set);
     // vkUpdateDescriptorSets(_device->get_device(), 1, &desc_write_set, 0, nullptr);
-}
+}*/
 
-void DescriptorSet::bind(std::shared_ptr<CommandBuffer> cmd_buf,
+/*void DescriptorSet::bind(std::shared_ptr<CommandBuffer> cmd_buf,
                          std::shared_ptr<PipelineLayout> pipeline_layout) {
     if (_write_desc_sets.size() > 0) {
         vkUpdateDescriptorSets(_device->get_device(), _write_desc_sets.size(), _write_desc_sets.data(), 0, nullptr);
@@ -350,9 +359,9 @@ void DescriptorSet::bind(std::shared_ptr<CommandBuffer> cmd_buf,
                             nullptr);
 }
 
-DescriptorSet::~DescriptorSet() {
+DescriptorSet::~DescriptorSet() { 
 
-}
+}*/
 
 /*std::vector<std::shared_ptr<DescriptorSet>> DescriptorPool::get_available_desc_sets(
         uint32_t count) {

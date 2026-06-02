@@ -122,7 +122,7 @@ namespace zr {
                 _render_pass = render_pass;
             }
 
-            VkSampleCountFlagBits get_sample_count();
+            rhi::SampleCount get_sample_count();
 
             VkExtent2D get_display_size();
 

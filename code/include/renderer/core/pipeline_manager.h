@@ -26,11 +26,7 @@ namespace zr{
 
         class PipelineManager{
         public:
-            PipelineManager(std::shared_ptr<Device> device,
-                            std::shared_ptr<FgRenderPass> fg_render_pass,
-                            uint16_t subpass_idx = 0) :
-            _device(device), _fg_render_pass(fg_render_pass),
-            _subpass_idx(subpass_idx), _create_pipeline(nullptr){ } ;
+            PipelineManager() : _create_pipeline(nullptr){ } ;
             std::shared_ptr<Pipeline> get_pipeline(LightInfo light_info, std::shared_ptr<sg::Material> material,
                                                    std::vector<std::vector<sg::VertexAttribute>> vtx_attrs);
 
@@ -38,13 +34,13 @@ namespace zr{
                 _create_pipeline = cp;
             }
         private:
-            std::shared_ptr<Device> _device;
+            
             std::shared_ptr<Pipeline> create_pipeline(PipelineFeature feature);
             // std::shared_ptr<Pipeline> create_pipeline(PipelineFeature feature, uint16_t subpass_idx);
             std::map<PipelineFeature , std::shared_ptr<Pipeline>, PipelineFeature::PipelineFeatureComp> _pipeline_map;
-            std::weak_ptr<FgRenderPass> _fg_render_pass;
+            
 
-            uint16_t _subpass_idx;
+           
             // VkExtent2D _display_size;
             CreatePipelineFunc _create_pipeline;
             // std::map<std::string, std::shared_ptr<Pipeline>> _pipeline_map;

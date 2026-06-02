@@ -32,6 +32,10 @@ namespace rhi {
 
         DescriptorSetRef create_descriptor_set(DescriptorSetLayoutRef layout) override;
 
+        void update_desc_texture(DescriptorSetRef desc, SampleStateRef sampler, TextureRef tex, uint32_t binding_idx) override;
+
+        void begin_render_pass(RenderTargetRef rt, const RenderPassParams& params) override;
+
     
         private:
         std::shared_ptr<zr::RenderContext> _context;

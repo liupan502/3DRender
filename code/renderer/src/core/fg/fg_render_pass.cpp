@@ -105,15 +105,15 @@ void FgRenderPass::execute(const PassResources& res) {
 }
 
 void FgRenderPass::set_pipeline_mgr(std::shared_ptr<PipelineManager> mgr) {
-    mgr->set_pipeline_create(_setup_data.renderer_interface->get_pipeline_creator());
-    _setup_data.renderer_interface->set_pipeline_mgr(mgr);
+    // mgr->set_pipeline_create(_setup_data.renderer_interface->get_pipeline_creator());
+    // _setup_data.renderer_interface->set_pipeline_mgr(mgr);
 }
 
-VkSampleCountFlagBits FgRenderPass::get_sample_count() {
+rhi::SampleCount FgRenderPass::get_sample_count() {
     if (_color_outputs.size() > 0) {
         return _fg->get_tex_res(*_color_outputs.begin())->get_attachment_info().samples;
     }
-    return VK_SAMPLE_COUNT_1_BIT;
+    return rhi::SampleCount::SC_COUNT_1;
 }
 
 VkExtent2D FgRenderPass::get_display_size() {

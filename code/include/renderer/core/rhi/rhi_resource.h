@@ -211,6 +211,8 @@ namespace rhi {
         CompareOp depth_compare_op = CompareOp::CO_LESS;
 
         std::vector<ColorBlendAttachmentState> color_blend_attachments;
+
+        Viewport viewport;
     };
 
     class GraphicsPipeline : public Resource {
@@ -263,7 +265,7 @@ namespace rhi {
         int32_t left = 0;
         int32_t top = 0;
         uint32_t width = 0;
-        uiint32_t height = 0;
+        uint32_t height = 0;
     };
 
     struct RenderTargetClearInfo{
@@ -291,7 +293,7 @@ namespace rhi {
 
     struct DescriptorSetLayoutCreateInfo {
         std::vector<DescriptorBindingInfo> binding_infos;
-    }
+    };
 
     class DescriptorSetLayout : public Resource {
         public:

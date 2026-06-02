@@ -68,6 +68,8 @@ namespace zr {
 
             std::vector<rhi::DescriptorBindingInfo> _binding_infos;
 
+            rhi::DescriptorSetLayoutRef _rhi_layout;
+
         };
 
         class BaseDescriptorLayout : public DescriptorLayout {
@@ -87,33 +89,34 @@ namespace zr {
 
         class DescriptorSet {
         public:
-            DescriptorSet(std::shared_ptr<Device> device, VkDescriptorSet vk_desc_set) : 
-                _device(device), _vk_desc_set(vk_desc_set) {
-                _buffer_infos = std::vector<VkDescriptorBufferInfo>(100);
-                _img_infos = std::vector<VkDescriptorImageInfo>(20);
-                _samplers = std::vector<std::shared_ptr<Sampler>>(20);
+            DescriptorSet(rhi::DescriptorSetLayoutRef layout) 
+            {
+                // _buffer_infos = std::vector<VkDescriptorBufferInfo>(100);
+                // _img_infos = std::vector<VkDescriptorImageInfo>(20);
+                // _samplers = std::vector<std::shared_ptr<Sampler>>(20);
+                _rhi_desc_set = rhi::rhi_instance->create_descriptor_set(layout);
             };
-            inline VkDescriptorSet get() const { return _vk_desc_set;};
+            // inline VkDescriptorSet get() const { return _vk_desc_set;};
 
-            void update_desc_set_buffer(std::vector<std::shared_ptr<Buffer>> buffers, uint32_t binding_idx,
-                                        uint32_t desc_count = 1, uint32_t arr_len = 1);
+            // void update_desc_set_buffer(std::vector<std::shared_ptr<Buffer>> buffers, uint32_t binding_idx,
+            //                             uint32_t desc_count = 1, uint32_t arr_len = 1);
 
             void update_desc_set_buffer(std::vector<std::shared_ptr<UniformBuffer>> buffers, uint32_t desc_count = 1, uint32_t dst_arr_ele = 0);
 
             void update_desc_set_texture(std::shared_ptr<sg::Texture> texture, uint32_t binding_idx);
 
-            void update_desc_set_texture(std::shared_ptr<Sampler> sampler, std::shared_ptr<ImageView> img_view, 
+            void update_desc_set_texture(rhi::SampleStateRef sampler, rhi::TextureRef img_view, 
                                 uint32_t binding_idx);
 
-            void update_desc_set_input_attachment(std::shared_ptr<ImageView> img_view, uint32_t binding_idx);
+            // void update_desc_set_input_attachment(std::shared_ptr<ImageView> img_view, uint32_t binding_idx);
 
-            void bind(std::shared_ptr<CommandBuffer> cmd_buf, std::shared_ptr<PipelineLayout> pipeline_layout);
+            // void bind(std::shared_ptr<CommandBuffer> cmd_buf, std::shared_ptr<PipelineLayout> pipeline_layout);
 
-            virtual ~DescriptorSet();
+            // virtual ~DescriptorSet();
 
 
         private:
-            std::shared_ptr<Device> _device;
+            /*std::shared_ptr<Device> _device;
             VkDescriptorSet _vk_desc_set{VK_NULL_HANDLE};
             std::vector<VkWriteDescriptorSet> _write_desc_sets;
 
@@ -121,7 +124,10 @@ namespace zr {
             uint16_t _buffer_current_idx = 0;
             std::vector<VkDescriptorImageInfo> _img_infos;
             uint16_t _img_current_idx = 0;
-            std::vector<std::shared_ptr<Sampler>> _samplers;
+            std::vector<std::shared_ptr<Sampler>> _samplers;*/
+
+            rhi::DescriptorSetRef _rhi_desc_set = nullptr;
+            rhi::DescriptorSetLayoutRef _rhi_desc_set_layout;
         };
 
         /*class DescriptorPool {

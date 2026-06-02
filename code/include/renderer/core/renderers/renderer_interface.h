@@ -1,6 +1,7 @@
 #pragma once
 #include <core/pipeline_manager.h>
 #include <core/fg/fg_render_pass.h>
+#include <core/pipeline_manager.h>
 #include <memory>
 namespace zr{
     namespace sg{
@@ -9,7 +10,6 @@ namespace zr{
 
     namespace core {
         class FgRenderPass;
-        class PipelineManager;
         class CommandBuffer;
 
         typedef enum AAOption{
@@ -39,9 +39,12 @@ namespace zr{
 
             virtual CreatePipelineFunc get_pipeline_creator() = 0;
 
-            inline std::shared_ptr<PipelineManager> get_pipeline_mgr() {
-                return _pipeline_mgr;
-            }
+            std::shared_ptr<PipelineManager> get_pipeline_mgr() {
+                if (!_pipeline_mgr) {
+                    _pipeline_mgr = std::make_shared<PipelineManager>();
+                    _pipeline_mgr->set_pipeline_create(get_pipeline_creator());
+                }
+            } 
             
             inline void set_viewport(VkViewport viewport) { _viewport = viewport;};
 
@@ -51,7 +54,7 @@ namespace zr{
 
             inline void set_camera_info(CameraInfo* camera_info) { _camera_info = camera_info;};
         protected:
-            std::shared_ptr<PipelineManager> _pipeline_mgr;
+            std::shared_ptr<PipelineManager> _pipeline_mgr {nullptr};
             VkViewport _viewport;
             AAOption _aa_option{AA_OPTION_NONE};
             CameraInfo* _camera_info{nullptr};
