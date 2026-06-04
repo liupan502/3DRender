@@ -4,6 +4,7 @@
 #include <core/core.h>
 #include <string>
 #include <sstream>
+#include <fstream>
 #include <scenegraph/components/material.h>
 #include <scenegraph/components/mesh.h>
 #include <core/fg/fg_render_pass.h>
@@ -96,10 +97,8 @@ bool Pipeline::create(std::shared_ptr<FgRenderPass> fg_render_pass,
 }
 
 void Pipeline::create_input_assembly_state() {
-    _input_assembly_state = VkPipelineInputAssemblyStateCreateInfo{};
-    _input_assembly_state.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-    _input_assembly_state.primitiveRestartEnable = VK_FALSE;
-    _input_assembly_state.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    _ci.topology = rhi::PrimitiveTopology::PT_TRIANGLE_LIST;
+    _ci.primitive_restart_enable = false;
 }
 
 void Pipeline::create_depth_stencil_state() {
@@ -168,54 +167,63 @@ void Pipeline::create_pipeline_cache() {
 
 void BasePipeline::create_shader_stage() {
     // vertex shader
-    // _shader_modules.push_back(std::make_shared<ShaderModule>(_device, "shaders/base.vert.spv"));
+    {
+        std::ifstream file("shaders/textured.vert.spv", std::ios::binary | std::ios::ate);
+        auto size = file.tellg();
+        file.seekg(0, std::ios::beg);
+        std::vector<uint8_t> spirv(size);
+        file.read(reinterpret_cast<char*>(spirv.data()), size);
 
-    _shader_modules.push_back(std::make_shared<ShaderModule>(_device, "shaders/textured.vert", false, _feature.get_defines()));
+        rhi::ShaderModuleCreateInfo ci{};
+        ci.type = rhi::ShaderModuleType::SMT_VERTEX;
+        ci.content = spirv.data();
+        ci.len = static_cast<uint32_t>(size);
+        ci.is_bin = true;
+
+        _ci.vertex_shader = rhi::rhi_instance->create_shader_module(ci);
+    }
 
     // fragment shader
-    // _shader_modules.push_back(std::make_shared<ShaderModule>(_device, "shaders/base.frag.spv"));
-    _shader_modules.push_back(std::make_shared<ShaderModule>(_device, "shaders/textured.frag", false, _feature.get_defines()));
+    {
+        std::ifstream file("shaders/textured.frag.spv", std::ios::binary | std::ios::ate);
+        auto size = file.tellg();
+        file.seekg(0, std::ios::beg);
+        std::vector<uint8_t> spirv(size);
+        file.read(reinterpret_cast<char*>(spirv.data()), size);
 
-    // std::vector<VkPipelineShaderStageCreateInfo> cis {};
+        rhi::ShaderModuleCreateInfo ci{};
+        ci.type = rhi::ShaderModuleType::SMT_FRAGMENT;
+        ci.content = spirv.data();
+        ci.len = static_cast<uint32_t>(size);
+        ci.is_bin = true;
 
-    VkPipelineShaderStageCreateInfo vtx_ci{};
-    vtx_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    vtx_ci.module = _shader_modules[0]->get();
-    vtx_ci.stage = VK_SHADER_STAGE_VERTEX_BIT;
-    vtx_ci.pName = "main";
-    _shader_cis.push_back(vtx_ci);
-
-    VkPipelineShaderStageCreateInfo frag_ci{};
-    frag_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    frag_ci.module = _shader_modules[1]->get();
-    frag_ci.pName = "main";
-    frag_ci.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-    _shader_cis.push_back(frag_ci);
+        _ci.fragment_shader = rhi::rhi_instance->create_shader_module(ci);
+    }
 }
 
-VkFormat get_data_format(zr::sg::VertexAttributeType type) {
-    VkFormat fmt;
+rhi::ColorFormat get_data_format(zr::sg::VertexAttributeType type) {
+    rhi::ColorFormat fmt = rhi::ColorFormat::None;
     switch (type) {
         case zr::sg::VERTEX_ATTRI_POS:
-            fmt = VK_FORMAT_R32G32B32_SFLOAT;
+            fmt = rhi::ColorFormat::R32G32B32_SFLOAT;
             break;
         case zr::sg::VERTEX_ATTRI_UV:
-            fmt = VK_FORMAT_R32G32_SFLOAT;
+            fmt = rhi::ColorFormat::R32G32_SFLOAT;
             break;
         case zr::sg::VERTEX_ATTRI_COLOR:
-            fmt = VK_FORMAT_R32G32B32A32_SFLOAT;
+            fmt = rhi::ColorFormat::R32G32B32A32_SFLOAT;
             break;
         case zr::sg::VERTEX_ATTRI_NORMAL:
-            fmt = VK_FORMAT_R32G32B32_SFLOAT;
+            fmt = rhi::ColorFormat::R32G32B32_SFLOAT;
             break;
         case zr::sg::VERTEX_ATTRI_JOINT_8:
-            fmt = VK_FORMAT_R8G8B8_UINT;
+            fmt = rhi::ColorFormat::R8G8B8_UINT ;
             break;
         case zr::sg::VERTEX_ATTRI_JOINT_16:
-            fmt = VK_FORMAT_R16G16B16A16_UINT;
+            fmt = rhi::ColorFormat::R16G16B16A16_UINT;
             break;
         case zr::sg::VERTEX_ATTRI_WEIGHT:
-            fmt = VK_FORMAT_R32G32B32A32_SFLOAT;
+            fmt = rhi::ColorFormat::R32G32B32A32_SFLOAT;
             break;
         default:
             break;

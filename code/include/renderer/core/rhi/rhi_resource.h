@@ -26,6 +26,8 @@ namespace rhi {
         B10G11R11_UFLOAT_PACK32 = 11,
         D32_SFLOAT = 12,
         B8G8R8A8_SRGB = 13,
+        R8G8B8_UINT = 14,
+        R16G16B16A16_UINT
     };
 
     enum class TextureType : uint8_t {
@@ -188,6 +190,13 @@ namespace rhi {
         uint8_t color_write_mask = 0xF;
     };
 
+    struct Viewport {
+        int32_t left = 0;
+        int32_t top = 0;
+        uint32_t width = 0;
+        uint32_t height = 0;
+    };
+
     struct GraphicsPipelineCreateInfo {
         std::shared_ptr<ShaderModule> vertex_shader = nullptr;
         std::shared_ptr<ShaderModule> fragment_shader = nullptr;
@@ -261,12 +270,6 @@ namespace rhi {
         RenderTargetCreateInfo _ci;
     };
 
-    struct Viewport {
-        int32_t left = 0;
-        int32_t top = 0;
-        uint32_t width = 0;
-        uint32_t height = 0;
-    };
 
     struct RenderTargetClearInfo{
         glm::vec4 color;
@@ -280,8 +283,8 @@ namespace rhi {
     };
 
     struct RenderPrimitive {
-        BufferRef vtx_buf;
-        BufferRef idx_buf;
+        std::shared_ptr<Buffer> vtx_buf;
+        std::shared_ptr<Buffer> idx_buf;
     };
 
     struct DescriptorBindingInfo {
