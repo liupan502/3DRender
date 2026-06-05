@@ -3,16 +3,16 @@
 #include <core/descriptor.h>
 #include <core/buffer.h>
 #include <core/command_buffer.h>
-#include <core/shader_module.h>
 #include <core/fg/fg_render_pass.h>
 #include <core/sampler.h>
 #include <scenegraph/components/material.h>
+#include <fstream>
 
 using namespace zr;
 using namespace zr::core;
 
 void QuadRenderer::prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass) {
-    auto* vulkan_rhi = static_cast<rhi::vulkan::VulkanRHI*>(rhi::rhi_instance);
+    /*auto* vulkan_rhi = static_cast<rhi::vulkan::VulkanRHI*>(rhi::rhi_instance);
     std::shared_ptr<core::Device> device = vulkan_rhi->get_context()->get_device();
     
     if (!_quad_mesh_buf) {
@@ -22,7 +22,7 @@ void QuadRenderer::prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass
         _quad_mesh_buf->update((uint8_t*)data, sizeof(float) * 6);                    
     }
 
-    prepare_desc(renderpass, device);    
+    prepare_desc(renderpass, device); */   
 }
 
 void QuadRenderer::reset_viewport(FgRenderPass *renderpass) {
@@ -32,7 +32,7 @@ void QuadRenderer::reset_viewport(FgRenderPass *renderpass) {
 }
 
 void QuadRenderer::prepare_desc(FgRenderPass* renderpass, std::shared_ptr<Device> device) {
-    if (!_desc_set) {
+    /*if (!_desc_set) {
         _pipeline = _pipeline_mgr->get_pipeline(LightInfo(), std::make_shared<sg::Material>(nullptr),
                                     std::vector<std::vector<sg::VertexAttribute>>());
         _desc_set = _pipeline->get_desc_pool()->get_available_desc_sets(1)[0];
@@ -45,31 +45,26 @@ void QuadRenderer::prepare_desc(FgRenderPass* renderpass, std::shared_ptr<Device
     std::shared_ptr<Sampler> sampler = std::make_shared<Sampler>(device);
     _desc_set->update_desc_set_texture(sampler, view, 0);
 
-    reset_viewport(renderpass);
+    reset_viewport(renderpass);*/
 }
 
 void QuadRenderer::render_scene(sg::Scene* scene, 
             const PassResources& res) {
-    /*auto pipeline = _pipeline_mgr->get_pipeline(LightInfo(),
-                                                std::make_shared<sg::Material>(nullptr),
-                                std::vector<std::vector<sg::VertexAttribute>>());
-
-    pipeline->bind(_cmd_buf);*/
-    // vkCmdSetViewport()
-    vkCmdSetViewport(_cmd_buf->get(), 0, 1, &_viewport);
+    
+    /*vkCmdSetViewport(_cmd_buf->get(), 0, 1, &_viewport);
     _pipeline->bind(_cmd_buf);
     _desc_set->bind(_cmd_buf, _pipeline->get_pipeline_layout());
     VkDeviceSize offset = 0;
     VkBuffer vtx_buf = _quad_mesh_buf->get();
     vkCmdBindVertexBuffers(_cmd_buf->get(), 0, 1, &vtx_buf, &offset);
-    vkCmdDraw(_cmd_buf->get(), 3, 1, 0, 0);
+    vkCmdDraw(_cmd_buf->get(), 3, 1, 0, 0);*/
 }
 
 QuadPipeline::QuadPipeline(
             std::shared_ptr<FgRenderPass> render_pass, uint32_t subpass_idx, 
             PipelineFeature feature
             , const std::map<std::string, std::string>& shader_path_map, 
-                const std::vector<DescriptorBindingInfo>& binding_infos) : _shader_path_map(shader_path_map),
+                const std::vector<rhi::DescriptorBindingInfo>& binding_infos) : _shader_path_map(shader_path_map),
                 Pipeline(feature) {
 
     /*std::vector<DescriptorBindingInfo> binding_infos;
@@ -81,8 +76,9 @@ QuadPipeline::QuadPipeline(
     binding_info.shader_stage = VK_SHADER_STAGE_FRAGMENT_BIT;
     binding_infos.emplace_back(binding_info);*/
     
-    _desc_pool = std::make_shared<DescriptorPool>(_device, binding_infos, 10);
-    _desc_layout = _desc_pool->get_layout();
+    // _desc_pool = std::make_shared<DescriptorPool>(_device, binding_infos, 10);
+    // _desc_layout = _desc_pool->get_layout();
+    _desc_layout = rhi::rhi_instance->create_descriptor_set_layout({ binding_infos });
     create(render_pass, subpass_idx, _desc_layout);
 }
 
@@ -154,29 +150,40 @@ void QuadPipeline::create_dynamic_states() {
 
 void QuadPipeline::create_shader_stage() {
     // vertex shader
-    bool vert_is_bin = _shader_path_map["vert"].ends_with(".spv");
-    _shader_modules.push_back(std::make_shared<ShaderModule>(_device, _shader_path_map["vert"].c_str(), vert_is_bin, _feature.get_defines()));
+    {
+        std::ifstream file(_shader_path_map["vert"], std::ios::binary | std::ios::ate);
+        auto size = file.tellg();
+        file.seekg(0, std::ios::beg);
+        std::vector<uint8_t> spirv(size);
+        file.read(reinterpret_cast<char*>(spirv.data()), size);
+
+        rhi::ShaderModuleCreateInfo ci{};
+        ci.type = rhi::ShaderModuleType::SMT_VERTEX;
+        ci.content = spirv.data();
+        ci.len = static_cast<uint32_t>(size);
+        ci.is_bin = true;
+
+        _ci.vertex_shader = rhi::rhi_instance->create_shader_module(ci);
+    }
 
     // fragment shader
-    bool frag_is_bin = _shader_path_map["frag"].ends_with(".spv");
-    _shader_modules.push_back(std::make_shared<ShaderModule>(_device, _shader_path_map["frag"].c_str(), frag_is_bin, _feature.get_defines()));
+    {
+        std::ifstream file(_shader_path_map["frag"], std::ios::binary | std::ios::ate);
+        auto size = file.tellg();
+        file.seekg(0, std::ios::beg);
+        std::vector<uint8_t> spirv(size);
+        file.read(reinterpret_cast<char*>(spirv.data()), size);
 
-    // std::vector<VkPipelineShaderStageCreateInfo> cis {};
+        rhi::ShaderModuleCreateInfo ci{};
+        ci.type = rhi::ShaderModuleType::SMT_FRAGMENT;
+        ci.content = spirv.data();
+        ci.len = static_cast<uint32_t>(size);
+        ci.is_bin = true;
 
-    VkPipelineShaderStageCreateInfo vtx_ci{};
-    vtx_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    vtx_ci.module = _shader_modules[0]->get();
-    vtx_ci.stage = VK_SHADER_STAGE_VERTEX_BIT;
-    vtx_ci.pName = "main";
-    _shader_cis.push_back(vtx_ci);
-
-    VkPipelineShaderStageCreateInfo frag_ci{};
-    frag_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    frag_ci.module = _shader_modules[1]->get();
-    frag_ci.pName = "main";
-    frag_ci.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-    _shader_cis.push_back(frag_ci);
+        _ci.fragment_shader = rhi::rhi_instance->create_shader_module(ci);
+    }
 }
+    
 
 CreatePipelineFunc QuadRenderer:: get_pipeline_creator() {
     CreatePipelineFunc cp = [](PipelineFeature feature,
@@ -186,12 +193,12 @@ CreatePipelineFunc QuadRenderer:: get_pipeline_creator() {
         shader_path_map.insert({"vert", "shaders/spv/quad.vert.spv"});
         shader_path_map.insert({"frag", "shaders/spv/quad.frag.spv"}); 
 
-        std::vector<DescriptorBindingInfo> binding_infos;
-        DescriptorBindingInfo binding_info{};
+        std::vector<rhi::DescriptorBindingInfo> binding_infos;
+        rhi::DescriptorBindingInfo binding_info{};
         binding_info.binding_idx = 0;
         binding_info.desc_count = 1;
-        binding_info.desc_type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        binding_info.shader_stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        binding_info.desc_type = rhi::DescriptorType::DT_SAMPLER_2D;
+        binding_info.shader_stage = rhi::ShaderStageType::SST_FRAGMENT;
         binding_infos.emplace_back(binding_info);     
 
         return std::make_shared<QuadPipeline>(renderpass, subpass_idx, feature, shader_path_map, binding_infos);
