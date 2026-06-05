@@ -132,6 +132,10 @@ void Pipeline::create_viewport_state(glm::vec2 display_size) {
     _ci.viewport.height = static_cast<uint32_t>(display_size.y);
 }
 
+std::shared_ptr<DescriptorSet> Pipeline::get_available_desc_set() {
+    return std::make_shared<DescriptorSet>(_desc_layout->get_rhi_layout());
+}
+
 void Pipeline::create_pipeline_cache() {
     VkPipelineCacheCreateInfo ci{};
     ci.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;

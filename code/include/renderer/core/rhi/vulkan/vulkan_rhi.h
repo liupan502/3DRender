@@ -36,6 +36,11 @@ namespace rhi {
 
 void begin_render_pass(RenderTargetRef rt, const RenderPassParams& params) override;
 
+        void end_render_pass() override;
+
+        void draw(GraphicsPipelineRef pipeline, const RenderPrimitive& primitive, 
+            uint32_t const indexOffset, uint32_t const indexCount, uint32_t const instanceCount) override;
+
         inline std::shared_ptr<zr::RenderContext> get_context() const { return _context; }
 
     private:

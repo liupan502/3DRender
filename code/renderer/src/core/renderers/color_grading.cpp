@@ -55,8 +55,8 @@ void ColorGradingRenderer::prepare_desc(FgRenderPass* render_pass) {
     if (_color_grading_path.size() >  0 && !_color_grading_tex) {
         _color_grading_tex = std::make_shared<sg::SingleLayerTexture>(_color_grading_path, 32, 32, 32, VK_FORMAT_R8G8B8A8_SRGB,
             sg::TextureSamplerType::TEXTURE_SAMPLER_3D);
-        auto* vulkan_rhi = static_cast<rhi::vulkan::VulkanRHI*>(rhi::rhi_instance);
-        _color_grading_tex->upload_data(vulkan_rhi->get_context()->get_device());
+        
+        _color_grading_tex->upload_data();
     }
 
     auto view = render_pass->get_input_views()[0];

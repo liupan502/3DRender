@@ -4,6 +4,7 @@
 #include <rhi/vulkan/vulkan_shader_module.h>
 #include <rhi/vulkan/vulkan_pipeline.h>
 #include <rhi/vulkan/vulkan_render_target.h>
+#include <rhi/vulkan/vulkan_descriptor.h>
 
 #ifdef PLATFORM_ANDROID
 #include <android/native_window.h>
@@ -86,11 +87,20 @@ DescriptorSetRef VulkanRHI::create_descriptor_set(DescriptorSetLayoutRef layout)
     return std::make_shared<VulkanDescriptorSet>(layout);
 }
 
-void VulkanRHI::update_desc_texture(DescriptorSetRef desc, SampleStateRef sampler, TextureRef tex, uint32_t binding_idx) } {
+void VulkanRHI::update_desc_texture(DescriptorSetRef desc, SampleStateRef sampler, TextureRef tex, uint32_t binding_idx) {
 
 }
 
 void VulkanRHI::begin_render_pass(RenderTargetRef rt, const RenderPassParams& params) {
+    
+}
+
+void VulkanRHI::end_render_pass() {
+    
+}
+
+void VulkanRHI::draw(GraphicsPipelineRef pipeline, const RenderPrimitive& primitive, 
+    uint32_t const indexOffset, uint32_t const indexCount, uint32_t const instanceCount) {
     
 }
 

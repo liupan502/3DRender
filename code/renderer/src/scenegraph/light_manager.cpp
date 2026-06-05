@@ -18,41 +18,41 @@ zr::core::LightInfo LightManager::get_light_info() {
     return light_info;
 }
 
-void LightManager::upload(std::shared_ptr<core::Device> device) {
+void LightManager::upload() {
     if (!_directional_light_buffers.size()) {
-        VkDeviceSize directional_light_size = sizeof(DirectionalLight::DirectionalLightInfo);
+        uint32_t directional_light_size = sizeof(DirectionalLight::DirectionalLightInfo);
         for (uint8_t i = 0; i < MAX_DIRECTIOANL_LIGHT_NUM; i++) {
-            auto directional_light_buffer = std::make_shared<core::UniformBuffer>(13, device, directional_light_size);
+            auto directional_light_buffer = std::make_shared<core::UniformBuffer>(13, directional_light_size);
             _directional_light_buffers.emplace_back(directional_light_buffer);
         }
     }
 
     if (!_spot_light_infos_buffer) {
-        VkDeviceSize spot_light_size = sizeof(SpotLight::SpotLightInfo);
+        uint32_t spot_light_size = sizeof(SpotLight::SpotLightInfo);
         spot_light_size *= MAX_SPOT_LIGHT_NUM;
-        _spot_light_infos_buffer = std::make_shared<core::UniformBuffer>(12, device, spot_light_size);
+        _spot_light_infos_buffer = std::make_shared<core::UniformBuffer>(12,  spot_light_size);
     }
 
     if (!_point_light_infos_buffer) {
-        VkDeviceSize point_light_size = sizeof(PointLight::PointLightInfo);
+        uint32_t point_light_size = sizeof(PointLight::PointLightInfo);
         point_light_size *= MAX_POINT_LIGHT_NUM;
-        _point_light_infos_buffer = std::make_shared<core::UniformBuffer>(11, device, point_light_size);
+        _point_light_infos_buffer = std::make_shared<core::UniformBuffer>(11,  point_light_size);
     }
 
     if (!_light_vertex_info_buffer) {
-        VkDeviceSize light_vertex_info_size = MAX_POINT_LIGHT_NUM + MAX_SPOT_LIGHT_NUM + 1;
+        uint32_t light_vertex_info_size = MAX_POINT_LIGHT_NUM + MAX_SPOT_LIGHT_NUM + 1;
         light_vertex_info_size *= sizeof(glm::vec4);
-        _light_vertex_info_buffer = std::make_shared<core::UniformBuffer>(1, device, light_vertex_info_size);
+        _light_vertex_info_buffer = std::make_shared<core::UniformBuffer>(1,  light_vertex_info_size);
     }
 
     if (_environment_light_nodes.size() > 0) {
         _environment_light_nodes[0]->get_component<zr::sg::EnvironmentLight>()
-                ->get_dfg_tex()->upload_data(device);
+                ->get_dfg_tex()->upload_data();
         _environment_light_nodes[0]->get_component<zr::sg::EnvironmentLight>()
-                ->get_prefiltered_tex()->upload_data(device);
+                ->get_prefiltered_tex()->upload_data();
         if (!_sh_buf) {
-            VkDeviceSize sh_buf_size = 9 * sizeof(glm::vec4);
-            _sh_buf = std::make_shared<core::UniformBuffer>(17, device, sh_buf_size);
+            uint32_t sh_buf_size = 9 * sizeof(glm::vec4);
+            _sh_buf = std::make_shared<core::UniformBuffer>(17,  sh_buf_size);
         }
     }
 }

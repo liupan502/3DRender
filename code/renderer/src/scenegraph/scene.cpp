@@ -61,7 +61,7 @@ void Scene::upload_light(std::shared_ptr<core::Device> device) {
     _light_manager->set_light_nodes(LIGHT_TYPE_POINT, get_light_nodes(LIGHT_TYPE_POINT));
     _light_manager->set_light_nodes(LIGHT_TYPE_ENVIRONMENT, get_light_nodes(LIGHT_TYPE_ENVIRONMENT));
 
-    _light_manager->upload(device);
+    _light_manager->upload();
     _has_uploaded = true;
 }
 

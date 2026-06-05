@@ -25,7 +25,7 @@ namespace zr{
         public:
             LightManager() = default;
             core::LightInfo get_light_info();
-            void upload(std::shared_ptr<core::Device> device);
+            void upload();
 
             void set_light_nodes(LightType light_type, const std::vector<std::shared_ptr<Node>> light_nodes);
             void update(glm::mat4 view_mat);

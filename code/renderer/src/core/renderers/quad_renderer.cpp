@@ -14,7 +14,12 @@ using namespace zr::core;
 void QuadRenderer::prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass) {
     if (!_quad_rhi_buf) {
         auto size = 6 * sizeof(float);
-        _quad_rhi_buf = rhi::rhi_instance->create_buffer({ size, 0, rhi::BufferUsageFlagBit::VertexBuffer });
+        uint32_t stride = 0;
+        rhi::BufferCreateInfo bufferInfo{};
+        bufferInfo.size = size;
+        bufferInfo.stride = 0;
+        bufferInfo.usage = static_cast<rhi::BufferUsageFlags>(rhi::BufferUsageFlagBit::VertexBuffer);
+        _quad_rhi_buf = rhi::rhi_instance->create_buffer(bufferInfo);
         float data[6] = {-1.0f, -3.0f, -1.0f, 1.0f, 3.0f, 1.0f};
         rhi::rhi_instance->update_buffer(_quad_rhi_buf, data, size, 0);
     }

@@ -3,6 +3,7 @@
 #include <core/sampler.h>
 #include <scenegraph/components/material.h>
 #include <core/buffer.h>
+#include <rhi/rhi.h>
 
 using namespace zr::core;
 
@@ -46,8 +47,8 @@ void BloomDownSampleRenderer::prepare_desc(FgRenderPass* renderpass) {
 
     auto view = renderpass->get_input_views()[0];
     rhi::SampleStateCreateInfo sampler_ci{};
-    sampler_ci.address_u = rhi::SamplerAddressMode::SAM_CLAMP;
-    sampler_ci.address_v = rhi::SamplerAddressMode::SAM_CLAMP;
+    sampler_ci.address_u = rhi::SAM_CLAMP_EDGE;
+    sampler_ci.address_v = rhi::SAM_CLAMP_EDGE;
     auto sampler = rhi::rhi_instance->create_sample_state(sampler_ci);
     _desc_set->update_desc_set_texture(sampler, view, 50);  
     
@@ -98,8 +99,8 @@ void BloomUpSampleRenderer::prepare_desc(FgRenderPass* renderpass) {
 
     auto view = renderpass->get_input_views()[0];
     rhi::SampleStateCreateInfo sampler_ci{};
-    sampler_ci.address_u = rhi::SamplerAddressMode::SAM_CLAMP;
-    sampler_ci.address_v = rhi::SamplerAddressMode::SAM_CLAMP;
+    sampler_ci.address_u = rhi::SAM_CLAMP_EDGE;
+    sampler_ci.address_v = rhi::SAM_CLAMP_EDGE;
     auto sampler = rhi::rhi_instance->create_sample_state(sampler_ci);
     _desc_set->update_desc_set_texture(sampler, view, 60);
     
