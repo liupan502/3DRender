@@ -58,41 +58,41 @@ CreatePipelineFunc TaaRenderer::get_pipeline_creator() {
         shader_path_map.insert({"vert", "shaders/spv/quad.vert.spv"});
         shader_path_map.insert({"frag", "shaders/spv/taa.frag.spv"});
 
-        std::vector<DescriptorBindingInfo> binding_infos;
+        std::vector<rhi::DescriptorBindingInfo> binding_infos;
 
-        DescriptorBindingInfo binding_info_color_sample{};
+        rhi::DescriptorBindingInfo binding_info_color_sample{};
         binding_info_color_sample.binding_idx = 0;
         binding_info_color_sample.desc_count = 1;
-        binding_info_color_sample.desc_type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        binding_info_color_sample.shader_stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        binding_info_color_sample.desc_type = rhi::DescriptorType::DT_SAMPLER_2D;
+        binding_info_color_sample.shader_stage = rhi::ShaderStageType::SST_FRAGMENT;
         binding_infos.emplace_back(binding_info_color_sample);
 
-        DescriptorBindingInfo binding_info_depth_sample{};
+        rhi::DescriptorBindingInfo binding_info_depth_sample{};
         binding_info_depth_sample.binding_idx = 1;
         binding_info_depth_sample.desc_count = 1;
-        binding_info_depth_sample.desc_type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        binding_info_depth_sample.shader_stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        binding_info_depth_sample.desc_type = rhi::DescriptorType::DT_SAMPLER_2D;
+        binding_info_depth_sample.shader_stage = rhi::ShaderStageType::SST_FRAGMENT;
         binding_infos.emplace_back(binding_info_depth_sample);    
 
-        DescriptorBindingInfo binding_info_history_sample{};
+        rhi::DescriptorBindingInfo binding_info_history_sample{};
         binding_info_history_sample.binding_idx = 2;
         binding_info_history_sample.desc_count = 1;
-        binding_info_history_sample.desc_type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        binding_info_history_sample.shader_stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        binding_info_history_sample.desc_type = rhi::DescriptorType::DT_SAMPLER_2D;
+        binding_info_history_sample.shader_stage = rhi::ShaderStageType::SST_FRAGMENT;
         binding_infos.emplace_back(binding_info_history_sample);  
 
-        DescriptorBindingInfo binding_info_taa_info_uniform{};
+        rhi::DescriptorBindingInfo binding_info_taa_info_uniform{};
         binding_info_taa_info_uniform.binding_idx = 3;
         binding_info_taa_info_uniform.desc_count = 1;
-        binding_info_taa_info_uniform.desc_type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        binding_info_taa_info_uniform.shader_stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        binding_info_taa_info_uniform.desc_type = rhi::DescriptorType::DT_UNIFORM_BUFFER;
+        binding_info_taa_info_uniform.shader_stage = rhi::ShaderStageType::SST_FRAGMENT;
         binding_infos.emplace_back(binding_info_taa_info_uniform);
 
-        DescriptorBindingInfo binding_info_velocity_sample{};
+        rhi::DescriptorBindingInfo binding_info_velocity_sample{};
         binding_info_velocity_sample.binding_idx = 4;
         binding_info_velocity_sample.desc_count = 1;
-        binding_info_velocity_sample.desc_type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        binding_info_velocity_sample.shader_stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        binding_info_velocity_sample.desc_type = rhi::DescriptorType::DT_SAMPLER_2D;
+        binding_info_velocity_sample.shader_stage = rhi::ShaderStageType::SST_FRAGMENT;
         binding_infos.emplace_back(binding_info_velocity_sample);  
 
         return std::make_shared<QuadPipeline>(renderpass, subpass_idx, feature, shader_path_map, binding_infos);
@@ -102,21 +102,19 @@ CreatePipelineFunc TaaRenderer::get_pipeline_creator() {
     return cp;                 
 }
 
-void TaaRenderer::prepare_desc(FgRenderPass* render_pass, std::shared_ptr<Device> device) {
+void TaaRenderer::prepare_desc(FgRenderPass* render_pass) {
     if (!_desc_set) {
         _pipeline = _pipeline_mgr->get_pipeline(LightInfo(), std::make_shared<sg::Material>(nullptr),
                                     std::vector<std::vector<sg::VertexAttribute>>());
-        _desc_set = _pipeline->get_desc_pool()->get_available_desc_sets(1)[0];
+        _desc_set = _pipeline->get_available_desc_set();
     }
 
     if (!_taa_info_uniform_buf) {
-        _taa_info_uniform_buf = std::make_shared<UniformBuffer>(3, device, sizeof(TaaInfo));
+        _taa_info_uniform_buf = std::make_shared<UniformBuffer>(3, sizeof(TaaInfo));
     }
 
-
-
     auto view = render_pass->get_input_views()[0];
-    std::shared_ptr<Sampler> sampler = std::make_shared<Sampler>(device);
+    auto sampler = rhi::rhi_instance->create_sample_state({});
     _desc_set->update_desc_set_texture(sampler, view, 0);
 
     // auto depth_view = render_pass->get_input_views()[1];

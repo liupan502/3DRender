@@ -21,7 +21,7 @@ using namespace zr;
 #ifdef PLATFORM_ANDROID
 
 bool MultiPassRenderer::init(AAssetManager* asset_mgr, ANativeWindow* window,
-                    VkSampleCountFlagBits sample_count, VkFormat swapchain_fmt) {
+        rhi::SampleCount sample_count, VkFormat swapchain_fmt) {
     LOGD("renderer init start");
     _context = std::make_shared<RenderContext>();
     _context->init(asset_mgr, window, swapchain_fmt);
@@ -32,7 +32,7 @@ bool MultiPassRenderer::init(AAssetManager* asset_mgr, ANativeWindow* window,
 
 #elif  PLATFORM_GLFW
 bool  MultiPassRenderer::init(GLFWwindow* window, 
-            VkSampleCountFlagBits sample_count, VkFormat swapchain_fmt) {
+            rhi::SampleCount sample_count, VkFormat swapchain_fmt) {
     _context = std::make_shared<RenderContext>();
     _context->init(window, swapchain_fmt);
     return init_internel(sample_count);

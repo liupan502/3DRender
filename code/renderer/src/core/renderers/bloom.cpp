@@ -14,20 +14,20 @@ CreatePipelineFunc BloomDownSampleRenderer::get_pipeline_creator() {
         shader_path_map.insert({"vert", "shaders/spv/quad.vert.spv"});
         shader_path_map.insert({"frag", "shaders/spv/bloom_downsample.frag.spv"});   
 
-        std::vector<DescriptorBindingInfo> binding_infos;   
+        std::vector<rhi::DescriptorBindingInfo> binding_infos;   
 
-        DescriptorBindingInfo binding_info_sample{};
+        rhi::DescriptorBindingInfo binding_info_sample{};
         binding_info_sample.binding_idx = 50;
         binding_info_sample.desc_count = 1;
-        binding_info_sample.desc_type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        binding_info_sample.shader_stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        binding_info_sample.desc_type = rhi::DescriptorType::DT_SAMPLER_2D;
+        binding_info_sample.shader_stage = rhi::ShaderStageType::SST_FRAGMENT;
         binding_infos.emplace_back(binding_info_sample);
 
-        DescriptorBindingInfo binding_info_params{};
+        rhi::DescriptorBindingInfo binding_info_params{};
         binding_info_params.binding_idx = 51;
         binding_info_params.desc_count = 1;
-        binding_info_params.desc_type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        binding_info_params.shader_stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        binding_info_params.desc_type = rhi::DescriptorType::DT_UNIFORM_BUFFER;
+        binding_info_params.shader_stage = rhi::ShaderStageType::SST_FRAGMENT;
         binding_infos.emplace_back(binding_info_params);
 
         return std::make_shared<QuadPipeline>(renderpass, subpass_idx, feature, shader_path_map, binding_infos);
@@ -35,20 +35,20 @@ CreatePipelineFunc BloomDownSampleRenderer::get_pipeline_creator() {
     return cp;
 }
 
-void BloomDownSampleRenderer::prepare_desc(FgRenderPass* renderpass, std::shared_ptr<Device> device) {
+void BloomDownSampleRenderer::prepare_desc(FgRenderPass* renderpass) {
     if (!_desc_set) {
         _pipeline = _pipeline_mgr->get_pipeline(LightInfo(), std::make_shared<sg::Material>(nullptr),
                                     std::vector<std::vector<sg::VertexAttribute>>());
-        _desc_set = _pipeline->get_desc_pool()->get_available_desc_sets(1)[0];
+        _desc_set = _pipeline->get_available_desc_set();
         
-        _param_uniform_buf = std::make_shared<UniformBuffer>(51, device, sizeof(Parameters)); 
+        _param_uniform_buf = std::make_shared<UniformBuffer>(51, sizeof(Parameters)); 
     }
 
     auto view = renderpass->get_input_views()[0];
-    SamplerInfo si;
-    si.amu = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    si.amv = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    std::shared_ptr<Sampler> sampler = std::make_shared<Sampler>(device, si);
+    rhi::SampleStateCreateInfo sampler_ci{};
+    sampler_ci.address_u = rhi::SamplerAddressMode::SAM_CLAMP;
+    sampler_ci.address_v = rhi::SamplerAddressMode::SAM_CLAMP;
+    auto sampler = rhi::rhi_instance->create_sample_state(sampler_ci);
     _desc_set->update_desc_set_texture(sampler, view, 50);  
     
     _param_uniform_buf->update((uint8_t*)(&_params), sizeof(Parameters));
@@ -66,20 +66,20 @@ CreatePipelineFunc BloomUpSampleRenderer::get_pipeline_creator() {
         shader_path_map.insert({"vert", "shaders/spv/quad.vert.spv"});
         shader_path_map.insert({"frag", "shaders/spv/bloom_upsample.frag.spv"});   
 
-        std::vector<DescriptorBindingInfo> binding_infos;   
+        std::vector<rhi::DescriptorBindingInfo> binding_infos;   
 
-        DescriptorBindingInfo binding_info_sample{};
+        rhi::DescriptorBindingInfo binding_info_sample{};
         binding_info_sample.binding_idx = 60;
         binding_info_sample.desc_count = 1;
-        binding_info_sample.desc_type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        binding_info_sample.shader_stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        binding_info_sample.desc_type = rhi::DescriptorType::DT_SAMPLER_2D;
+        binding_info_sample.shader_stage = rhi::ShaderStageType::SST_FRAGMENT;
         binding_infos.emplace_back(binding_info_sample);
 
-        DescriptorBindingInfo binding_info_params{};
+        rhi::DescriptorBindingInfo binding_info_params{};
         binding_info_params.binding_idx = 61;
         binding_info_params.desc_count = 1;
-        binding_info_params.desc_type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        binding_info_params.shader_stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        binding_info_params.desc_type = rhi::DescriptorType::DT_UNIFORM_BUFFER;
+        binding_info_params.shader_stage = rhi::ShaderStageType::SST_FRAGMENT;
         binding_infos.emplace_back(binding_info_params);
 
         return std::make_shared<QuadPipeline>(renderpass, subpass_idx, feature, shader_path_map, binding_infos);
@@ -87,22 +87,21 @@ CreatePipelineFunc BloomUpSampleRenderer::get_pipeline_creator() {
     return cp;
 }
 
-void BloomUpSampleRenderer::prepare_desc(FgRenderPass* renderpass, std::shared_ptr<Device> device) {
+void BloomUpSampleRenderer::prepare_desc(FgRenderPass* renderpass) {
     if (!_desc_set) {
         _pipeline = _pipeline_mgr->get_pipeline(LightInfo(), std::make_shared<sg::Material>(nullptr),
                                     std::vector<std::vector<sg::VertexAttribute>>());
-        _desc_set = _pipeline->get_desc_pool()->get_available_desc_sets(1)[0];
+        _desc_set = _pipeline->get_available_desc_set();
         
-        _param_uniform_buf = std::make_shared<UniformBuffer>(61, device, sizeof(Parameters)); 
+        _param_uniform_buf = std::make_shared<UniformBuffer>(61, sizeof(Parameters)); 
     }
 
     auto view = renderpass->get_input_views()[0];
-    SamplerInfo si;
-    si.amu = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    si.amv = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    std::shared_ptr<Sampler> sampler = std::make_shared<Sampler>(device, si);
-
-    _desc_set->update_desc_set_texture(sampler, view, 60);  
+    rhi::SampleStateCreateInfo sampler_ci{};
+    sampler_ci.address_u = rhi::SamplerAddressMode::SAM_CLAMP;
+    sampler_ci.address_v = rhi::SamplerAddressMode::SAM_CLAMP;
+    auto sampler = rhi::rhi_instance->create_sample_state(sampler_ci);
+    _desc_set->update_desc_set_texture(sampler, view, 60);
     
     _param_uniform_buf->update((uint8_t*)(&_params), sizeof(Parameters));
     _desc_set->update_desc_set_buffer(std::vector<std::shared_ptr<UniformBuffer>>({_param_uniform_buf}), 1);

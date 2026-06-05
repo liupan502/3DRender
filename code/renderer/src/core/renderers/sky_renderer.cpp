@@ -43,12 +43,12 @@ CreatePipelineFunc TransmittanceLutRenderer::get_pipeline_creator() {
         shader_path_map.insert({"vert", "shaders/quad.vert"});  
         shader_path_map.insert({"frag", "shaders/sky_atmosphere_transmittance.frag"});
 
-        std::vector<DescriptorBindingInfo> binding_infos; 
-        DescriptorBindingInfo binding_info0{};
+std::vector<rhi::DescriptorBindingInfo> binding_infos; 
+        rhi::DescriptorBindingInfo binding_info0{};
         binding_info0.binding_idx = 0;
         binding_info0.desc_count = 1;
-        binding_info0.desc_type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        binding_info0.shader_stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        binding_info0.desc_type = rhi::DescriptorType::DT_UNIFORM_BUFFER;
+        binding_info0.shader_stage = rhi::ShaderStageType::SST_FRAGMENT;
         binding_infos.emplace_back(binding_info0);
 
 return std::make_shared<QuadPipeline>(renderpass, subpass_idx, feature, shader_path_map, binding_infos);
@@ -64,20 +64,20 @@ CreatePipelineFunc SkyViewLutRenderer::get_pipeline_creator() {
         shader_path_map.insert({"vert", "shaders/quad.vert"});  
         shader_path_map.insert({"frag", "shaders/sky_atmosphere_sky_view.frag"});
 
-        std::vector<DescriptorBindingInfo> binding_infos;
+        std::vector<rhi::DescriptorBindingInfo> binding_infos;
 
-        DescriptorBindingInfo binding_info0{};
+        rhi::DescriptorBindingInfo binding_info0{};
         binding_info0.binding_idx = 0;
         binding_info0.desc_count = 1;
-        binding_info0.desc_type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        binding_info0.shader_stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        binding_info0.desc_type = rhi::DescriptorType::DT_UNIFORM_BUFFER;
+        binding_info0.shader_stage = rhi::ShaderStageType::SST_FRAGMENT;
         binding_infos.emplace_back(binding_info0);
 
-        DescriptorBindingInfo binding_info1{};
+        rhi::DescriptorBindingInfo binding_info1{};
         binding_info1.binding_idx = 1;
         binding_info1.desc_count = 1;
-        binding_info1.desc_type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        binding_info1.shader_stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        binding_info1.desc_type = rhi::DescriptorType::DT_SAMPLER_2D;
+        binding_info1.shader_stage = rhi::ShaderStageType::SST_FRAGMENT;
         binding_infos.emplace_back(binding_info1);
 
         return std::make_shared<QuadPipeline>(renderpass, subpass_idx, feature, shader_path_map, binding_infos);
@@ -85,23 +85,21 @@ CreatePipelineFunc SkyViewLutRenderer::get_pipeline_creator() {
     return cp;
 }
 
-void SkyViewLutRenderer::prepare_desc(FgRenderPass* render_pass, std::shared_ptr<Device> device) {
+void SkyViewLutRenderer::prepare_desc(FgRenderPass* render_pass) {
     if (!_desc_set) {
         _pipeline = _pipeline_mgr->get_pipeline(LightInfo(), std::make_shared<sg::Material>(nullptr),
                                     std::vector<std::vector<sg::VertexAttribute>>());
-        _desc_set = _pipeline->get_desc_pool()->get_available_desc_sets(1)[0];
-
-        // _desc_set->update_desc_set_texture(nullptr, 0);
+        _desc_set = _pipeline->get_available_desc_set();
     }
 
     if (!_sky_render_info_uniform_buf) {
-        _sky_render_info_uniform_buf = std::make_shared<UniformBuffer>(0, device, sizeof(SkyRenderInfo));
+        _sky_render_info_uniform_buf = std::make_shared<UniformBuffer>(0, sizeof(SkyRenderInfo));
     }
     _sky_render_info_uniform_buf->update((const uint8_t*)(&_info), sizeof(SkyRenderInfo));
     _desc_set->update_desc_set_buffer({_sky_render_info_uniform_buf});
 
     auto view = render_pass->get_input_views()[0];
-    std::shared_ptr<Sampler> sampler = std::make_shared<Sampler>(device);
+    auto sampler = rhi::rhi_instance->create_sample_state({});
     _desc_set->update_desc_set_texture(sampler, view, 1);
 
     reset_viewport(render_pass);  

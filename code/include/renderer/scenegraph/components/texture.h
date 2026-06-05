@@ -74,7 +74,7 @@ namespace zr{
             };
         public:
             
-            virtual void upload_data(std::shared_ptr<core::Device> device);
+            virtual void upload_data();
 
             
             virtual rhi::TextureRef get_rhi_texture();

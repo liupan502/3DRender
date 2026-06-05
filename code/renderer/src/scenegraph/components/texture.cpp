@@ -197,7 +197,7 @@ void Texture::upload_data_internal() {
 }
 
 
-void Texture::upload_data(std::shared_ptr<core::Device> device) {
+void Texture::upload_data() {
     if (_tex_contents[_active_idx].has_upload) {
         return;
     }

@@ -42,7 +42,7 @@ namespace zr{
                 virtual void render_scene(sg::Scene* scene, const PassResources& res) override;
 
             protected:
-            virtual void prepare_desc(FgRenderPass* render_pass, std::shared_ptr<Device> device) override;    
+            virtual void prepare_desc(FgRenderPass* render_pass) override;    
             void update_weights();
             void update_reproject_mat(sg::Scene* scene);
             private:

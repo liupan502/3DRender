@@ -15,8 +15,8 @@
 using namespace zr::core;
 
 Pipeline::Pipeline(PipelineFeature feature) : _feature(feature) {
-    auto* vulkan_rhi = static_cast<rhi::vulkan::VulkanRHI*>(rhi::rhi_instance);
-    _device = vulkan_rhi->get_context()->get_device();
+    // auto* vulkan_rhi = static_cast<rhi::vulkan::VulkanRHI*>(rhi::rhi_instance);
+    // _device = vulkan_rhi->get_context()->get_device();
 }
 
 void Pipeline::create_vtx_input_state() {
@@ -236,8 +236,8 @@ void BasePipeline::create_pipeline_layout() {
 BasePipeline::BasePipeline(
         std::shared_ptr<FgRenderPass> fg_render_pass, 
         uint32_t subpass_idx,PipelineFeature feature) : Pipeline(feature) {
-    _desc_layout = std::make_shared<BaseDescriptorLayout>(_device, _feature);
-    _desc_pool = std::make_shared<DescriptorPool>(_device, _desc_layout, 500);
+    // _desc_layout = std::make_shared<BaseDescriptorLayout>(_device, _feature);
+    // _desc_pool = std::make_shared<DescriptorPool>(_device, _desc_layout, 500);
     create(fg_render_pass, subpass_idx, _desc_layout);
 }
 
@@ -247,7 +247,7 @@ void Pipeline::bind(std::shared_ptr<CommandBuffer> cmd_buf) {
 
 PipelineLayout::PipelineLayout(std::shared_ptr<Device> device,
                                std::shared_ptr<DescriptorLayout> desc_set_layout) : _device(device){
-    VkDescriptorSetLayout vk_desc_set_layout = desc_set_layout->get();
+    /*VkDescriptorSetLayout vk_desc_set_layout = desc_set_layout->get();
     VkPipelineLayoutCreateInfo pipeline_layout_ci{};
     pipeline_layout_ci.flags = 0;
     pipeline_layout_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -257,7 +257,7 @@ PipelineLayout::PipelineLayout(std::shared_ptr<Device> device,
     pipeline_layout_ci.pushConstantRangeCount = 0;
     pipeline_layout_ci.pPushConstantRanges = nullptr;
 
-    CALL_VK(vkCreatePipelineLayout(_device->get_device(), &pipeline_layout_ci, nullptr, &_vk_pipeline_layout));
+    CALL_VK(vkCreatePipelineLayout(_device->get_device(), &pipeline_layout_ci, nullptr, &_vk_pipeline_layout));*/
 }
 
 Pipeline::~Pipeline() {

@@ -21,7 +21,7 @@ namespace zr {
     }
     namespace core {
         class Device;
-
+        class DescriptorSet;
         class FgRenderPass;
 
         class ShaderModule;
@@ -88,6 +88,10 @@ namespace zr {
             inline VkPipeline get() const { return _rhi_pipeline ? std::static_pointer_cast<rhi::vulkan::VulkanGraphicsPipeline>(_rhi_pipeline)->get() : VK_NULL_HANDLE; };
 
             inline std::shared_ptr<PipelineLayout> get_pipeline_layout() { return _layout;};
+
+            inline std::shared_ptr<DescriptorSet> get_available_desc_set() {
+                return std::make_shared<DescriptorSet>(_desc_layout->get_rhi_layout());
+            }
 
             inline std::shared_ptr<DescriptorPool> get_desc_pool() { return _desc_pool;};
 
@@ -169,8 +173,7 @@ namespace zr {
 
         class BasePipeline : public Pipeline {
         public:
-            BasePipeline(std::shared_ptr<Device> device, 
-                         std::shared_ptr<FgRenderPass> render_pass, 
+            BasePipeline(std::shared_ptr<FgRenderPass> render_pass, 
                          uint32_t subpass_idx, PipelineFeature feature);
 
             virtual ~BasePipeline() = default;

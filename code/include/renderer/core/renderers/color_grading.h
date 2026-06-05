@@ -16,7 +16,7 @@ namespace zr
             void set_color_grading_path(const std::string& path);
 
             protected:
-            virtual void prepare_desc(FgRenderPass* render_pass, std::shared_ptr<Device> device) override;
+            virtual void prepare_desc(FgRenderPass* render_pass) override;
 
             std::shared_ptr<sg::Texture> _color_grading_tex;
 

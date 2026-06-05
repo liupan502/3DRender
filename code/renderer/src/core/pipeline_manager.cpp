@@ -27,9 +27,9 @@ std::shared_ptr<Pipeline> PipelineManager::get_pipeline(LightInfo light_info,
 
 std::shared_ptr<Pipeline> PipelineManager::create_pipeline(PipelineFeature feature) {
     if (_create_pipeline == nullptr) {
-        return std::make_shared<BasePipeline>(_fg_render_pass.lock(), 0, feature);
+        return std::make_shared<BasePipeline>(/*_fg_render_pass.lock()*/ nullptr, 0, feature);
     }
-    return _create_pipeline(feature, _fg_render_pass.lock(), _subpass_idx);
+    return _create_pipeline(feature, /*_fg_render_pass.lock(), _subpass_idx*/ nullptr, 0);
 }
 
 

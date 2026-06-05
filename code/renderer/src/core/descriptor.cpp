@@ -78,8 +78,9 @@ DescriptorLayout::DescriptorLayout(){
     // create_layout();
 }
 
-DescriptorLayout::DescriptorLayout(const std::vector<rhi::DescriptorBindingInfo>& binding_infos){
+DescriptorLayout::DescriptorLayout(const std::vector<rhi::DescriptorBindingInfo>& binding_infos) {
     _binding_infos = binding_infos;
+    _rhi_layout = rhi::rhi_instance->create_descriptor_set_layout({ _binding_infos });
 }
 
 void DescriptorLayout::init_bindings(PipelineFeature feature) {

@@ -8,6 +8,8 @@
 #include <scenegraph/node.h>
 #include <scenegraph/component.h>
 
+#include <rhi/rhi.h>
+
 namespace rhi{
     class Buffer;
 }

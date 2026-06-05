@@ -15,11 +15,11 @@ virtual void prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass) over
 
             
         protected:
-            virtual void prepare_desc(FgRenderPass* renderpass, std::shared_ptr<Device> device);
+            virtual void prepare_desc(FgRenderPass* renderpass);
 
             void reset_viewport(FgRenderPass* renderpass);
         protected:
-            std::shared_ptr<Buffer> _quad_mesh_buf = nullptr;
+            rhi::BufferRef _quad_rhi_buf;
             std::shared_ptr<DescriptorSet> _desc_set = nullptr;
             std::shared_ptr<Pipeline> _pipeline = nullptr;
             std::shared_ptr<sg::Texture> _tex = nullptr;
@@ -31,7 +31,7 @@ virtual void prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass) over
             QuadPipeline(std::shared_ptr<FgRenderPass> render_pass, uint32_t subpass_idx, 
                         PipelineFeature feature, 
                         const std::map<std::string, std::string>& shader_path_map, 
-                        const std::vector<DescriptorBindingInfo>& binding_infos);
+                        const std::vector<rhi::DescriptorBindingInfo>& binding_infos);
             virtual void create_color_blend_state() override;
 
             virtual void create_vtx_input_state() override;

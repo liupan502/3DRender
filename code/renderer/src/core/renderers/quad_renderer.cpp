@@ -12,43 +12,38 @@ using namespace zr;
 using namespace zr::core;
 
 void QuadRenderer::prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass) {
-    /*auto* vulkan_rhi = static_cast<rhi::vulkan::VulkanRHI*>(rhi::rhi_instance);
-    std::shared_ptr<core::Device> device = vulkan_rhi->get_context()->get_device();
-    
-    if (!_quad_mesh_buf) {
-        _quad_mesh_buf = std::make_shared<core::Buffer>(device, (VkDeviceSize)(6 * sizeof(float)), 
-                                    VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+    if (!_quad_rhi_buf) {
+        auto size = 6 * sizeof(float);
+        _quad_rhi_buf = rhi::rhi_instance->create_buffer({ size, 0, rhi::BufferUsageFlagBit::VertexBuffer });
         float data[6] = {-1.0f, -3.0f, -1.0f, 1.0f, 3.0f, 1.0f};
-        _quad_mesh_buf->update((uint8_t*)data, sizeof(float) * 6);                    
+        rhi::rhi_instance->update_buffer(_quad_rhi_buf, data, size, 0);
     }
 
-    prepare_desc(renderpass, device); */   
+    prepare_desc(renderpass);
 }
 
-void QuadRenderer::reset_viewport(FgRenderPass *renderpass) {
+    void QuadRenderer::reset_viewport(FgRenderPass *renderpass) {
     auto display_size = renderpass->get_display_size();
     _viewport = {0, 0,
                  (float)display_size.width, (float)display_size.height, 0, 1.0};
 }
 
-void QuadRenderer::prepare_desc(FgRenderPass* renderpass, std::shared_ptr<Device> device) {
-    /*if (!_desc_set) {
+void QuadRenderer::prepare_desc(FgRenderPass* renderpass) {
+    if (!_desc_set) {
         _pipeline = _pipeline_mgr->get_pipeline(LightInfo(), std::make_shared<sg::Material>(nullptr),
                                     std::vector<std::vector<sg::VertexAttribute>>());
-        _desc_set = _pipeline->get_desc_pool()->get_available_desc_sets(1)[0];
-
-        // _desc_set->update_desc_set_texture(nullptr, 0);
+        _desc_set = _pipeline->get_available_desc_set();
     }
 
     auto view = renderpass->get_input_views()[0];
-    // _desc_set->update_desc_set_input_attachment(view, 0);
-    std::shared_ptr<Sampler> sampler = std::make_shared<Sampler>(device);
+    rhi::SampleStateCreateInfo sampler_ci{};
+    auto sampler = rhi::rhi_instance->create_sample_state(sampler_ci);
     _desc_set->update_desc_set_texture(sampler, view, 0);
 
-    reset_viewport(renderpass);*/
+    reset_viewport(renderpass);
 }
 
-void QuadRenderer::render_scene(sg::Scene* scene, 
+void QuadRenderer::render_scene(sg::Scene* scene,
             const PassResources& res) {
     
     /*vkCmdSetViewport(_cmd_buf->get(), 0, 1, &_viewport);
@@ -67,74 +62,40 @@ QuadPipeline::QuadPipeline(
                 const std::vector<rhi::DescriptorBindingInfo>& binding_infos) : _shader_path_map(shader_path_map),
                 Pipeline(feature) {
 
-    /*std::vector<DescriptorBindingInfo> binding_infos;
-    DescriptorBindingInfo binding_info{};
-    binding_info.binding_idx = 0;
-    binding_info.desc_count = 1;
-    // binding_info.desc_type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-    binding_info.desc_type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    binding_info.shader_stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-    binding_infos.emplace_back(binding_info);*/
-    
-    // _desc_pool = std::make_shared<DescriptorPool>(_device, binding_infos, 10);
-    // _desc_layout = _desc_pool->get_layout();
-    _desc_layout = rhi::rhi_instance->create_descriptor_set_layout({ binding_infos });
+    _desc_layout = std::make_shared<DescriptorLayout>(binding_infos);
     create(render_pass, subpass_idx, _desc_layout);
 }
 
 void QuadPipeline::create_color_blend_state() {
-    _color_blend_state = {};
-    _color_blend_state.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-    _color_blend_state.logicOpEnable = VK_FALSE;
-    _vk_pipeline_color_blend_states.clear();
-    VkPipelineColorBlendAttachmentState vk_pipeline_color_blend_state = VkPipelineColorBlendAttachmentState{
-        .blendEnable = VK_FALSE,
-        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                          VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
-    };
-    _vk_pipeline_color_blend_states.emplace_back(vk_pipeline_color_blend_state);
-    _color_blend_state.pAttachments = _vk_pipeline_color_blend_states.data();
-    _color_blend_state.attachmentCount = _vk_pipeline_color_blend_states.size();
+    _ci.color_blend_attachments.clear();
+    rhi::ColorBlendAttachmentState attachment{};
+    attachment.blend_enable = false;
+    attachment.color_write_mask = 0xF;
+    _ci.color_blend_attachments.emplace_back(attachment);
 }
 
 void QuadPipeline::create_vtx_input_state() {
-    _vk_input_binding_descs.clear();
-    _vk_input_attri_descs.clear();
-    VkVertexInputBindingDescription binding_desc = VkVertexInputBindingDescription{
-                .binding = 0,
-                .stride = sizeof(float) * 2,
-                .inputRate = VK_VERTEX_INPUT_RATE_VERTEX
-    };
-    _vk_input_binding_descs.emplace_back(binding_desc);
+    _ci.vertex_bindings.clear();
+    _ci.vertex_attributes.clear();
 
-    auto attr_desc = VkVertexInputAttributeDescription{
-                    .location = 0,
-                    .binding = 0,
-                    .format = VK_FORMAT_R32G32_SFLOAT,
-                    .offset = 0};
-    _vk_input_attri_descs.emplace_back(attr_desc);            
-    
+    rhi::VertexBindingDesc binding_desc{};
+    binding_desc.binding = 0;
+    binding_desc.stride = sizeof(float) * 2;
+    binding_desc.input_rate = rhi::VertexInputRate::VIR_VERTEX;
+    _ci.vertex_bindings.emplace_back(binding_desc);
 
-    _vtx_input_state =   VkPipelineVertexInputStateCreateInfo{
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-            .pNext = nullptr,
-            .vertexBindingDescriptionCount = static_cast<uint32_t>(_vk_input_binding_descs.size()),
-            .pVertexBindingDescriptions = _vk_input_binding_descs.data(),
-            .vertexAttributeDescriptionCount = static_cast<uint32_t>(_vk_input_attri_descs.size()),
-            .pVertexAttributeDescriptions = _vk_input_attri_descs.data(),
-    };
+    rhi::VertexAttributeDesc attr_desc{};
+    attr_desc.location = 0;
+    attr_desc.binding = 0;
+    attr_desc.format = rhi::ColorFormat::R32G32_SFLOAT;
+    attr_desc.offset = 0;
+    _ci.vertex_attributes.emplace_back(attr_desc);
 }
 
 void QuadPipeline::create_depth_stencil_state() {
-    _depth_stencil_state = VkPipelineDepthStencilStateCreateInfo{};
-    _depth_stencil_state.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-    _depth_stencil_state.stencilTestEnable = VK_FALSE;
-    _depth_stencil_state.depthBoundsTestEnable = VK_FALSE;
-    _depth_stencil_state.depthCompareOp = VK_COMPARE_OP_LESS;
-    _depth_stencil_state.depthWriteEnable = VK_FALSE;
-    _depth_stencil_state.depthTestEnable = VK_FALSE;
-    _depth_stencil_state.minDepthBounds = 0.0f;
-    _depth_stencil_state.maxDepthBounds = 1.0f;
+    _ci.depth_test_enable = false;
+    _ci.depth_write_enable = false;
+    _ci.depth_compare_op = rhi::CompareOp::CO_LESS;
 }
 
 void QuadPipeline::create_dynamic_states() {
