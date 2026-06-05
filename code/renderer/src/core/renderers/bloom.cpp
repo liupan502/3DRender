@@ -7,7 +7,7 @@
 using namespace zr::core;
 
 CreatePipelineFunc BloomDownSampleRenderer::get_pipeline_creator() {
-    CreatePipelineFunc cp = [](std::shared_ptr<Device> device, PipelineFeature feature,
+    CreatePipelineFunc cp = [](PipelineFeature feature,
                      std::shared_ptr<FgRenderPass> renderpass ,
                      uint16_t subpass_idx) -> std::shared_ptr<Pipeline>{
         std::map<std::string, std::string> shader_path_map;
@@ -30,7 +30,7 @@ CreatePipelineFunc BloomDownSampleRenderer::get_pipeline_creator() {
         binding_info_params.shader_stage = VK_SHADER_STAGE_FRAGMENT_BIT;
         binding_infos.emplace_back(binding_info_params);
 
-        return std::make_shared<QuadPipeline>(device, renderpass, subpass_idx, feature, shader_path_map, binding_infos);
+        return std::make_shared<QuadPipeline>(renderpass, subpass_idx, feature, shader_path_map, binding_infos);
     };
     return cp;
 }
@@ -59,7 +59,7 @@ void BloomDownSampleRenderer::prepare_desc(FgRenderPass* renderpass, std::shared
 }
 
 CreatePipelineFunc BloomUpSampleRenderer::get_pipeline_creator() {
-    CreatePipelineFunc cp = [](std::shared_ptr<Device> device, PipelineFeature feature,
+    CreatePipelineFunc cp = [](PipelineFeature feature,
                      std::shared_ptr<FgRenderPass> renderpass ,
                      uint16_t subpass_idx) -> std::shared_ptr<Pipeline>{
         std::map<std::string, std::string> shader_path_map;
@@ -82,7 +82,7 @@ CreatePipelineFunc BloomUpSampleRenderer::get_pipeline_creator() {
         binding_info_params.shader_stage = VK_SHADER_STAGE_FRAGMENT_BIT;
         binding_infos.emplace_back(binding_info_params);
 
-        return std::make_shared<QuadPipeline>(device, renderpass, subpass_idx, feature, shader_path_map, binding_infos);
+        return std::make_shared<QuadPipeline>(renderpass, subpass_idx, feature, shader_path_map, binding_infos);
     };
     return cp;
 }

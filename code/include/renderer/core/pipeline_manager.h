@@ -21,7 +21,7 @@ namespace zr{
 
         class FgRenderPass;
 
-        typedef std::shared_ptr<Pipeline> (*CreatePipelineFunc)(std::shared_ptr<Device> device, PipelineFeature feature,
+        typedef std::shared_ptr<Pipeline> (*CreatePipelineFunc)(PipelineFeature feature,
                      std::shared_ptr<FgRenderPass> renderpass ,uint16_t subpass_idx);
 
         class PipelineManager{

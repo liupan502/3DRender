@@ -36,7 +36,7 @@ SkyRenderInfo::SkyRenderInfo() {
 }
 
 CreatePipelineFunc TransmittanceLutRenderer::get_pipeline_creator() {
-    CreatePipelineFunc cp = [](std::shared_ptr<Device> device, PipelineFeature feature,
+    CreatePipelineFunc cp = [](PipelineFeature feature,
                      std::shared_ptr<FgRenderPass> renderpass ,
                      uint16_t subpass_idx) -> std::shared_ptr<Pipeline> {
         std::map<std::string, std::string> shader_path_map;
@@ -51,32 +51,13 @@ CreatePipelineFunc TransmittanceLutRenderer::get_pipeline_creator() {
         binding_info0.shader_stage = VK_SHADER_STAGE_FRAGMENT_BIT;
         binding_infos.emplace_back(binding_info0);
 
-        return std::make_shared<QuadPipeline>(device, renderpass, subpass_idx, feature, shader_path_map, binding_infos);
+return std::make_shared<QuadPipeline>(renderpass, subpass_idx, feature, shader_path_map, binding_infos);
     };
-
     return cp;
 }
 
-void TransmittanceLutRenderer::prepare_desc(FgRenderPass* render_pass, std::shared_ptr<Device> device) {
-    if (!_desc_set) {
-        _pipeline = _pipeline_mgr->get_pipeline(LightInfo(), std::make_shared<sg::Material>(nullptr),
-                                    std::vector<std::vector<sg::VertexAttribute>>());
-        _desc_set = _pipeline->get_desc_pool()->get_available_desc_sets(1)[0];
-
-        // _desc_set->update_desc_set_texture(nullptr, 0);
-    }
-
-    if (!_sky_render_info_uniform_buf) {
-        _sky_render_info_uniform_buf = std::make_shared<UniformBuffer>(0, device, sizeof(SkyRenderInfo));
-    }
-    _sky_render_info_uniform_buf->update((const uint8_t*)(&_info), sizeof(SkyRenderInfo));
-
-    _desc_set->update_desc_set_buffer({_sky_render_info_uniform_buf});
-    reset_viewport(render_pass);
-}
-
 CreatePipelineFunc SkyViewLutRenderer::get_pipeline_creator() {
-    CreatePipelineFunc cp = [](std::shared_ptr<Device> device, PipelineFeature feature,
+    CreatePipelineFunc cp = [](PipelineFeature feature,
                      std::shared_ptr<FgRenderPass> renderpass ,
                      uint16_t subpass_idx) -> std::shared_ptr<Pipeline> {
         std::map<std::string, std::string> shader_path_map;
@@ -99,7 +80,7 @@ CreatePipelineFunc SkyViewLutRenderer::get_pipeline_creator() {
         binding_info1.shader_stage = VK_SHADER_STAGE_FRAGMENT_BIT;
         binding_infos.emplace_back(binding_info1);
 
-        return std::make_shared<QuadPipeline>(device, renderpass, subpass_idx, feature, shader_path_map, binding_infos);
+        return std::make_shared<QuadPipeline>(renderpass, subpass_idx, feature, shader_path_map, binding_infos);
     };
     return cp;
 }

@@ -10,7 +10,7 @@
 using namespace zr::core;
 
 CreatePipelineFunc ColorGradingRenderer::get_pipeline_creator() {
-    CreatePipelineFunc cp = [](std::shared_ptr<Device> device, PipelineFeature feature,
+    CreatePipelineFunc cp = [](PipelineFeature feature,
                      std::shared_ptr<FgRenderPass> renderpass ,
                      uint16_t subpass_idx) -> std::shared_ptr<Pipeline> {
         std::map<std::string, std::string> shader_path_map;
@@ -40,7 +40,7 @@ CreatePipelineFunc ColorGradingRenderer::get_pipeline_creator() {
         binding_info_sample2.shader_stage = VK_SHADER_STAGE_FRAGMENT_BIT;
         binding_infos.emplace_back(binding_info_sample2);
 
-        return std::make_shared<QuadPipeline>(device, renderpass, subpass_idx, feature, shader_path_map, binding_infos);
+        return std::make_shared<QuadPipeline>(renderpass, subpass_idx, feature, shader_path_map, binding_infos);
     };
     
     return cp;

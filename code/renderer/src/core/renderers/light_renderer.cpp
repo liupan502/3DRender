@@ -73,10 +73,10 @@ void LightRenderer::try_init_uniform_buffers() {
     }
 
     // 500 
-    _uniform_buf = std::make_shared<UniformBuffer>(0, device,
+    _uniform_buf = std::make_shared<UniformBuffer>(0, 
                                                 sizeof(core::UniformBufferObject), 500);
 
-    _velocity_uniform_buf = std::make_shared<UniformBuffer>(25, device,
+    _velocity_uniform_buf = std::make_shared<UniformBuffer>(25,
                     sizeof(core::VelocityUniformBufferObject), 500);
 }
 
@@ -108,7 +108,7 @@ std::shared_ptr<Pipeline> LightRenderer::get_pipeline(std::shared_ptr<sg::Node> 
 }
 
 void LightRenderer::render_scene(sg::Scene* scene, 
-            std::shared_ptr<CommandBuffer> cmd_buf,
+            
             const PassResources& res) {
     core::LightInfo light_info = scene->get_light_info();
     auto tmp_nodes = scene->get_renderable_nodes();
@@ -138,7 +138,7 @@ void LightRenderer::render_scene(sg::Scene* scene,
     auto render_mesh = [&](std::shared_ptr<sg::Mesh> mesh, uint16_t instance_count, uint16_t first_instance) {
         
 
-        std::vector<std::shared_ptr<core::Buffer>> vtx_buffers = mesh->get_vtx_buffers();
+        /*std::vector<std::shared_ptr<core::Buffer>> vtx_buffers = mesh->get_vtx_buffers();
         VkDeviceSize offset = 0;
         for (uint32_t i = 0; i < vtx_buffers.size(); i++) {
             VkBuffer vk_buf = vtx_buffers[i]->get();
@@ -150,7 +150,7 @@ void LightRenderer::render_scene(sg::Scene* scene,
         vkCmdBindIndexBuffer(cmd_buf->get(), index_buffer, 0, VK_INDEX_TYPE_UINT16);
 
         vkCmdDrawIndexed(cmd_buf->get(), mesh->get_indice_count(), instance_count, 0, 0, first_instance);
-
+        */
     };
 
 
@@ -256,20 +256,20 @@ void LightRenderer::render_scene(sg::Scene* scene,
 
         for (uint16_t i = 0; i < node_arrs.size(); i++) {
 
-            auto node = node_arrs[i][0];
-            auto pipeline = get_pipeline(node, light_info);
-            pipeline->bind(cmd_buf);
-            node->get_desc_set(pipeline)->bind(cmd_buf, pipeline->get_pipeline_layout());
-            std::shared_ptr<sg::Mesh> mesh = node->get_mesh();
-            // LOGD("render mesh")
-            uint16_t instance_count = node_arrs[i].size();
-            render_mesh(mesh, instance_count, 0);
+            //auto node = node_arrs[i][0];
+            //auto pipeline = get_pipeline(node, light_info);
+            //pipeline->bind(cmd_buf);
+            //node->get_desc_set(pipeline)->bind(cmd_buf, pipeline->get_pipeline_layout());
+            //std::shared_ptr<sg::Mesh> mesh = node->get_mesh();
+            //// LOGD("render mesh")
+            //uint16_t instance_count = node_arrs[i].size();
+            //render_mesh(mesh, instance_count, 0);
         }
 
 
     };
 
-    vkCmdSetViewport(cmd_buf->get(), 0, 1, &_viewport);
+    //vkCmdSetViewport(cmd_buf->get(), 0, 1, &_viewport);
 
 
     render_nodes(opaque_nodes);
@@ -314,10 +314,10 @@ void LightRenderer::render_scene(sg::Scene* scene,
 }
 
 CreatePipelineFunc LightRenderer::get_pipeline_creator() {
-    CreatePipelineFunc cp = [](std::shared_ptr<Device> device, PipelineFeature feature,
+    CreatePipelineFunc cp = [](PipelineFeature feature,
                                std::shared_ptr<FgRenderPass> fg_renderpass ,
                                uint16_t subpass_idx) -> std::shared_ptr<Pipeline>{
-        return std::make_shared<BasePipeline>(device, fg_renderpass, subpass_idx, feature);
+        return std::make_shared<BasePipeline>(fg_renderpass, subpass_idx, feature);
     };
 
     return cp;

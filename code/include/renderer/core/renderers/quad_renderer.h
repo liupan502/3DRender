@@ -9,10 +9,8 @@ namespace zr {
         class Buffer;
         class QuadRenderer : public RendererInterface {
         public:
-            virtual void prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass,
-                                std::shared_ptr<Device> device) override;
-            virtual void render_scene(sg::Scene* scene, std::shared_ptr<CommandBuffer> cmd_buf,
-                        const PassResources& res) override;
+virtual void prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass) override;
+            virtual void render_scene(sg::Scene* scene, const PassResources& res) override;
             virtual CreatePipelineFunc get_pipeline_creator() override;
 
             
@@ -30,8 +28,7 @@ namespace zr {
 
         class QuadPipeline : public Pipeline {
             public:
-            QuadPipeline(std::shared_ptr<Device> device,
-                        std::shared_ptr<FgRenderPass> render_pass, uint32_t subpass_idx, 
+            QuadPipeline(std::shared_ptr<FgRenderPass> render_pass, uint32_t subpass_idx, 
                         PipelineFeature feature, 
                         const std::map<std::string, std::string>& shader_path_map, 
                         const std::vector<DescriptorBindingInfo>& binding_infos);

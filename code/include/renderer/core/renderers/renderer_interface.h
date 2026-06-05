@@ -39,6 +39,8 @@ namespace zr{
 
             virtual CreatePipelineFunc get_pipeline_creator() = 0;
 
+            void set_cmd_buf(std::shared_ptr<CommandBuffer> cmd_buf) { _cmd_buf = cmd_buf; }
+
             std::shared_ptr<PipelineManager> get_pipeline_mgr() {
                 if (!_pipeline_mgr) {
                     _pipeline_mgr = std::make_shared<PipelineManager>();
@@ -55,6 +57,7 @@ namespace zr{
             inline void set_camera_info(CameraInfo* camera_info) { _camera_info = camera_info;};
         protected:
             std::shared_ptr<PipelineManager> _pipeline_mgr {nullptr};
+            std::shared_ptr<CommandBuffer> _cmd_buf {nullptr};
             VkViewport _viewport;
             AAOption _aa_option{AA_OPTION_NONE};
             CameraInfo* _camera_info{nullptr};

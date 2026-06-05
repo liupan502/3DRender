@@ -50,7 +50,7 @@ glm::vec2 TaaRenderer::halton(uint8_t idx) {
 }
 
 CreatePipelineFunc TaaRenderer::get_pipeline_creator() {
-    CreatePipelineFunc cp = [](std::shared_ptr<Device> device, PipelineFeature feature,
+    CreatePipelineFunc cp = [](PipelineFeature feature,
                      std::shared_ptr<FgRenderPass> renderpass ,
                      uint16_t subpass_idx) ->std::shared_ptr<Pipeline> {
         
@@ -95,7 +95,7 @@ CreatePipelineFunc TaaRenderer::get_pipeline_creator() {
         binding_info_velocity_sample.shader_stage = VK_SHADER_STAGE_FRAGMENT_BIT;
         binding_infos.emplace_back(binding_info_velocity_sample);  
 
-        return std::make_shared<QuadPipeline>(device, renderpass, subpass_idx, feature, shader_path_map, binding_infos);
+        return std::make_shared<QuadPipeline>(renderpass, subpass_idx, feature, shader_path_map, binding_infos);
     };
 
 
@@ -138,13 +138,13 @@ void TaaRenderer::prepare_desc(FgRenderPass* render_pass, std::shared_ptr<Device
     reset_viewport(render_pass);
 }
 
-void TaaRenderer::render_scene(sg::Scene* scene, std::shared_ptr<CommandBuffer> cmd_buf,
+void TaaRenderer::render_scene(sg::Scene* scene,
             const PassResources& res) {
     update_reproject_mat(scene);
     _taa_info_uniform_buf->update((const uint8_t*)(&_taa_info), sizeof(TaaInfo));
     _desc_set->update_desc_set_buffer({_taa_info_uniform_buf});
 
-    QuadRenderer::render_scene(scene, cmd_buf, res);
+    QuadRenderer::render_scene(scene, res);
 
     if (_is_first_frame) {
         _is_first_frame = false;

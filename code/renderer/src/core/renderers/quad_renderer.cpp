@@ -11,11 +11,13 @@
 using namespace zr;
 using namespace zr::core;
 
-void QuadRenderer::prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass, 
-                                        std::shared_ptr<Device> device) {
+void QuadRenderer::prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass) {
+    auto* vulkan_rhi = static_cast<rhi::vulkan::VulkanRHI*>(rhi::rhi_instance);
+    std::shared_ptr<core::Device> device = vulkan_rhi->get_context()->get_device();
+    
     if (!_quad_mesh_buf) {
-        _quad_mesh_buf = std::make_shared<Buffer>(device, (VkDeviceSize)(6 * sizeof(float)), 
-                                VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+        _quad_mesh_buf = std::make_shared<core::Buffer>(device, (VkDeviceSize)(6 * sizeof(float)), 
+                                    VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
         float data[6] = {-1.0f, -3.0f, -1.0f, 1.0f, 3.0f, 1.0f};
         _quad_mesh_buf->update((uint8_t*)data, sizeof(float) * 6);                    
     }
@@ -47,29 +49,28 @@ void QuadRenderer::prepare_desc(FgRenderPass* renderpass, std::shared_ptr<Device
 }
 
 void QuadRenderer::render_scene(sg::Scene* scene, 
-            std::shared_ptr<CommandBuffer> cmd_buf,
             const PassResources& res) {
     /*auto pipeline = _pipeline_mgr->get_pipeline(LightInfo(),
                                                 std::make_shared<sg::Material>(nullptr),
                                 std::vector<std::vector<sg::VertexAttribute>>());
 
-    pipeline->bind(cmd_buf);*/
+    pipeline->bind(_cmd_buf);*/
     // vkCmdSetViewport()
-    vkCmdSetViewport(cmd_buf->get(), 0, 1, &_viewport);
-    _pipeline->bind(cmd_buf);
-    _desc_set->bind(cmd_buf, _pipeline->get_pipeline_layout());
+    vkCmdSetViewport(_cmd_buf->get(), 0, 1, &_viewport);
+    _pipeline->bind(_cmd_buf);
+    _desc_set->bind(_cmd_buf, _pipeline->get_pipeline_layout());
     VkDeviceSize offset = 0;
     VkBuffer vtx_buf = _quad_mesh_buf->get();
-    vkCmdBindVertexBuffers(cmd_buf->get(), 0, 1, &vtx_buf, &offset);
-    vkCmdDraw(cmd_buf->get(), 3, 1, 0, 0);
+    vkCmdBindVertexBuffers(_cmd_buf->get(), 0, 1, &vtx_buf, &offset);
+    vkCmdDraw(_cmd_buf->get(), 3, 1, 0, 0);
 }
 
-QuadPipeline::QuadPipeline(std::shared_ptr<Device> device,
+QuadPipeline::QuadPipeline(
             std::shared_ptr<FgRenderPass> render_pass, uint32_t subpass_idx, 
             PipelineFeature feature
             , const std::map<std::string, std::string>& shader_path_map, 
                 const std::vector<DescriptorBindingInfo>& binding_infos) : _shader_path_map(shader_path_map),
-                Pipeline(device, feature) {
+                Pipeline(feature) {
 
     /*std::vector<DescriptorBindingInfo> binding_infos;
     DescriptorBindingInfo binding_info{};
@@ -80,7 +81,7 @@ QuadPipeline::QuadPipeline(std::shared_ptr<Device> device,
     binding_info.shader_stage = VK_SHADER_STAGE_FRAGMENT_BIT;
     binding_infos.emplace_back(binding_info);*/
     
-    _desc_pool = std::make_shared<DescriptorPool>(device, binding_infos, 10);
+    _desc_pool = std::make_shared<DescriptorPool>(_device, binding_infos, 10);
     _desc_layout = _desc_pool->get_layout();
     create(render_pass, subpass_idx, _desc_layout);
 }
@@ -178,7 +179,7 @@ void QuadPipeline::create_shader_stage() {
 }
 
 CreatePipelineFunc QuadRenderer:: get_pipeline_creator() {
-    CreatePipelineFunc cp = [](std::shared_ptr<Device> device, PipelineFeature feature,
+    CreatePipelineFunc cp = [](PipelineFeature feature,
                      std::shared_ptr<FgRenderPass> renderpass ,
                      uint16_t subpass_idx) -> std::shared_ptr<Pipeline>{
         std::map<std::string, std::string> shader_path_map;
@@ -193,7 +194,7 @@ CreatePipelineFunc QuadRenderer:: get_pipeline_creator() {
         binding_info.shader_stage = VK_SHADER_STAGE_FRAGMENT_BIT;
         binding_infos.emplace_back(binding_info);     
 
-        return std::make_shared<QuadPipeline>(device, renderpass, subpass_idx, feature, shader_path_map, binding_infos);
+        return std::make_shared<QuadPipeline>(renderpass, subpass_idx, feature, shader_path_map, binding_infos);
     };
     return cp;
 }

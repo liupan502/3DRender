@@ -8,13 +8,15 @@
 #include <scenegraph/components/material.h>
 #include <scenegraph/components/mesh.h>
 #include <core/fg/fg_render_pass.h>
+#include <rhi/vulkan/vulkan_rhi.h>
 #include <utils/log.h>
 
 // #include "../../vulkan/vulkan_util.h"
 using namespace zr::core;
 
-Pipeline::Pipeline(std::shared_ptr<Device> device, PipelineFeature feature) : _device(device),
-                                                                              _feature(feature) {
+Pipeline::Pipeline(PipelineFeature feature) : _feature(feature) {
+    auto* vulkan_rhi = static_cast<rhi::vulkan::VulkanRHI*>(rhi::rhi_instance);
+    _device = vulkan_rhi->get_context()->get_device();
 }
 
 void Pipeline::create_vtx_input_state() {
@@ -231,11 +233,11 @@ void BasePipeline::create_pipeline_layout() {
     // _layout = std::make_shared<PipelineLayout>()
 }
 
-BasePipeline::BasePipeline(std::shared_ptr<Device> device,
+BasePipeline::BasePipeline(
         std::shared_ptr<FgRenderPass> fg_render_pass, 
-        uint32_t subpass_idx,PipelineFeature feature) : Pipeline(device, feature) {
-    _desc_layout = std::make_shared<BaseDescriptorLayout>(device, _feature);
-    _desc_pool = std::make_shared<DescriptorPool>(device, _desc_layout, 500);
+        uint32_t subpass_idx,PipelineFeature feature) : Pipeline(feature) {
+    _desc_layout = std::make_shared<BaseDescriptorLayout>(_device, _feature);
+    _desc_pool = std::make_shared<DescriptorPool>(_device, _desc_layout, 500);
     create(fg_render_pass, subpass_idx, _desc_layout);
 }
 
