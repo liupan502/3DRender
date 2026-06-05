@@ -44,7 +44,7 @@ namespace rhi
 
         virtual DescriptorSetRef create_descriptor_set(DescriptorSetLayoutRef layout) = 0;
 
-        virtual void update_desc_buffer(DescriptorSetRef desc, BufferRef buf, uint32_t binding_idx, uint32_t offset, uint32_t len);
+        virtual void update_desc_buffer(DescriptorSetRef desc, BufferRef buf, uint32_t binding_idx, uint32_t offset, uint32_t len) = 0;
         
         virtual void update_desc_texture(DescriptorSetRef desc, SampleStateRef sampler, TextureRef tex, uint32_t binding_idx) = 0;
 

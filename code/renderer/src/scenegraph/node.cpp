@@ -224,7 +224,7 @@ bool Node::is_visible() const {
     return is_visible;
 }
 std::shared_ptr<zr::core::DescriptorSet> Node::get_desc_set(std::shared_ptr<zr::core::Pipeline> pipeline) {
-    if (!is_renderable()) {
+    /*if (!is_renderable()) {
         return nullptr;
     }
 
@@ -235,7 +235,9 @@ std::shared_ptr<zr::core::DescriptorSet> Node::get_desc_set(std::shared_ptr<zr::
         _desc_sets.insert({pipeline.get(), desc_sets[0]});
     }
     
-    return _desc_sets[pipeline.get()];
+    return _desc_sets[pipeline.get()];*/
+
+    return nullptr;
 }
 
 bool Node::contains_light()  {

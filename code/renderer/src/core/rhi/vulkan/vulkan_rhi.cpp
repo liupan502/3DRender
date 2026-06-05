@@ -80,14 +80,18 @@ RenderTargetRef VulkanRHI::create_render_target(const RenderTargetCreateInfo& in
 }
 
 DescriptorSetLayoutRef VulkanRHI::create_descriptor_set_layout(const DescriptorSetLayoutCreateInfo& ci) {
-    return std::make_shared<VulkanDescriptorSetLayout>(ci);
+    return std::make_shared<vulkan::VulkanDescriptorSetLayout>(ci);
 }
 
 DescriptorSetRef VulkanRHI::create_descriptor_set(DescriptorSetLayoutRef layout) {
-    return std::make_shared<VulkanDescriptorSet>(layout);
+    return std::make_shared<vulkan::VulkanDescriptorSet>(layout);
 }
 
 void VulkanRHI::update_desc_texture(DescriptorSetRef desc, SampleStateRef sampler, TextureRef tex, uint32_t binding_idx) {
+
+}
+
+void VulkanRHI::update_desc_buffer(DescriptorSetRef desc, BufferRef buf, uint32_t binding_idx, uint32_t offset, uint32_t len) {
 
 }
 
