@@ -197,6 +197,8 @@ namespace rhi {
         uint32_t height = 0;
     };
 
+    class DescriptorSetLayout;
+
     struct GraphicsPipelineCreateInfo {
         std::shared_ptr<ShaderModule> vertex_shader = nullptr;
         std::shared_ptr<ShaderModule> fragment_shader = nullptr;
@@ -222,6 +224,10 @@ namespace rhi {
         std::vector<ColorBlendAttachmentState> color_blend_attachments;
 
         Viewport viewport;
+
+        uint32_t subpass = 0;
+
+        std::shared_ptr<DescriptorSetLayout> descriptor_set_layout;
     };
 
     class GraphicsPipeline : public Resource {

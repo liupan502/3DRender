@@ -11,6 +11,7 @@
 #include <scenegraph/components/mesh.h>
 
 #include <rhi/rhi.h>
+#include <rhi/vulkan/vulkan_pipeline.h>
 #include <glm/glm.hpp>
 
 
@@ -82,9 +83,9 @@ namespace zr {
             Pipeline(PipelineFeature feature);
 
             bool create(std::shared_ptr<FgRenderPass> fg_render_pass, uint32_t subpass_idx,
-                        std::shared_ptr<PipelineLayout> layout);
+                        std::shared_ptr<DescriptorLayout> desc_layout);
 
-            inline VkPipeline get() const { return _vk_pipeline;};
+            inline VkPipeline get() const { return _rhi_pipeline ? std::static_pointer_cast<rhi::vulkan::VulkanGraphicsPipeline>(_rhi_pipeline)->get() : VK_NULL_HANDLE; };
 
             inline std::shared_ptr<PipelineLayout> get_pipeline_layout() { return _layout;};
 
@@ -153,6 +154,8 @@ namespace zr {
 
 
             rhi::GraphicsPipelineCreateInfo _ci;
+
+            rhi::GraphicsPipelineRef _rhi_pipeline;
         private:
 
             VkPipeline _vk_pipeline{VK_NULL_HANDLE};

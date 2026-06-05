@@ -27,72 +27,45 @@ void Pipeline::create_shader_stage(const std::map<VkShaderStageFlagBits, std::st
 
 bool Pipeline::create(std::shared_ptr<FgRenderPass> fg_render_pass, 
                       uint32_t subpass_idx,
-                      std::shared_ptr<PipelineLayout> layout) {
-    VkGraphicsPipelineCreateInfo ci{};
-    ci.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+                      std::shared_ptr<DescriptorLayout> desc_layout) {
+    _desc_layout = desc_layout;
+    _ci = {};
 
     // shader stages
     this->create_shader_stage();
-    ci.stageCount = _shader_cis.size();
-    ci.pStages = _shader_cis.data();
 
     // viewport state
     VkExtent2D extent = fg_render_pass->get_display_size();
     create_viewport_state(glm::vec2(static_cast<float>(extent.width), static_cast<float>(extent.height)));
-    ci.pViewportState = &_viewport_state;
 
     // multisample state
     create_multisample_state(fg_render_pass->get_sample_count());
-    if (false) {
-        ci.pMultisampleState = nullptr;
-    }
-    else {
-        ci.pMultisampleState = &_multisample_state;
-    }
-
 
     // color blend state
     create_color_blend_state();
-    ci.pColorBlendState = &_color_blend_state;
 
     // rasterization state
     create_rasterization_state();
-    ci.pRasterizationState = &_rasterization_state;
 
     // input assembly state
     create_input_assembly_state();
-    ci.pInputAssemblyState = &_input_assembly_state;
 
     // vertex input state
     create_vtx_input_state();
-    ci.pVertexInputState = &_vtx_input_state;
 
-    // depeth stencil state
+    // depth stencil state
     create_depth_stencil_state();
-    ci.pDepthStencilState = &_depth_stencil_state;
 
-    create_dynamic_states();
-    ci.pDynamicState = &_dynamic_state_info;
-    // ci.pDynamicState = nullptr;
+    _ci.subpass = subpass_idx;
+    _ci.descriptor_set_layout = desc_layout->get_rhi_layout();
 
-    // pipeline create pipeline layout
-    ci.layout = layout->get();
-
-    ci.renderPass = fg_render_pass->get_render_pass()->get();
-    ci.subpass = subpass_idx;
-    ci.basePipelineHandle = VK_NULL_HANDLE;
-    ci.basePipelineIndex = 0;
-
-    // pipeline cache
-    create_pipeline_cache();
-    VkResult ret = vkCreateGraphicsPipelines(_device->get_device(), _vk_pipeline_cache, 1, &ci, nullptr, &_vk_pipeline);
-    // CALL_VK(vkCreateGraphicsPipelines(_device->get_device(), _vk_pipeline_cache, 1, &ci, nullptr, &_vk_pipeline));
-    if (ret != VK_SUCCESS) {
+    // create pipeline through rhi layer
+    _rhi_pipeline = rhi::rhi_instance->create_graphics_pipeline(_ci);
+    if (!_rhi_pipeline) {
         LOGD("create graphic pipeline failed");
+        return false;
     }
-    else {
-        LOGD("create graphic pipeline success");
-    }
+    LOGD("create graphic pipeline success");
     return true;
 }
 
@@ -232,37 +205,26 @@ rhi::ColorFormat get_data_format(zr::sg::VertexAttributeType type) {
 }
 
 void BasePipeline::create_vtx_input_state() {
-
-    _vk_input_binding_descs.clear();
-    _vk_input_attri_descs.clear();
+    _ci.vertex_bindings.clear();
+    _ci.vertex_attributes.clear();
     auto attrs = _feature.get_attrs();
     for (uint32_t i = 0; i < attrs.size(); i++) {
-        VkVertexInputBindingDescription desc = VkVertexInputBindingDescription{
-                .binding = i,
-                .stride = attrs[i][0].stride,
-                .inputRate = VK_VERTEX_INPUT_RATE_VERTEX
-        };
-        _vk_input_binding_descs.push_back(desc);
+        rhi::VertexBindingDesc binding_desc{};
+        binding_desc.binding = i;
+        binding_desc.stride = attrs[i][0].stride;
+        binding_desc.input_rate = rhi::VertexInputRate::VIR_VERTEX;
+        _ci.vertex_bindings.push_back(binding_desc);
 
         for (uint32_t j = 0; j < attrs[i].size(); j++) {
             auto attr = attrs[i][j];
-            _vk_input_attri_descs.emplace_back(VkVertexInputAttributeDescription{
-                    .location = attr.location,
-                    .binding = i,
-                    .format = get_data_format(attr.type),
-                    .offset = attr.offset,
-            });
+            rhi::VertexAttributeDesc attrib_desc{};
+            attrib_desc.location = attr.location;
+            attrib_desc.binding = i;
+            attrib_desc.format = get_data_format(attr.type);
+            attrib_desc.offset = attr.offset;
+            _ci.vertex_attributes.push_back(attrib_desc);
         }
     }
-
-    _vtx_input_state =   VkPipelineVertexInputStateCreateInfo{
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-            .pNext = nullptr,
-            .vertexBindingDescriptionCount = static_cast<uint32_t>(_vk_input_binding_descs.size()),
-            .pVertexBindingDescriptions = _vk_input_binding_descs.data(),
-            .vertexAttributeDescriptionCount = static_cast<uint32_t>(_vk_input_attri_descs.size()),
-            .pVertexAttributeDescriptions = _vk_input_attri_descs.data(),
-    };
 }
 
 void BasePipeline::create_pipeline_layout() {
@@ -274,12 +236,11 @@ BasePipeline::BasePipeline(std::shared_ptr<Device> device,
         uint32_t subpass_idx,PipelineFeature feature) : Pipeline(device, feature) {
     _desc_layout = std::make_shared<BaseDescriptorLayout>(device, _feature);
     _desc_pool = std::make_shared<DescriptorPool>(device, _desc_layout, 500);
-    _layout = std::make_shared<PipelineLayout>(_device, _desc_layout);
-    create(fg_render_pass, subpass_idx, _layout);
+    create(fg_render_pass, subpass_idx, _desc_layout);
 }
 
 void Pipeline::bind(std::shared_ptr<CommandBuffer> cmd_buf) {
-    vkCmdBindPipeline(cmd_buf->get(), VK_PIPELINE_BIND_POINT_GRAPHICS, _vk_pipeline);
+    vkCmdBindPipeline(cmd_buf->get(), VK_PIPELINE_BIND_POINT_GRAPHICS, get());
 }
 
 PipelineLayout::PipelineLayout(std::shared_ptr<Device> device,
@@ -299,7 +260,6 @@ PipelineLayout::PipelineLayout(std::shared_ptr<Device> device,
 
 Pipeline::~Pipeline() {
     vkDestroyPipelineCache(_device->get_device(), _vk_pipeline_cache, nullptr);
-    vkDestroyPipeline(_device->get_device(), _vk_pipeline, nullptr);
 }
 
 PipelineLayout::~PipelineLayout() {

@@ -82,8 +82,7 @@ QuadPipeline::QuadPipeline(std::shared_ptr<Device> device,
     
     _desc_pool = std::make_shared<DescriptorPool>(device, binding_infos, 10);
     _desc_layout = _desc_pool->get_layout();
-    _layout = std::make_shared<PipelineLayout>(_device, _desc_layout);
-    create(render_pass, subpass_idx, _layout);
+    create(render_pass, subpass_idx, _desc_layout);
 }
 
 void QuadPipeline::create_color_blend_state() {

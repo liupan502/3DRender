@@ -38,6 +38,8 @@ namespace zr {
             // inline VkDescriptorSetLayout get() const { return _vk_desc_set_layout;};
             // std::map<VkDescriptorType, uint32_t> get_types() const;
             virtual ~DescriptorLayout() = default;
+
+            inline rhi::DescriptorSetLayoutRef get_rhi_layout() const { return _rhi_layout; }
         protected:
 
             void create_layout(PipelineFeature feature);
