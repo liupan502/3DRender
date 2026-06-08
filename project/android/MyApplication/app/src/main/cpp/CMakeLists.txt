@@ -9,11 +9,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -Wall")
 
 
 
-add_library(lib_shaderc STATIC IMPORTED)
-set_target_properties(lib_shaderc PROPERTIES IMPORTED_LOCATION
-        ${CMAKE_CURRENT_SOURCE_DIR}/../libs/shaderc/${ANDROID_ABI}/libshaderc.a)
-
-
 add_definitions(-DPLATFORM_ANDROID)
 
 ADD_SUBDIRECTORY(${PROJECT_SOURCE_DIR}/renderer)
@@ -41,5 +36,5 @@ include_directories(include/renderer/third_party include/renderer hmi_app includ
 
 
 
-target_link_libraries(hmi3d log android vulkan lib_shaderc z_renderer)
+target_link_libraries(hmi3d log android vulkan z_renderer)
 

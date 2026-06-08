@@ -27,16 +27,6 @@ find_package(Qt5Core)
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 endif()
 
-add_library(lib_shaderc STATIC IMPORTED)
-if(APPLE)
-    set_target_properties(lib_shaderc PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/../qt/libs/mac/libshaderc_combined.a)
-elseif(WIN32)
-    set_target_properties(lib_shaderc PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/../qt/libs/win/shaderc_combined.lib)
-else()
-    set_target_properties(lib_shaderc PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/../qt/libs/linux/libshaderc_combined.a)
-endif()
-
-
 find_library(vulkan_path NAMES vulkan)
 add_library(vulkan SHARED IMPORTED)
 if(WIN32)
@@ -45,21 +35,18 @@ else()
     set_target_properties(vulkan PROPERTIES IMPORTED_LOCATION ${vulkan_path})
 endif()
 
+set(RENDERER_PROJECT_DIR ${PROJECT_SOURCE_DIR}/../../code)
 
-add_library(lib_glfw STATIC IMPORTED)
-
-if(APPLE)
-    set_target_properties(lib_glfw PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/../qt/libs/mac/libglfw3.a)
-elseif(WIN32)
-    set_target_properties(lib_glfw PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/../qt/libs/win/glfw3.lib)
-else()
-    set_target_properties(lib_glfw PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/../qt/libs/linux/libglfw3.a)
-endif()
+# GLFW: build from source
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+add_subdirectory(${RENDERER_PROJECT_DIR}/third_party/glfw glfw_build)
 
 include_directories(/usr/local/include)
 include_directories(${PROJECT_SOURCE_DIR}/../qt/include)
 
-set(RENDERER_PROJECT_DIR ${PROJECT_SOURCE_DIR}/../../code)
 ADD_SUBDIRECTORY(${RENDERER_PROJECT_DIR}/renderer z_renderer)
 
 include_directories(${RENDERER_PROJECT_DIR}/include/renderer/third_party
@@ -77,9 +64,9 @@ add_executable(qt_editor
 )
 
 if(APPLE)
-    target_link_libraries(qt_editor  pthread dl z_renderer "-framework Cocoa -framework OpenGL -framework IOKit" lib_glfw)
+    target_link_libraries(qt_editor  pthread dl z_renderer "-framework Cocoa -framework OpenGL -framework IOKit" glfw)
 elseif(WIN32)
-    target_link_libraries(qt_editor Qt5::Core Qt5::Widgets lib_glfw z_renderer)
+    target_link_libraries(qt_editor Qt5::Core Qt5::Widgets glfw z_renderer)
 else()
-    target_link_libraries(qt_editor Qt5::Core Qt5::Widgets lib_glfw pthread dl X11 z_renderer)
+    target_link_libraries(qt_editor Qt5::Core Qt5::Widgets glfw pthread dl X11 z_renderer)
 endif()

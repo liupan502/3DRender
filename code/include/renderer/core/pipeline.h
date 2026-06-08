@@ -89,6 +89,8 @@ namespace zr {
 
             inline std::shared_ptr<PipelineLayout> get_pipeline_layout() { return _layout;};
 
+            inline rhi::GraphicsPipelineRef get_rhi_pipeline() const { return _rhi_pipeline; };
+
             std::shared_ptr<DescriptorSet> get_available_desc_set();
 
             inline std::shared_ptr<DescriptorPool> get_desc_pool() { return _desc_pool;};

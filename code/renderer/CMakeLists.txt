@@ -87,7 +87,6 @@ add_library(z_renderer
         #utils
         src/utils/obj_loader.cpp
         src/utils/file_helper.cpp
-        src/utils/code_generator.cpp
         src/utils/shader_generator.cpp
         src/utils/point_set_optimize.cpp
         #src/utils/tri.c
@@ -105,12 +104,11 @@ add_library(z_renderer
     #set_property(TARGET z_renderer PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
     if (ANDROID)
-        target_link_libraries(z_renderer log android vulkan lib_shaderc )
+        target_link_libraries(z_renderer log android vulkan )
     elseif(APPLE)
-        target_link_libraries(z_renderer pthread vulkan lib_shaderc  "-framework Cocoa -framework OpenGL -framework IOKit" lib_glfw)
+        target_link_libraries(z_renderer pthread vulkan  "-framework Cocoa -framework OpenGL -framework IOKit" glfw)
     elseif(WIN32)
-        #target_link_libraries(z_renderer vulkan lib_shaderc )
-        target_link_libraries(z_renderer ${Vulkan_LIBRARY} lib_shaderc lib_glfw)
+        target_link_libraries(z_renderer ${Vulkan_LIBRARY} glfw)
     else()
-        target_link_libraries(z_renderer pthread vulkan lib_shaderc)
+        target_link_libraries(z_renderer pthread vulkan )
     endif()

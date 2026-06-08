@@ -24,6 +24,16 @@ void QuadRenderer::prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass
         rhi::rhi_instance->update_buffer(_quad_rhi_buf, data, size, 0);
     }
 
+    if (!_quad_rhi_idx_buf) {
+        rhi::BufferCreateInfo idx_ci{};
+        idx_ci.size = 3 * sizeof(uint16_t);
+        idx_ci.stride = 0;
+        idx_ci.usage = rhi::BufferUsageFlagBit::IndexBuffer;
+        _quad_rhi_idx_buf = rhi::rhi_instance->create_buffer(idx_ci);
+        uint16_t idx_data[3] = {0, 1, 2};
+        rhi::rhi_instance->update_buffer(_quad_rhi_idx_buf, idx_data, sizeof(idx_data), 0);
+    }
+
     prepare_desc(renderpass);
 }
 
@@ -51,13 +61,11 @@ void QuadRenderer::prepare_desc(FgRenderPass* renderpass) {
 void QuadRenderer::render_scene(sg::Scene* scene,
             const PassResources& res) {
     
-    /*vkCmdSetViewport(_cmd_buf->get(), 0, 1, &_viewport);
-    _pipeline->bind(_cmd_buf);
-    _desc_set->bind(_cmd_buf, _pipeline->get_pipeline_layout());
-    VkDeviceSize offset = 0;
-    VkBuffer vtx_buf = _quad_mesh_buf->get();
-    vkCmdBindVertexBuffers(_cmd_buf->get(), 0, 1, &vtx_buf, &offset);
-    vkCmdDraw(_cmd_buf->get(), 3, 1, 0, 0);*/
+    rhi::RenderPrimitive primitive{};
+    primitive.vtx_buf = _quad_rhi_buf;
+    primitive.idx_buf = _quad_rhi_idx_buf;
+
+    rhi::rhi_instance->draw(_pipeline->get_rhi_pipeline(), primitive, 0, 3, 1);
 }
 
 QuadPipeline::QuadPipeline(
