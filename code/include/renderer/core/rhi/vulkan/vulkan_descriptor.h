@@ -12,8 +12,10 @@ namespace rhi {
 
         class VulkanDescriptorSetLayout : public DescriptorSetLayout{
             public:
-            VulkanDescriptorSetLayout(const DescriptorSetLayoutCreateInfo& ci) : 
-              DescriptorSetLayout(ci) {};  
+            VulkanDescriptorSetLayout(const DescriptorSetLayoutCreateInfo& ci) :
+              DescriptorSetLayout(ci) {};
+
+            inline const DescriptorSetLayoutCreateInfo& get_ci() const { return _ci; }
         };
     };
 

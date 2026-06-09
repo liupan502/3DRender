@@ -8,6 +8,8 @@ namespace rhi{
             public:
             VulkanRenderTarget(std::shared_ptr<zr::RenderContext> context,
                 const RenderTargetCreateInfo& info);
+
+            inline const RenderTargetCreateInfo& get_ci() const { return _ci; }
         };
     };
 };
