@@ -135,22 +135,12 @@ void LightRenderer::render_scene(sg::Scene* scene,
     
     uint32_t active_idx = 0;
 
-    auto render_mesh = [&](std::shared_ptr<sg::Mesh> mesh, uint16_t instance_count, uint16_t first_instance) {
-        
-
-        /*std::vector<std::shared_ptr<core::Buffer>> vtx_buffers = mesh->get_vtx_buffers();
-        VkDeviceSize offset = 0;
-        for (uint32_t i = 0; i < vtx_buffers.size(); i++) {
-            VkBuffer vk_buf = vtx_buffers[i]->get();
-            vkCmdBindVertexBuffers(cmd_buf->get(), i, 1, &vk_buf, &offset);
+    auto render_mesh = [&](std::shared_ptr<Pipeline> pipeline, std::shared_ptr<sg::Mesh> mesh, uint16_t instance_count) {
+        auto primitive = mesh->render_primitive();
+        if (!primitive.vtx_buf || !primitive.idx_buf) {
+            return;
         }
-
-        auto index_buffer = mesh->get_index_buffer()->get();
-        // vkCmdBindIndexBuffer(cmd_buf->get(), index_buffer, 0, VK_INDEX_TYPE_UINT32);
-        vkCmdBindIndexBuffer(cmd_buf->get(), index_buffer, 0, VK_INDEX_TYPE_UINT16);
-
-        vkCmdDrawIndexed(cmd_buf->get(), mesh->get_indice_count(), instance_count, 0, 0, first_instance);
-        */
+        rhi::rhi_instance->draw(pipeline->get_rhi_pipeline(), primitive, 0, mesh->get_indice_count(), instance_count);
     };
 
 
@@ -256,14 +246,11 @@ void LightRenderer::render_scene(sg::Scene* scene,
 
         for (uint16_t i = 0; i < node_arrs.size(); i++) {
 
-            //auto node = node_arrs[i][0];
-            //auto pipeline = get_pipeline(node, light_info);
-            //pipeline->bind(cmd_buf);
-            //node->get_desc_set(pipeline)->bind(cmd_buf, pipeline->get_pipeline_layout());
-            //std::shared_ptr<sg::Mesh> mesh = node->get_mesh();
-            //// LOGD("render mesh")
-            //uint16_t instance_count = node_arrs[i].size();
-            //render_mesh(mesh, instance_count, 0);
+            auto node = node_arrs[i][0];
+            auto pipeline = get_pipeline(node, light_info);
+            std::shared_ptr<sg::Mesh> mesh = node->get_mesh();
+            uint16_t instance_count = node_arrs[i].size();
+            render_mesh(pipeline, mesh, instance_count);
         }
 
 

@@ -22,6 +22,9 @@ namespace rhi
         virtual void init(const void* window) = 0;
         virtual void destroy() = 0;
 
+        virtual void begin_frame() = 0;
+        virtual void end_frame() = 0;
+
 
         virtual BufferRef create_buffer(const BufferCreateInfo& info) = 0;
 

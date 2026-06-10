@@ -43,6 +43,9 @@ namespace rhi {
         void init(const void* window) override;
         void destroy() override;
 
+        void begin_frame() override;
+        void end_frame() override;
+
         BufferRef create_buffer(const BufferCreateInfo& info) override;
 
         void update_buffer(BufferRef buf, void* data, uint32_t len, uint32_t offset) override;
@@ -79,12 +82,15 @@ namespace rhi {
 
     private:
         VkRenderPass get_or_create_render_pass(const RenderTargetCreateInfo& rt_ci);
+        VkFramebuffer get_or_create_framebuffer(VkRenderPass render_pass, const RenderTargetCreateInfo& rt_ci);
 
     private:
         std::shared_ptr<zr::RenderContext> _context;
+        std::shared_ptr<zr::core::CommandBuffer> _cmd_buf{nullptr};
         VkRenderPass _current_render_pass{VK_NULL_HANDLE};
         uint32_t _current_subpass{0};
         std::map<std::pair<vulkan::VulkanGraphicsPipeline*, VkRenderPass>, VkPipeline> _pipeline_cache;
         std::map<RenderPassKey, VkRenderPass> _render_pass_cache;
+        std::map<std::pair<VkRenderPass, std::vector<VkImageView>>, VkFramebuffer> _framebuffer_cache;
     };
 }

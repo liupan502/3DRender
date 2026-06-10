@@ -68,6 +68,18 @@ VulkanRHI::~VulkanRHI()
 {
 }
 
+void VulkanRHI::begin_frame() {
+    auto device = _context->get_device();
+    _cmd_buf = device->get_cmd_pool()->get_available_cmd_buf();
+    _cmd_buf->begin();
+}
+
+void VulkanRHI::end_frame() {
+    _cmd_buf->end();
+    _cmd_buf->submit();
+    _cmd_buf = nullptr;
+}
+
 void VulkanRHI::init(const void* window)
 {
     _context = std::make_shared<zr::RenderContext>();
@@ -149,6 +161,36 @@ void VulkanRHI::begin_render_pass(RenderTargetRef rt, const RenderPassParams& pa
     const auto& rt_ci = std::static_pointer_cast<vulkan::VulkanRenderTarget>(rt)->get_ci();
     _current_render_pass = get_or_create_render_pass(rt_ci);
     _current_subpass = 0;
+
+    auto framebuffer = get_or_create_framebuffer(_current_render_pass, rt_ci);
+
+    VkRenderPassBeginInfo rp_begin{};
+    rp_begin.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    rp_begin.renderPass = _current_render_pass;
+    rp_begin.framebuffer = framebuffer;
+    rp_begin.renderArea.offset.x = params.vp.left;
+    rp_begin.renderArea.offset.y = params.vp.top;
+    rp_begin.renderArea.extent.width = params.vp.width;
+    rp_begin.renderArea.extent.height = params.vp.height;
+
+    VkClearValue clear_values[2];
+    uint32_t clear_count = 0;
+    for (size_t i = 0; i < rt_ci.color_attachments.size(); i++) {
+        clear_values[clear_count].color.float32[0] = params.ci.color.r;
+        clear_values[clear_count].color.float32[1] = params.ci.color.g;
+        clear_values[clear_count].color.float32[2] = params.ci.color.b;
+        clear_values[clear_count].color.float32[3] = params.ci.color.a;
+        clear_count++;
+    }
+    if (rt_ci.depth_attachment.first.fmt != ColorFormat::None) {
+        clear_values[clear_count].depthStencil.depth = params.ci.depth;
+        clear_values[clear_count].depthStencil.stencil = params.ci.stencil;
+        clear_count++;
+    }
+    rp_begin.clearValueCount = clear_count;
+    rp_begin.pClearValues = clear_values;
+
+    vkCmdBeginRenderPass(_cmd_buf->get(), &rp_begin, VK_SUBPASS_CONTENTS_INLINE);
 }
 
 void VulkanRHI::end_render_pass() {
@@ -241,6 +283,50 @@ VkRenderPass VulkanRHI::get_or_create_render_pass(const RenderTargetCreateInfo& 
     return render_pass;
 }
 
+VkFramebuffer VulkanRHI::get_or_create_framebuffer(VkRenderPass render_pass, const RenderTargetCreateInfo& rt_ci) {
+    std::vector<VkImageView> image_views;
+    for (const auto& color_att : rt_ci.color_attachments) {
+        auto vk_tex = std::static_pointer_cast<vulkan::VulkanTexture>(color_att.second);
+        image_views.push_back(vk_tex->get_image_view());
+    }
+    if (rt_ci.depth_attachment.first.fmt != ColorFormat::None) {
+        auto vk_tex = std::static_pointer_cast<vulkan::VulkanTexture>(rt_ci.depth_attachment.second);
+        image_views.push_back(vk_tex->get_image_view());
+    }
+
+    auto key = std::make_pair(render_pass, image_views);
+    auto it = _framebuffer_cache.find(key);
+    if (it != _framebuffer_cache.end()) {
+        return it->second;
+    }
+
+    auto device = _context->get_device();
+
+    uint32_t width = 1, height = 1;
+    if (!rt_ci.color_attachments.empty()) {
+        width = rt_ci.color_attachments[0].first.width;
+        height = rt_ci.color_attachments[0].first.height;
+    } else if (rt_ci.depth_attachment.first.fmt != ColorFormat::None) {
+        width = rt_ci.depth_attachment.first.width;
+        height = rt_ci.depth_attachment.first.height;
+    }
+
+    VkFramebufferCreateInfo fb_ci{};
+    fb_ci.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    fb_ci.renderPass = render_pass;
+    fb_ci.attachmentCount = static_cast<uint32_t>(image_views.size());
+    fb_ci.pAttachments = image_views.data();
+    fb_ci.width = width;
+    fb_ci.height = height;
+    fb_ci.layers = 1;
+
+    VkFramebuffer framebuffer = VK_NULL_HANDLE;
+    CALL_VK(vkCreateFramebuffer(device->get_device(), &fb_ci, nullptr, &framebuffer));
+
+    _framebuffer_cache[key] = framebuffer;
+    return framebuffer;
+}
+
 void VulkanRHI::draw(GraphicsPipelineRef pipeline, const RenderPrimitive& primitive, 
     uint32_t const indexOffset, uint32_t const indexCount, uint32_t const instanceCount) {
 
@@ -256,37 +342,17 @@ void VulkanRHI::draw(GraphicsPipelineRef pipeline, const RenderPrimitive& primit
         _pipeline_cache[key] = vk_pipeline_handle;
     }
 
-    auto device = _context->get_device();
-    auto cmd_buf = device->get_cmd_pool()->get_available_cmd_buf();
-    cmd_buf->begin();
-
-    VkRenderPassBeginInfo rp_begin{};
-    rp_begin.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    rp_begin.renderPass = _current_render_pass;
-    rp_begin.framebuffer = VK_NULL_HANDLE; // TODO: need framebuffer
-    rp_begin.renderArea.offset = {0, 0};
-    rp_begin.renderArea.extent = {1, 1};
-    rp_begin.clearValueCount = 0;
-    rp_begin.pClearValues = nullptr;
-
-    vkCmdBeginRenderPass(cmd_buf->get(), &rp_begin, VK_SUBPASS_CONTENTS_INLINE);
-
-    vkCmdBindPipeline(cmd_buf->get(), VK_PIPELINE_BIND_POINT_GRAPHICS, vk_pipeline_handle);
+    vkCmdBindPipeline(_cmd_buf->get(), VK_PIPELINE_BIND_POINT_GRAPHICS, vk_pipeline_handle);
 
     VkDeviceSize offset = 0;
     auto vk_vtx_buf = std::static_pointer_cast<vulkan::VulkanBuffer>(primitive.vtx_buf);
     VkBuffer vk_buf = vk_vtx_buf->get();
-    vkCmdBindVertexBuffers(cmd_buf->get(), 0, 1, &vk_buf, &offset);
+    vkCmdBindVertexBuffers(_cmd_buf->get(), 0, 1, &vk_buf, &offset);
 
     auto vk_idx_buf = std::static_pointer_cast<vulkan::VulkanBuffer>(primitive.idx_buf);
-    vkCmdBindIndexBuffer(cmd_buf->get(), vk_idx_buf->get(), 0, VK_INDEX_TYPE_UINT16);
+    vkCmdBindIndexBuffer(_cmd_buf->get(), vk_idx_buf->get(), 0, VK_INDEX_TYPE_UINT16);
 
-    vkCmdDrawIndexed(cmd_buf->get(), indexCount, instanceCount, indexOffset, 0, 0);
-
-    vkCmdEndRenderPass(cmd_buf->get());
-
-    cmd_buf->end();
-    cmd_buf->submit();
+    vkCmdDrawIndexed(_cmd_buf->get(), indexCount, instanceCount, indexOffset, 0, 0);
 }
 
 

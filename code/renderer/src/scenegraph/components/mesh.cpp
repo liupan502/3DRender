@@ -15,7 +15,7 @@ std::type_index Mesh::get_type() const {
 }
 
 rhi::RenderPrimitive Mesh::render_primitive() const {
-    if (_vtx_buffers.size() > 0 || !_vtx_buffers[0] || !_index_buffer) {
+    if (_vtx_buffers.empty() || !_vtx_buffers[0] || !_index_buffer) {
         return {nullptr, nullptr};
     }
     return {_vtx_buffers[0], _index_buffer};
