@@ -27,7 +27,7 @@ namespace zr{
         class RendererInterface{
         public:
             virtual void prepare_renderpass(sg::Scene* scene, 
-                                FgRenderPass* renderpass) = 0;
+                                 FgRenderPass* renderpass, const PassResources& res) = 0;
             virtual void render_scene(sg::Scene* scene, 
                         const PassResources& res) = 0;
 

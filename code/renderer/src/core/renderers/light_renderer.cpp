@@ -63,7 +63,8 @@ void LightRenderer::try_update_light_data(std::shared_ptr<sg::Node> node,
 
 }
 
-void LightRenderer::prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass) {
+void LightRenderer::prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass, const PassResources& res) {
+    (void)res;
     try_init_uniform_buffers();                                            
 }
 

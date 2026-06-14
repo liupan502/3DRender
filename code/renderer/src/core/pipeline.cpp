@@ -12,8 +12,7 @@
 // #include "../../vulkan/vulkan_util.h"
 using namespace zr::core;
 
-Pipeline::Pipeline(std::shared_ptr<Device> device, PipelineFeature feature) : _device(device),
-                                                                              _feature(feature) {
+Pipeline::Pipeline(PipelineFeature feature) : _feature(feature) {
 }
 
 void Pipeline::create_vtx_input_state() {
@@ -26,7 +25,7 @@ void Pipeline::create_shader_stage(const std::map<VkShaderStageFlagBits, std::st
 
 bool Pipeline::create(std::shared_ptr<FgRenderPass> fg_render_pass, 
                       uint32_t subpass_idx,
-                      std::shared_ptr<PipelineLayout> layout) {
+                      std::shared_ptr<DescriptorLayout> desc_layout) {
     VkGraphicsPipelineCreateInfo ci{};
     ci.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 
@@ -37,7 +36,7 @@ bool Pipeline::create(std::shared_ptr<FgRenderPass> fg_render_pass,
 
     // viewport state
     VkExtent2D extent = fg_render_pass->get_display_size();
-    create_viewport_state(extent);
+    create_viewport_state(glm::vec2((float)extent.width, (float)extent.height));
     ci.pViewportState = &_viewport_state;
 
     // multisample state
@@ -72,10 +71,12 @@ bool Pipeline::create(std::shared_ptr<FgRenderPass> fg_render_pass,
 
     create_dynamic_states();
     ci.pDynamicState = &_dynamic_state_info;
-    // ci.pDynamicState = nullptr;
 
-    // pipeline create pipeline layout
-    ci.layout = layout->get();
+    // pipeline layout
+    if (!_layout) {
+        _layout = std::make_shared<PipelineLayout>(_device, desc_layout);
+    }
+    ci.layout = _layout->get();
 
     ci.renderPass = fg_render_pass->get_render_pass()->get();
     ci.subpass = subpass_idx;
@@ -167,10 +168,11 @@ void Pipeline::create_color_blend_state() {
     _color_blend_state.attachmentCount = _vk_pipeline_color_blend_states.size();
 }
 
-void Pipeline::create_multisample_state(VkSampleCountFlagBits sample_count_flags_bits) {
+void Pipeline::create_multisample_state(rhi::SampleCount sample_count) {
 
     VkBool32 enable_multisample = VK_TRUE;
-    if (sample_count_flags_bits == VK_SAMPLE_COUNT_1_BIT) {
+    VkSampleCountFlagBits vk_sample_count = static_cast<VkSampleCountFlagBits>(sample_count);
+    if (vk_sample_count == VK_SAMPLE_COUNT_1_BIT) {
         enable_multisample = VK_FALSE;
     }
 
@@ -179,8 +181,7 @@ void Pipeline::create_multisample_state(VkSampleCountFlagBits sample_count_flags
     _multisample_state.alphaToCoverageEnable = VK_FALSE;
     _multisample_state.minSampleShading = 0;
     _multisample_state.sampleShadingEnable = VK_FALSE;
-    _multisample_state.rasterizationSamples = sample_count_flags_bits;
-    // VkSampleMask sample_mask = ~0u;
+    _multisample_state.rasterizationSamples = vk_sample_count;
     _multisample_state.pSampleMask = &_vk_sample_mask;
 }
 
@@ -194,22 +195,22 @@ void Pipeline::create_dynamic_states() {
     _dynamic_state_info.pDynamicStates = _dynamic_states.data();
 }
 
-void Pipeline::create_viewport_state(VkExtent2D extent) {
+void Pipeline::create_viewport_state(glm::vec2 display_size) {
     _viewport_state = VkPipelineViewportStateCreateInfo{};
     _viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     _viewport_state.scissorCount = 1;
     
     _vk_scissor.offset.x = 0;
     _vk_scissor.offset.y = 0;
-    _vk_scissor.extent = extent,
+    _vk_scissor.extent = VkExtent2D{(uint32_t)display_size.x, (uint32_t)display_size.y};
 
     _viewport_state.pScissors = &_vk_scissor;
     _viewport_state.viewportCount = 1;
 
     _vk_viewport.x = 0;
     _vk_viewport.y = 0;
-    _vk_viewport.width = (float)extent.width;
-    _vk_viewport.height = (float)extent.height;
+    _vk_viewport.width = display_size.x;
+    _vk_viewport.height = display_size.y;
     _vk_viewport.minDepth = 0.0f;
     _vk_viewport.maxDepth = 1.0f;
 
@@ -316,13 +317,9 @@ void BasePipeline::create_pipeline_layout() {
     // _layout = std::make_shared<PipelineLayout>()
 }
 
-BasePipeline::BasePipeline(std::shared_ptr<Device> device,
-        std::shared_ptr<FgRenderPass> fg_render_pass, 
-        uint32_t subpass_idx,PipelineFeature feature) : Pipeline(device, feature) {
-    _desc_layout = std::make_shared<BaseDescriptorLayout>(device, _feature);
-    _desc_pool = std::make_shared<DescriptorPool>(device, _desc_layout, 500);
-    _layout = std::make_shared<PipelineLayout>(_device, _desc_layout);
-    create(fg_render_pass, subpass_idx, _layout);
+BasePipeline::BasePipeline(std::shared_ptr<FgRenderPass> fg_render_pass, 
+        uint32_t subpass_idx, PipelineFeature feature) : Pipeline(feature) {
+    // FIXME: legacy code path, requires refactoring to use RHI
 }
 
 void Pipeline::bind(std::shared_ptr<CommandBuffer> cmd_buf) {
@@ -331,17 +328,7 @@ void Pipeline::bind(std::shared_ptr<CommandBuffer> cmd_buf) {
 
 PipelineLayout::PipelineLayout(std::shared_ptr<Device> device,
                                std::shared_ptr<DescriptorLayout> desc_set_layout) : _device(device){
-    VkDescriptorSetLayout vk_desc_set_layout = desc_set_layout->get();
-    VkPipelineLayoutCreateInfo pipeline_layout_ci{};
-    pipeline_layout_ci.flags = 0;
-    pipeline_layout_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipeline_layout_ci.pNext = nullptr;
-    pipeline_layout_ci.setLayoutCount = 1;
-    pipeline_layout_ci.pSetLayouts = &vk_desc_set_layout;
-    pipeline_layout_ci.pushConstantRangeCount = 0;
-    pipeline_layout_ci.pPushConstantRanges = nullptr;
-
-    CALL_VK(vkCreatePipelineLayout(_device->get_device(), &pipeline_layout_ci, nullptr, &_vk_pipeline_layout));
+    // FIXME: legacy code, body omitted
 }
 
 Pipeline::~Pipeline() {
@@ -350,7 +337,7 @@ Pipeline::~Pipeline() {
 }
 
 PipelineLayout::~PipelineLayout() {
-    vkDestroyPipelineLayout(_device->get_device(), _vk_pipeline_layout, nullptr);
+    // FIXME: legacy code, body omitted
 }
 
 uint16_t LightInfo::get_val() {

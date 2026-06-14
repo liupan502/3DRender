@@ -53,7 +53,7 @@ namespace zr {
             void add_color_output(const std::string& name, const rhi::AttachmentInfo& attachment_info);
             void add_preserve(const std::string& name);
             bool add_texture_sample(const std::string& name);
-            void prepare();
+            void prepare(const PassResources& res);
             void execute(const PassResources& res);
             std::unordered_set<std::string> get_outputs() const;
             void set_pipeline_mgr(std::shared_ptr<PipelineManager> mgr);
@@ -73,6 +73,8 @@ namespace zr {
             inline std::vector<std::shared_ptr<ImageView>> get_color_output_views() {
                 return extenal_get_views(_color_outputs);
             }
+
+            std::vector<rhi::TextureRef> get_color_output_textures();
 
             inline const std::vector<std::string>& get_depth_stencil_inputs() const {
                 return _depth_stencil_inputs;

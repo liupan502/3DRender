@@ -170,7 +170,7 @@ bool Node::upload_data(std::shared_ptr<core::Device> device) {
 
 
     /*if (is_renderable() && !_ubo_buf) {
-        _ubo_buf = std::make_shared<core::UniformBuffer>(0, device,
+        _ubo_buf = std::make_shared<core::UniformBuffer>(0,
                                                   sizeof(core::UniformBufferObject));
     }*/
     if(!is_visible()){

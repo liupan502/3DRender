@@ -19,7 +19,7 @@ namespace core {
     class LightRenderer : public RendererInterface {
         public:
         LightRenderer();
-        virtual void prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass) override;
+        virtual void prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass, const PassResources& res) override;
         virtual void render_scene(sg::Scene* scene, const PassResources& res) override;
         virtual CreatePipelineFunc get_pipeline_creator() override;
 

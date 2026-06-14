@@ -1,15 +1,19 @@
 #pragma once
 #include <rhi/rhi_resource.h>
-#include <render_context.h>
 #include <vulkan/vulkan.h>
 #include <memory>
+
+namespace zr {
+    class RenderContext;
+}
+
 namespace rhi{
     namespace vulkan {
         class VulkanGraphicsPipeline : public GraphicsPipeline {
         public:
             VulkanGraphicsPipeline(std::shared_ptr<zr::RenderContext> context,
                                    const GraphicsPipelineCreateInfo& info);
-            ~VulkanGraphicsPipeline() override;
+            ~VulkanGraphicsPipeline();
 
             VulkanGraphicsPipeline(const VulkanGraphicsPipeline&) = delete;
             VulkanGraphicsPipeline& operator=(const VulkanGraphicsPipeline&) = delete;

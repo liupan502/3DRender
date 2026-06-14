@@ -11,7 +11,7 @@
 using namespace zr;
 using namespace zr::core;
 
-void QuadRenderer::prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass) {
+void QuadRenderer::prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass, const PassResources& res) {
     if (!_quad_rhi_buf) {
         auto size = 6 * sizeof(float);
         uint32_t stride = 0;
@@ -28,13 +28,13 @@ void QuadRenderer::prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass
         rhi::BufferCreateInfo idx_ci{};
         idx_ci.size = 3 * sizeof(uint16_t);
         idx_ci.stride = 0;
-        idx_ci.usage = rhi::BufferUsageFlagBit::IndexBuffer;
+        idx_ci.usage = static_cast<rhi::BufferUsageFlags>(rhi::BufferUsageFlagBit::IndexBuffer);
         _quad_rhi_idx_buf = rhi::rhi_instance->create_buffer(idx_ci);
         uint16_t idx_data[3] = {0, 1, 2};
         rhi::rhi_instance->update_buffer(_quad_rhi_idx_buf, idx_data, sizeof(idx_data), 0);
     }
 
-    prepare_desc(renderpass);
+    prepare_desc(renderpass, res);
 }
 
     void QuadRenderer::reset_viewport(FgRenderPass *renderpass) {
@@ -43,17 +43,18 @@ void QuadRenderer::prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass
                  (float)display_size.width, (float)display_size.height, 0, 1.0};
 }
 
-void QuadRenderer::prepare_desc(FgRenderPass* renderpass) {
+void QuadRenderer::prepare_desc(FgRenderPass* renderpass, const PassResources& res) {
     if (!_desc_set) {
         _pipeline = _pipeline_mgr->get_pipeline(LightInfo(), std::make_shared<sg::Material>(nullptr),
                                     std::vector<std::vector<sg::VertexAttribute>>());
         _desc_set = _pipeline->get_available_desc_set();
     }
 
-    auto view = renderpass->get_input_views()[0];
-    rhi::SampleStateCreateInfo sampler_ci{};
-    auto sampler = rhi::rhi_instance->create_sample_state(sampler_ci);
-    _desc_set->update_desc_set_texture(sampler, view, 0);
+    if (!res.input_textures.empty()) {
+        rhi::SampleStateCreateInfo sampler_ci{};
+        auto sampler = rhi::rhi_instance->create_sample_state(sampler_ci);
+        _desc_set->update_desc_set_texture(sampler, res.input_textures[0], 0);
+    }
 
     reset_viewport(renderpass);
 }

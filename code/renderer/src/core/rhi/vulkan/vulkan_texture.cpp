@@ -324,7 +324,7 @@ void VulkanTexture::update_data(unsigned char* data, uint32_t size,
     BufferCreateInfo ci;
     ci.size = size;
     ci.usage = rhi::BufferUsageFlagBit::CopySrc | 0;
-    auto stage_buf = std::make_shared<VulkanBuffer>(ci);
+    auto stage_buf = std::make_shared<VulkanBuffer>(_context, ci);
     stage_buf->update(data, size);
     
     struct BlitParams{
@@ -366,7 +366,7 @@ void VulkanTexture::update_data(unsigned char* data, uint32_t size,
         transition_image_layout_internal(get_vk_format(), VK_IMAGE_LAYOUT_UNDEFINED,
                             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, cmd_buf, dst_blit_params.mip_level, 1,
                                      vk_image_blit.dstSubresource.baseArrayLayer, 1);
-        vkCmdBlitImage(cmd_buf->get(), src_vk_img, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        vkCmdBlitImage(cmd_buf->get(), _vk_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                     _vk_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &vk_image_blit, VK_FILTER_LINEAR);
         transition_image_layout_internal(get_vk_format(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                             VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, cmd_buf, dst_blit_params.mip_level, 1,
@@ -376,15 +376,20 @@ void VulkanTexture::update_data(unsigned char* data, uint32_t size,
     int width = _create_info.width;
     int height = _create_info.height;
 
-    auto fn = [&](std::shared_ptr<zr::core::CommandBuffer> cmd_buf, int blit_num) {
+    int num = 0;
+    if (generated_mip_map) {
+        num = _create_info.mip_num - mip_level - 1;
+    }
+
+    auto fn = [&](std::shared_ptr<zr::core::CommandBuffer> cmd_buf) {
         transition_image_layout_internal(fmt, VK_IMAGE_LAYOUT_UNDEFINED,
                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, cmd_buf, mip_level, 1, base_layer, 1);
         auto region = create_buffer_image_copy(mip_level, base_layer);
-        copy_buffer_to_image(stage_buf.get(), cmd_buf, {region});
+        copy_buffer_to_image(stage_buf->get(), cmd_buf, {region});
         transition_image_layout_internal(fmt, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, cmd_buf, mip_level, 1, base_layer, 1);
 
-        for (int i = 0; i < blit_num; ++i) {
+        for (int i = 0; i < num; ++i) {
             int src_idx = i + mip_level;
             int dst_idx = src_idx + 1;
             BlitParams src_blit_params{base_layer, (uint16_t)(src_idx), (uint16_t)(width >> (src_idx)), (uint16_t)(height >> (src_idx)), 1};
@@ -392,12 +397,8 @@ void VulkanTexture::update_data(unsigned char* data, uint32_t size,
             blit(_vk_image, src_blit_params, dst_blit_params, cmd_buf);
         }
     };
-    int num = 0;
-    if (generated_mip_map) {
-        num = _create_info.mip_num - mip_level - 1;
-    }
     for (int i = 0; i < num; ++i) {
-        device->get_cmd_pool()->execute_single_cmd(fn, num);
+        device->get_cmd_pool()->execute_single_cmd(fn);
     }
     
 }

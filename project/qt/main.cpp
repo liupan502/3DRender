@@ -281,7 +281,7 @@ void init_vulkan() {
     
     zr::utils::FileHelper::set_assert_base_dir("C:/Users/ASUS/Documents/asserts/");
     multi_pass_render = std::make_shared<MultiPassRenderer>();
-    multi_pass_render->init(window, VK_SAMPLE_COUNT_1_BIT);
+    multi_pass_render->init(window, rhi::SampleCount::SC_COUNT_1);
     multi_pass_render->set_viewport(0, 0, 1080, 720);
 
     scene = std::make_shared<sg::Scene>();

@@ -23,7 +23,7 @@ namespace zr {
                 _params = params;
             }
             protected:
-            virtual void prepare_desc(FgRenderPass* renderpass) override;
+            virtual void prepare_desc(FgRenderPass* renderpass, const PassResources& res) override;
 
             protected:
             Parameters _params;
@@ -51,7 +51,7 @@ namespace zr {
             }
 
             protected:
-            virtual void prepare_desc(FgRenderPass* renderpass) override;
+            virtual void prepare_desc(FgRenderPass* renderpass, const PassResources& res) override;
 
             protected:
             Parameters _params;

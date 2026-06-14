@@ -9,13 +9,13 @@ namespace zr {
         class Buffer;
         class QuadRenderer : public RendererInterface {
         public:
-virtual void prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass) override;
+virtual void prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass, const PassResources& res) override;
             virtual void render_scene(sg::Scene* scene, const PassResources& res) override;
             virtual CreatePipelineFunc get_pipeline_creator() override;
 
             
         protected:
-            virtual void prepare_desc(FgRenderPass* renderpass);
+            virtual void prepare_desc(FgRenderPass* renderpass, const PassResources& res);
 
             void reset_viewport(FgRenderPass* renderpass);
         protected:

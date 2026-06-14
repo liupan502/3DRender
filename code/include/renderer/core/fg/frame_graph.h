@@ -40,7 +40,11 @@ namespace zr {
 
             void add_image_view(const std::string& tex_name, std::shared_ptr<ImageView> img_view);
 
+            std::shared_ptr<ImageView> get_image_view(const std::string& tex_name);
+
             std::shared_ptr<rhi::Texture> get_image(const std::string& img_name, uint8_t idx = 0);
+
+            rhi::TextureRef get_texture_handle(const std::string& tex_name);
 
             protected:
 
@@ -63,6 +67,7 @@ namespace zr {
             std::vector<std::string> _ordered_passes;
 
             std::unordered_map<std::string, rhi::TextureRef> _tex_handle_map;
+            std::unordered_map<std::string, std::shared_ptr<ImageView>> _image_view_map;
         };
     };
 };

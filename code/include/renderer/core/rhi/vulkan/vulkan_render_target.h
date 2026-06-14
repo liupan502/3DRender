@@ -1,6 +1,7 @@
 #pragma once
 
 #include <rhi/rhi_resource.h>
+#include <render_context.h>
 
 namespace rhi{
     namespace vulkan{

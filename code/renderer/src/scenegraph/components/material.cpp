@@ -33,19 +33,19 @@ void Material::upload_data(std::shared_ptr<core::Device> device)
 
     for (auto tex : _texs)
     {
-        tex.second->upload_data(device);
+        tex.second->upload_data();
     }
 
     if (_pbr_params_buf == nullptr)
     {
-        _pbr_params_buf = std::make_shared<zr::core::UniformBuffer>(14, device, sizeof(PbrParams));
+        _pbr_params_buf = std::make_shared<zr::core::UniformBuffer>(14, sizeof(PbrParams));
         _pbr_params_buf->update((uint8_t *)(&_pbr_params), sizeof(_pbr_params));
     }
 
     if (_material_frag_uniform_buf == nullptr)
     {
         _material_frag_uniform_buf = std::make_shared<core::UniformBuffer>(18,
-                                                                           device, sizeof(FragmentUniformBufferObject));
+                                                                           sizeof(FragmentUniformBufferObject));
         _material_frag_uniform_buf->update((uint8_t *)(&_frag_uniform_buf_obj), sizeof(_frag_uniform_buf_obj));
     }
 

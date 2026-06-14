@@ -20,7 +20,7 @@ void Skin::upload_data(std::shared_ptr<zr::core::Device> device) {
     // upload each time
     if (!_palette_matrices_buf) {
         uint32_t device_size = 2 * MAX_JOINT_NUM * sizeof(glm::mat4);
-        _palette_matrices_buf = std::make_shared<core::UniformBuffer>(2, device, device_size);
+        _palette_matrices_buf = std::make_shared<core::UniformBuffer>(2, device_size);
     }
     std::vector<glm::mat4> mats(MAX_JOINT_NUM);
     for (uint32_t i = 0; i < _joint_nodes.size(); i++) {

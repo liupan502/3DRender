@@ -36,7 +36,7 @@ CreatePipelineFunc BloomDownSampleRenderer::get_pipeline_creator() {
     return cp;
 }
 
-void BloomDownSampleRenderer::prepare_desc(FgRenderPass* renderpass) {
+void BloomDownSampleRenderer::prepare_desc(FgRenderPass* renderpass, const PassResources& res) {
     if (!_desc_set) {
         _pipeline = _pipeline_mgr->get_pipeline(LightInfo(), std::make_shared<sg::Material>(nullptr),
                                     std::vector<std::vector<sg::VertexAttribute>>());
@@ -45,17 +45,17 @@ void BloomDownSampleRenderer::prepare_desc(FgRenderPass* renderpass) {
         _param_uniform_buf = std::make_shared<UniformBuffer>(51, sizeof(Parameters)); 
     }
 
-    auto view = renderpass->get_input_views()[0];
-    rhi::SampleStateCreateInfo sampler_ci{};
-    sampler_ci.address_u = rhi::SAM_CLAMP_EDGE;
-    sampler_ci.address_v = rhi::SAM_CLAMP_EDGE;
-    auto sampler = rhi::rhi_instance->create_sample_state(sampler_ci);
-    _desc_set->update_desc_set_texture(sampler, view, 50);  
+    if (!res.input_textures.empty()) {
+        rhi::SampleStateCreateInfo sampler_ci{};
+        sampler_ci.address_u = rhi::SAM_CLAMP_EDGE;
+        sampler_ci.address_v = rhi::SAM_CLAMP_EDGE;
+        auto sampler = rhi::rhi_instance->create_sample_state(sampler_ci);
+        _desc_set->update_desc_set_texture(sampler, res.input_textures[0], 50);
+    }
     
     _param_uniform_buf->update((uint8_t*)(&_params), sizeof(Parameters));
     _desc_set->update_desc_set_buffer(std::vector<std::shared_ptr<UniformBuffer>>({_param_uniform_buf}), 1);
 
-    // _desc_set->update_desc_set_buffer()
     reset_viewport(renderpass);
 }
 
@@ -88,7 +88,7 @@ CreatePipelineFunc BloomUpSampleRenderer::get_pipeline_creator() {
     return cp;
 }
 
-void BloomUpSampleRenderer::prepare_desc(FgRenderPass* renderpass) {
+void BloomUpSampleRenderer::prepare_desc(FgRenderPass* renderpass, const PassResources& res) {
     if (!_desc_set) {
         _pipeline = _pipeline_mgr->get_pipeline(LightInfo(), std::make_shared<sg::Material>(nullptr),
                                     std::vector<std::vector<sg::VertexAttribute>>());
@@ -97,12 +97,13 @@ void BloomUpSampleRenderer::prepare_desc(FgRenderPass* renderpass) {
         _param_uniform_buf = std::make_shared<UniformBuffer>(61, sizeof(Parameters)); 
     }
 
-    auto view = renderpass->get_input_views()[0];
-    rhi::SampleStateCreateInfo sampler_ci{};
-    sampler_ci.address_u = rhi::SAM_CLAMP_EDGE;
-    sampler_ci.address_v = rhi::SAM_CLAMP_EDGE;
-    auto sampler = rhi::rhi_instance->create_sample_state(sampler_ci);
-    _desc_set->update_desc_set_texture(sampler, view, 60);
+    if (!res.input_textures.empty()) {
+        rhi::SampleStateCreateInfo sampler_ci{};
+        sampler_ci.address_u = rhi::SAM_CLAMP_EDGE;
+        sampler_ci.address_v = rhi::SAM_CLAMP_EDGE;
+        auto sampler = rhi::rhi_instance->create_sample_state(sampler_ci);
+        _desc_set->update_desc_set_texture(sampler, res.input_textures[0], 60);
+    }
     
     _param_uniform_buf->update((uint8_t*)(&_params), sizeof(Parameters));
     _desc_set->update_desc_set_buffer(std::vector<std::shared_ptr<UniformBuffer>>({_param_uniform_buf}), 1);

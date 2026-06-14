@@ -102,7 +102,7 @@ CreatePipelineFunc TaaRenderer::get_pipeline_creator() {
     return cp;                 
 }
 
-void TaaRenderer::prepare_desc(FgRenderPass* render_pass) {
+void TaaRenderer::prepare_desc(FgRenderPass* render_pass, const PassResources& res) {
     if (!_desc_set) {
         _pipeline = _pipeline_mgr->get_pipeline(LightInfo(), std::make_shared<sg::Material>(nullptr),
                                     std::vector<std::vector<sg::VertexAttribute>>());
@@ -113,25 +113,32 @@ void TaaRenderer::prepare_desc(FgRenderPass* render_pass) {
         _taa_info_uniform_buf = std::make_shared<UniformBuffer>(3, sizeof(TaaInfo));
     }
 
-    auto view = render_pass->get_input_views()[0];
     auto sampler = rhi::rhi_instance->create_sample_state({});
-    _desc_set->update_desc_set_texture(sampler, view, 0);
+    if (res.input_textures.size() > 0) {
+        _desc_set->update_desc_set_texture(sampler, res.input_textures[0], 0);
+    }
 
-    // auto depth_view = render_pass->get_input_views()[1];
+    // auto depth_view = res.input_textures.size() > 1 ? res.input_textures[1] : nullptr;
     // _desc_set->update_desc_set_texture(sampler, depth_view, 1);
 
+    auto view = res.input_textures.size() > 0 ? res.input_textures[0] : nullptr;
     auto history = _history_img_view ? _history_img_view : view;
     // history = view;
-    _desc_set->update_desc_set_texture(sampler, history, 2);
+    if (history) {
+        _desc_set->update_desc_set_texture(sampler, history, 2);
+    }
 
-    auto velocity_view = render_pass->get_input_views()[1];
-    _desc_set->update_desc_set_texture(sampler, velocity_view, 4);
+    if (res.input_textures.size() > 1) {
+        _desc_set->update_desc_set_texture(sampler, res.input_textures[1], 4);
+    }
 
     _taa_info.alpha = 0.05f;
 
     update_weights();
-    // cache for next frame
-    _history_img_view = render_pass->get_color_output_views()[0];
+    auto color_outputs = render_pass->get_color_output_textures();
+    if (color_outputs.size() > 0) {
+        _history_img_view = color_outputs[0];
+    }
 
     reset_viewport(render_pass);
 }

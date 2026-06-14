@@ -70,13 +70,14 @@ VulkanRHI::~VulkanRHI()
 
 void VulkanRHI::begin_frame() {
     auto device = _context->get_device();
-    _cmd_buf = device->get_cmd_pool()->get_available_cmd_buf();
+    _cmd_buf = std::make_shared<zr::core::CommandBuffer>(device, device->get_cmd_pool());
     _cmd_buf->begin();
 }
 
 void VulkanRHI::end_frame() {
     _cmd_buf->end();
-    _cmd_buf->submit();
+    auto device = _context->get_device();
+    device->get_cmd_queue()->submit_cmd(_cmd_buf);
     _cmd_buf = nullptr;
 }
 

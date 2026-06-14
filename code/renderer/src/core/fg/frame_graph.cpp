@@ -105,7 +105,7 @@ void FrameGraph::execute() {
             res.render_target = rhi::rhi_instance->create_render_target(ci);
         }
 
-        pass->prepare();
+        pass->prepare(res);
         pass->execute(res);
 
         for (auto& pair : _tex_res_map) {
@@ -324,6 +324,25 @@ void FrameGraph::create_images(uint8_t swapchain_num) {
     }
 }
 
+void FrameGraph::add_image_view(const std::string& tex_name, std::shared_ptr<ImageView> img_view) {
+    _image_view_map[tex_name] = img_view;
+}
+
+std::shared_ptr<ImageView> FrameGraph::get_image_view(const std::string& tex_name) {
+    auto it = _image_view_map.find(tex_name);
+    if (it == _image_view_map.end()) return nullptr;
+    return it->second;
+}
+
+rhi::TextureRef FrameGraph::get_texture_handle(const std::string& tex_name) {
+    auto it = _tex_res_map.find(tex_name);
+    if (it == _tex_res_map.end()) return nullptr;
+    auto& img_name = it->second->get_attachment_info().img_name;
+    auto hit = _tex_handle_map.find(img_name);
+    if (hit == _tex_handle_map.end()) return nullptr;
+    return hit->second;
+}
+
 std::shared_ptr<rhi::Texture> FrameGraph::get_image(const std::string& img_name, uint8_t idx) {
     if (_imgs_map.find(img_name) == _imgs_map.end()) {
         return nullptr;
@@ -348,6 +367,9 @@ void FrameGraph::reset() {
     }
     if (_tex_handle_map.size() > 0) {
         _tex_handle_map.clear();
+    }
+    if (_image_view_map.size() > 0) {
+        _image_view_map.clear();
     }
 }
 

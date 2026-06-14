@@ -72,7 +72,6 @@ add_library(z_renderer
         src/core/renderers/color_grading.cpp
         src/core/renderers/taa_renderer.cpp
         
-        src/core/renderers/sky_renderer.cpp
 
         # rhi
         src/core/rhi/rhi.cpp

@@ -84,7 +84,7 @@ public:
     VulkanSampleState(std::shared_ptr<zr::RenderContext> context,
                       const SampleStateCreateInfo& create_info);
 
-    ~VulkanSampleState() override;
+    ~VulkanSampleState();
 
     VulkanSampleState(const VulkanSampleState&) = delete;
     VulkanSampleState& operator=(const VulkanSampleState&) = delete;

@@ -15,7 +15,7 @@ std::type_index Light::get_type() const {
 void EnvironmentLight::set_params(const std::vector<float> &sh_params,
                                   const std::vector<std::string> &pre_filtered_img_paths,
                                   const std::string &dfg_img_path) {
-    _prefiltered_tex = std::make_shared<SingleLayerTexture>(pre_filtered_img_paths, TEXTURE_SAMPLER_CUBE);
+    _prefiltered_tex = std::make_shared<SingleLayerTexture>(pre_filtered_img_paths, static_cast<rhi::TextureType>(TEXTURE_SAMPLER_CUBE));
     _dfg_tex = std::make_shared<SingleLayerTexture>(dfg_img_path);
     assert(sh_params.size() == 27);
 

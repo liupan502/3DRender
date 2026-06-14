@@ -84,19 +84,9 @@ void MultiPassRenderer::render_scene(std::shared_ptr<sg::Scene> scene) {
         return;
     }
 
+    rhi::rhi_instance->begin_frame();
     _fg->execute(/*active_frame_idx*/);
-
-    // Submit and present using RenderContext
-    VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    _context->submit(
-        _context->get_queue()->get(),
-        _fg->get_command_buf(active_frame_idx)->get(),
-        _context->get_semaphore(),
-        wait_stage,
-        _context->get_fence()
-    );
-
-    
+    rhi::rhi_instance->end_frame();
 
     _context->present(_context->get_queue()->get(), active_frame_idx);
 

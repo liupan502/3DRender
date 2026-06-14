@@ -96,8 +96,9 @@ std::unordered_set<std::string> FgRenderPass::get_outputs() const {
     return outputs;
 }
 
-void FgRenderPass::prepare() {
-    _setup_data.renderer_interface->prepare_renderpass(*_setup_data.pp_scene, this);
+void FgRenderPass::prepare(const PassResources& res) {
+    (void)res;
+    _setup_data.renderer_interface->prepare_renderpass(*_setup_data.pp_scene, this, res);
 }
 
 void FgRenderPass::execute(const PassResources& res) {
@@ -123,6 +124,15 @@ VkExtent2D FgRenderPass::get_display_size() {
     }
     auto& attach_info =  _fg->get_tex_res(*_depth_stencil_outputs.begin())->get_attachment_info();
     return VkExtent2D {attach_info.width, attach_info.height};
+}
+
+std::vector<rhi::TextureRef> FgRenderPass::get_color_output_textures() {
+    std::vector<rhi::TextureRef> textures;
+    if (!_fg) return textures;
+    for (auto& name : _color_outputs) {
+        textures.push_back(_fg->get_texture_handle(name));
+    }
+    return textures;
 }
 
 std::vector<std::shared_ptr<ImageView>> FgRenderPass::extenal_get_views(const std::vector<std::string>& names) {

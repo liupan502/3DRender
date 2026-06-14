@@ -42,7 +42,7 @@ namespace zr {
                 _info = info;
             }
             protected:
-            virtual void prepare_desc(FgRenderPass* render_pass) override;
+            virtual void prepare_desc(FgRenderPass* render_pass, const PassResources& res) override;
 
             protected:
             SkyRenderInfo _info;
@@ -56,7 +56,7 @@ namespace zr {
                 _info = info;
             }
             protected:
-            virtual void prepare_desc(FgRenderPass* render_pass) override;
+            virtual void prepare_desc(FgRenderPass* render_pass, const PassResources& res) override;
 
             protected:
             SkyRenderInfo _info;

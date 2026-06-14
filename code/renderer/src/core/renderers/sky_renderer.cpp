@@ -85,7 +85,7 @@ CreatePipelineFunc SkyViewLutRenderer::get_pipeline_creator() {
     return cp;
 }
 
-void SkyViewLutRenderer::prepare_desc(FgRenderPass* render_pass) {
+void SkyViewLutRenderer::prepare_desc(FgRenderPass* render_pass, const PassResources& res) {
     if (!_desc_set) {
         _pipeline = _pipeline_mgr->get_pipeline(LightInfo(), std::make_shared<sg::Material>(nullptr),
                                     std::vector<std::vector<sg::VertexAttribute>>());
@@ -98,9 +98,10 @@ void SkyViewLutRenderer::prepare_desc(FgRenderPass* render_pass) {
     _sky_render_info_uniform_buf->update((const uint8_t*)(&_info), sizeof(SkyRenderInfo));
     _desc_set->update_desc_set_buffer({_sky_render_info_uniform_buf});
 
-    auto view = render_pass->get_input_views()[0];
-    auto sampler = rhi::rhi_instance->create_sample_state({});
-    _desc_set->update_desc_set_texture(sampler, view, 1);
+    if (!res.input_textures.empty()) {
+        auto sampler = rhi::rhi_instance->create_sample_state({});
+        _desc_set->update_desc_set_texture(sampler, res.input_textures[0], 1);
+    }
 
     reset_viewport(render_pass);  
 }

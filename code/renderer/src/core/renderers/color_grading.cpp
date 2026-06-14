@@ -45,7 +45,7 @@ CreatePipelineFunc ColorGradingRenderer::get_pipeline_creator() {
     return cp;
 }
 
-void ColorGradingRenderer::prepare_desc(FgRenderPass* render_pass) {
+void ColorGradingRenderer::prepare_desc(FgRenderPass* render_pass, const PassResources& res) {
     if (!_desc_set) {
         _pipeline = _pipeline_mgr->get_pipeline(LightInfo(), std::make_shared<sg::Material>(nullptr),
                                     std::vector<std::vector<sg::VertexAttribute>>());
@@ -53,19 +53,21 @@ void ColorGradingRenderer::prepare_desc(FgRenderPass* render_pass) {
     }
 
     if (_color_grading_path.size() >  0 && !_color_grading_tex) {
-        _color_grading_tex = std::make_shared<sg::SingleLayerTexture>(_color_grading_path, 32, 32, 32, VK_FORMAT_R8G8B8A8_SRGB,
-            sg::TextureSamplerType::TEXTURE_SAMPLER_3D);
+        _color_grading_tex = std::make_shared<sg::SingleLayerTexture>(_color_grading_path, 32, 32, 32, rhi::ColorFormat::R8G8B8A8_SRGB,
+            rhi::TextureType::Texture3D);
         
         _color_grading_tex->upload_data();
     }
 
-    auto view = render_pass->get_input_views()[0];
-    auto sampler = rhi::rhi_instance->create_sample_state({});
-    _desc_set->update_desc_set_texture(sampler, view, 0);
+    if (res.input_textures.size() > 0) {
+        auto sampler = rhi::rhi_instance->create_sample_state({});
+        _desc_set->update_desc_set_texture(sampler, res.input_textures[0], 0);
+    }
     
-    auto view1 = render_pass->get_input_views()[1];
-    auto sampler1 = rhi::rhi_instance->create_sample_state({});
-    _desc_set->update_desc_set_texture(sampler1, view1, 1);
+    if (res.input_textures.size() > 1) {
+        auto sampler1 = rhi::rhi_instance->create_sample_state({});
+        _desc_set->update_desc_set_texture(sampler1, res.input_textures[1], 1);
+    }
     
     _desc_set->update_desc_set_texture(_color_grading_tex, 2);
 

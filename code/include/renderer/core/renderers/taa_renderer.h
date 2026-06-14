@@ -42,14 +42,14 @@ namespace zr{
                 virtual void render_scene(sg::Scene* scene, const PassResources& res) override;
 
             protected:
-            virtual void prepare_desc(FgRenderPass* render_pass) override;    
+            virtual void prepare_desc(FgRenderPass* render_pass, const PassResources& res) override;    
             void update_weights();
             void update_reproject_mat(sg::Scene* scene);
             private:
                 static const glm::vec2 sHaltonSamples[16];
                 TaaInfo _taa_info;
                 std::shared_ptr<UniformBuffer> _taa_info_uniform_buf;
-                std::shared_ptr<ImageView> _history_img_view;
+                rhi::TextureRef _history_img_view;
                 glm::vec2 _frame_size;
                 glm::vec2 _jitter;
                 std::vector<glm::vec2> _sample_offsets;

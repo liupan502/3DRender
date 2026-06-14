@@ -233,6 +233,7 @@ namespace rhi {
     class GraphicsPipeline : public Resource {
     public:
         GraphicsPipeline(const GraphicsPipelineCreateInfo& info) : _ci(info) {};
+        virtual ~GraphicsPipeline() = default;
     protected:
         GraphicsPipelineCreateInfo _ci;
     };
