@@ -8,6 +8,7 @@
 #include <scenegraph/components/mesh.h>
 #include <core/fg/fg_render_pass.h>
 #include <utils/log.h>
+#include <utils/shader_generator.h>
 
 // #include "../../vulkan/vulkan_util.h"
 using namespace zr::core;
@@ -226,13 +227,15 @@ void Pipeline::create_pipeline_cache() {
 }
 
 void BasePipeline::create_shader_stage() {
+    // Compute variant .spv paths from PipelineFeature
+    std::string vert_path = zr::utils::ShaderGenerator::get_shader_path("textured.vert", _feature);
+    std::string frag_path = zr::utils::ShaderGenerator::get_shader_path("textured.frag", _feature);
+
     // vertex shader
-    _shader_modules.push_back(std::make_shared<ShaderModule>(_device, "shaders/textured.vert.spv"));
+    _shader_modules.push_back(std::make_shared<ShaderModule>(_device, vert_path.c_str()));
 
     // fragment shader
-    _shader_modules.push_back(std::make_shared<ShaderModule>(_device, "shaders/textured.frag.spv"));
-
-    // std::vector<VkPipelineShaderStageCreateInfo> cis {};
+    _shader_modules.push_back(std::make_shared<ShaderModule>(_device, frag_path.c_str()));
 
     VkPipelineShaderStageCreateInfo vtx_ci{};
     vtx_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
