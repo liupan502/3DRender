@@ -331,6 +331,10 @@ PipelineLayout::PipelineLayout(std::shared_ptr<Device> device,
     // FIXME: legacy code, body omitted
 }
 
+std::shared_ptr<DescriptorSet> Pipeline::get_available_desc_set() {
+    return std::make_shared<DescriptorSet>(_desc_layout->get_rhi_layout());
+}
+
 Pipeline::~Pipeline() {
     vkDestroyPipelineCache(_device->get_device(), _vk_pipeline_cache, nullptr);
     vkDestroyPipeline(_device->get_device(), _vk_pipeline, nullptr);

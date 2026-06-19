@@ -78,17 +78,13 @@ void MultiPassRenderer::render_scene(std::shared_ptr<sg::Scene> scene) {
     camera->set_aspect_ratio(_viewport.width / (float)_viewport.height);
     prepare_taa();
 
-    // Acquire image using RenderContext
-    uint32_t active_frame_idx = _context->acquire_image(_context->get_semaphore());
-    if (active_frame_idx == UINT32_MAX) {
+    if (!rhi::rhi_instance->begin_frame()) {
         return;
     }
-
-    rhi::rhi_instance->begin_frame();
     _fg->execute(/*active_frame_idx*/);
     rhi::rhi_instance->end_frame();
 
-    _context->present(_context->get_queue()->get(), active_frame_idx);
+    rhi::rhi_instance->present();
 
     ++_frame_id;
 }

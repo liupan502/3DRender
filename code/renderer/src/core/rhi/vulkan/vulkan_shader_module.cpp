@@ -1,7 +1,6 @@
 #include <rhi/vulkan/vulkan_shader_module.h>
 #include <core/vk_common.h>
 #include <core/device.h>
-#include <shaderc/shaderc.hpp>
 #include <cassert>
 
 namespace rhi {
@@ -17,33 +16,9 @@ VulkanShaderModule::VulkanShaderModule(std::shared_ptr<zr::RenderContext> contex
     shader_module_ci.pNext = nullptr;
     shader_module_ci.flags = 0;
 
-    if (info.is_bin) {
-        shader_module_ci.codeSize = info.len;
-        shader_module_ci.pCode = reinterpret_cast<const uint32_t*>(info.content);
-    } else {
-        shaderc::Compiler compiler;
-
-        shaderc_shader_kind kind = shaderc_vertex_shader;
-        if (info.type == ShaderModuleType::SMT_FRAGMENT) {
-            kind = shaderc_fragment_shader;
-        }
-
-        const char* source = reinterpret_cast<const char*>(info.content);
-        size_t source_size = info.len;
-
-        shaderc::CompilationResult<uint32_t> result =
-            compiler.CompileGlslToSpv(source, source_size, kind, "shader");
-
-        if (result.GetNumErrors() > 0) {
-            assert(false && "GLSL compilation failed");
-            return;
-        }
-
-        const uint32_t* begin = result.cbegin();
-        const uint32_t* end = result.cend();
-        shader_module_ci.codeSize = (end - begin) * sizeof(uint32_t);
-        shader_module_ci.pCode = begin;
-    }
+    assert(info.is_bin && "Only binary shader modules are supported");
+    shader_module_ci.codeSize = info.len;
+    shader_module_ci.pCode = reinterpret_cast<const uint32_t*>(info.content);
 
     CALL_VK(vkCreateShaderModule(device->get_device(), &shader_module_ci,
                                   nullptr, &_vk_shader_module));

@@ -35,6 +35,22 @@ SkyRenderInfo::SkyRenderInfo() {
     mie_phase_g = 0.8f;
 }
 
+void TransmittanceLutRenderer::prepare_desc(FgRenderPass* render_pass, const PassResources& res) {
+    if (!_desc_set) {
+        _pipeline = _pipeline_mgr->get_pipeline(LightInfo(), std::make_shared<sg::Material>(nullptr),
+                                    std::vector<std::vector<sg::VertexAttribute>>());
+        _desc_set = _pipeline->get_available_desc_set();
+    }
+
+    if (!_sky_render_info_uniform_buf) {
+        _sky_render_info_uniform_buf = std::make_shared<UniformBuffer>(0, sizeof(SkyRenderInfo));
+    }
+    _sky_render_info_uniform_buf->update((const uint8_t*)(&_info), sizeof(SkyRenderInfo));
+    _desc_set->update_desc_set_buffer({_sky_render_info_uniform_buf});
+
+    reset_viewport(render_pass);
+}
+
 CreatePipelineFunc TransmittanceLutRenderer::get_pipeline_creator() {
     CreatePipelineFunc cp = [](PipelineFeature feature,
                      std::shared_ptr<FgRenderPass> renderpass ,

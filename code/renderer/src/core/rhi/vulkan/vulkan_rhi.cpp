@@ -68,10 +68,16 @@ VulkanRHI::~VulkanRHI()
 {
 }
 
-void VulkanRHI::begin_frame() {
+bool VulkanRHI::begin_frame() {
+    _current_image_index = _context->acquire_image(_context->get_semaphore());
+    if (_current_image_index == UINT32_MAX) {
+        return false;
+    }
+
     auto device = _context->get_device();
     _cmd_buf = std::make_shared<zr::core::CommandBuffer>(device, device->get_cmd_pool());
     _cmd_buf->begin();
+    return true;
 }
 
 void VulkanRHI::end_frame() {
@@ -326,6 +332,10 @@ VkFramebuffer VulkanRHI::get_or_create_framebuffer(VkRenderPass render_pass, con
 
     _framebuffer_cache[key] = framebuffer;
     return framebuffer;
+}
+
+void VulkanRHI::present() {
+    _context->present(_context->get_queue()->get(), _current_image_index);
 }
 
 void VulkanRHI::draw(GraphicsPipelineRef pipeline, const RenderPrimitive& primitive, 

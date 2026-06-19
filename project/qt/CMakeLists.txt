@@ -24,6 +24,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 add_definitions(-DPLATFORM_GLFW)
+add_compile_options(/FS)
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 

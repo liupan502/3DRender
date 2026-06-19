@@ -207,7 +207,7 @@ void create_polygon_node(std::shared_ptr<sg::Scene> scene) {
 void create_rect_node(std::shared_ptr<sg::Scene> scene) {
     std::shared_ptr<sg::SingleLayerTexture> blue_tex = std::make_shared<sg::SingleLayerTexture>("images/test_blue.png");
     std::shared_ptr<sg::SingleLayerTexture> blue_tex1 = std::make_shared<sg::SingleLayerTexture>("images/test_blue.png"
-                                                                                                 , sg::TEXTURE_SAMPLER_2D, 4);
+                                                                                                 , rhi::TextureType::Texture2D, 4);
 
     float radian = 0.20;
     auto rect1 = std::make_shared<sg::RectNode>("rect1", 5.5, 2.4, blue_tex);

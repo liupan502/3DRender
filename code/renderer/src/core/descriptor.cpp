@@ -127,8 +127,8 @@ void BaseDescriptorLayout::init_bindings(PipelineFeature feature) {
     try_enable_skin(feature);
 }
 
-/*void BaseDescriptorLayout::init_push_constants(PipelineFeature feature) {
-    uint32_t size = 0;
+void BaseDescriptorLayout::init_push_constants(PipelineFeature feature) {
+    /*uint32_t size = 0;
     LightInfo light_info = feature.get_light_info();
     if (!light_info.has_light() || !feature.get_material_ability().enable_light) {
         return;
@@ -145,8 +145,8 @@ void BaseDescriptorLayout::init_bindings(PipelineFeature feature) {
         return;
     }
 
-    add_push_constant_range(size, 0, VK_SHADER_STAGE_VERTEX_BIT);
-}*/
+    add_push_constant_range(size, 0, VK_SHADER_STAGE_VERTEX_BIT);*/
+}
 
 void BaseDescriptorLayout::try_enable_light(PipelineFeature feature) {
     LightInfo light_info = feature.get_light_info();

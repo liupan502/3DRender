@@ -43,7 +43,7 @@ namespace rhi {
         void init(const void* window) override;
         void destroy() override;
 
-        void begin_frame() override;
+        bool begin_frame() override;
         void end_frame() override;
 
         BufferRef create_buffer(const BufferCreateInfo& info) override;
@@ -78,9 +78,12 @@ namespace rhi {
         void draw(GraphicsPipelineRef pipeline, const RenderPrimitive& primitive, 
             uint32_t const indexOffset, uint32_t const indexCount, uint32_t const instanceCount) override;
 
+        void present() override;
+
         inline std::shared_ptr<zr::RenderContext> get_context() const { return _context; }
 
     private:
+        uint32_t _current_image_index{0};
         VkRenderPass get_or_create_render_pass(const RenderTargetCreateInfo& rt_ci);
         VkFramebuffer get_or_create_framebuffer(VkRenderPass render_pass, const RenderTargetCreateInfo& rt_ci);
 
