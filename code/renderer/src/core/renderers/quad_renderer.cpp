@@ -6,7 +6,7 @@
 #include <core/fg/fg_render_pass.h>
 #include <core/sampler.h>
 #include <scenegraph/components/material.h>
-#include <fstream>
+#include <utils/file_helper.h>
 
 using namespace zr;
 using namespace zr::core;
@@ -45,7 +45,7 @@ void QuadRenderer::prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass
 
 void QuadRenderer::prepare_desc(FgRenderPass* renderpass, const PassResources& res) {
     if (!_desc_set) {
-        _pipeline = _pipeline_mgr->get_pipeline(LightInfo(), std::make_shared<sg::Material>(nullptr),
+        _pipeline = get_pipeline_mgr()->get_pipeline(LightInfo(), std::make_shared<sg::Material>(nullptr),
                                     std::vector<std::vector<sg::VertexAttribute>>());
         _desc_set = _pipeline->get_available_desc_set();
     }
@@ -77,7 +77,15 @@ QuadPipeline::QuadPipeline(
                 Pipeline(feature) {
 
     _desc_layout = std::make_shared<DescriptorLayout>(binding_infos);
-    create(render_pass, subpass_idx, _desc_layout);
+
+    create_shader_stage();
+    create_color_blend_state();
+    create_vtx_input_state();
+    create_depth_stencil_state();
+
+    _ci.viewport = {0, 0, 0, 0};
+    _ci.descriptor_set_layout = _desc_layout->get_rhi_layout();
+    _rhi_pipeline = rhi::rhi_instance->create_graphics_pipeline(_ci);
 }
 
 void QuadPipeline::create_color_blend_state() {
@@ -126,16 +134,12 @@ void QuadPipeline::create_dynamic_states() {
 void QuadPipeline::create_shader_stage() {
     // vertex shader
     {
-        std::ifstream file(_shader_path_map["vert"], std::ios::binary | std::ios::ate);
-        auto size = file.tellg();
-        file.seekg(0, std::ios::beg);
-        std::vector<uint8_t> spirv(size);
-        file.read(reinterpret_cast<char*>(spirv.data()), size);
+        auto spirv = utils::FileHelper().load_content(_shader_path_map["vert"].c_str());
 
         rhi::ShaderModuleCreateInfo ci{};
         ci.type = rhi::ShaderModuleType::SMT_VERTEX;
-        ci.content = spirv.data();
-        ci.len = static_cast<uint32_t>(size);
+        ci.content = reinterpret_cast<uint8_t*>(spirv.data());
+        ci.len = static_cast<uint32_t>(spirv.size());
         ci.is_bin = true;
 
         _ci.vertex_shader = rhi::rhi_instance->create_shader_module(ci);
@@ -143,16 +147,12 @@ void QuadPipeline::create_shader_stage() {
 
     // fragment shader
     {
-        std::ifstream file(_shader_path_map["frag"], std::ios::binary | std::ios::ate);
-        auto size = file.tellg();
-        file.seekg(0, std::ios::beg);
-        std::vector<uint8_t> spirv(size);
-        file.read(reinterpret_cast<char*>(spirv.data()), size);
+        auto spirv = utils::FileHelper().load_content(_shader_path_map["frag"].c_str());
 
         rhi::ShaderModuleCreateInfo ci{};
         ci.type = rhi::ShaderModuleType::SMT_FRAGMENT;
-        ci.content = spirv.data();
-        ci.len = static_cast<uint32_t>(size);
+        ci.content = reinterpret_cast<uint8_t*>(spirv.data());
+        ci.len = static_cast<uint32_t>(spirv.size());
         ci.is_bin = true;
 
         _ci.fragment_shader = rhi::rhi_instance->create_shader_module(ci);

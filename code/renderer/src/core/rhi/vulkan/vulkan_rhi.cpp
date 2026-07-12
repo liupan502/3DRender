@@ -22,16 +22,21 @@ namespace {
 
 VkFormat color_format_to_vk(ColorFormat fmt) {
     switch (fmt) {
-        case ColorFormat::R8G8B8A8_UNORM:   return VK_FORMAT_R8G8B8A8_UNORM;
-        case ColorFormat::R8G8B8A8_SRGB:    return VK_FORMAT_R8G8B8A8_SRGB;
-        case ColorFormat::R8G8B8A8_SNORM:   return VK_FORMAT_R8G8B8A8_SNORM;
-        case ColorFormat::R8G8B8A8_UINT:    return VK_FORMAT_R8G8B8A8_UINT;
-        case ColorFormat::R8G8B8A8_SINT:    return VK_FORMAT_R8G8B8A8_SINT;
-        case ColorFormat::R16G16B16A16_SFLOAT: return VK_FORMAT_R16G16B16A16_SFLOAT;
-        case ColorFormat::R32G32B32A32_SFLOAT: return VK_FORMAT_R32G32B32A32_SFLOAT;
-        case ColorFormat::D32_SFLOAT:       return VK_FORMAT_D32_SFLOAT;
-        case ColorFormat::B8G8R8A8_SRGB:    return VK_FORMAT_B8G8R8A8_SRGB;
-        default:                            return VK_FORMAT_UNDEFINED;
+        case ColorFormat::R8G8B8A8_UNORM:            return VK_FORMAT_R8G8B8A8_UNORM;
+        case ColorFormat::R8G8B8A8_SRGB:             return VK_FORMAT_R8G8B8A8_SRGB;
+        case ColorFormat::R8G8B8A8_SNORM:            return VK_FORMAT_R8G8B8A8_SNORM;
+        case ColorFormat::R8G8B8A8_UINT:             return VK_FORMAT_R8G8B8A8_UINT;
+        case ColorFormat::R8G8B8A8_SINT:             return VK_FORMAT_R8G8B8A8_SINT;
+        case ColorFormat::R16G16B16A16_SFLOAT:       return VK_FORMAT_R16G16B16A16_SFLOAT;
+        case ColorFormat::R32G32B32A32_SFLOAT:       return VK_FORMAT_R32G32B32A32_SFLOAT;
+        case ColorFormat::R32G32_SFLOAT:             return VK_FORMAT_R32G32_SFLOAT;
+        case ColorFormat::R32G32B32_SFLOAT:          return VK_FORMAT_R32G32B32_SFLOAT;
+        case ColorFormat::R16G16_SFLOAT:             return VK_FORMAT_R16G16_SFLOAT;
+        case ColorFormat::B10G11R11_UFLOAT_PACK32:   return VK_FORMAT_B10G11R11_UFLOAT_PACK32;
+        case ColorFormat::D32_SFLOAT:                return VK_FORMAT_D32_SFLOAT;
+        case ColorFormat::B8G8R8A8_SRGB:             return VK_FORMAT_B8G8R8A8_SRGB;
+        case ColorFormat::R16G16B16A16_UINT:         return VK_FORMAT_R16G16B16A16_UINT;
+        default:                                    return VK_FORMAT_UNDEFINED;
     }
 }
 
@@ -180,8 +185,10 @@ void VulkanRHI::begin_render_pass(RenderTargetRef rt, const RenderPassParams& pa
     rp_begin.renderArea.extent.width = params.vp.width;
     rp_begin.renderArea.extent.height = params.vp.height;
 
-    VkClearValue clear_values[2];
-    uint32_t clear_count = 0;
+    uint32_t clear_count = static_cast<uint32_t>(rt_ci.color_attachments.size());
+    if (rt_ci.depth_attachment.first.fmt != ColorFormat::None) clear_count++;
+    std::vector<VkClearValue> clear_values(clear_count);
+    clear_count = 0;
     for (size_t i = 0; i < rt_ci.color_attachments.size(); i++) {
         clear_values[clear_count].color.float32[0] = params.ci.color.r;
         clear_values[clear_count].color.float32[1] = params.ci.color.g;
@@ -195,12 +202,29 @@ void VulkanRHI::begin_render_pass(RenderTargetRef rt, const RenderPassParams& pa
         clear_count++;
     }
     rp_begin.clearValueCount = clear_count;
-    rp_begin.pClearValues = clear_values;
+    rp_begin.pClearValues = clear_values.data();
 
     vkCmdBeginRenderPass(_cmd_buf->get(), &rp_begin, VK_SUBPASS_CONTENTS_INLINE);
+
+    VkViewport vp{};
+    vp.x = static_cast<float>(params.vp.left);
+    vp.y = static_cast<float>(params.vp.top);
+    vp.width = static_cast<float>(params.vp.width);
+    vp.height = static_cast<float>(params.vp.height);
+    vp.minDepth = 0.0f;
+    vp.maxDepth = 1.0f;
+    vkCmdSetViewport(_cmd_buf->get(), 0, 1, &vp);
+
+    VkRect2D scissor{};
+    scissor.offset.x = 0;
+    scissor.offset.y = 0;
+    scissor.extent.width = params.vp.width;
+    scissor.extent.height = params.vp.height;
+    vkCmdSetScissor(_cmd_buf->get(), 0, 1, &scissor);
 }
 
 void VulkanRHI::end_render_pass() {
+    vkCmdEndRenderPass(_cmd_buf->get());
     _current_render_pass = VK_NULL_HANDLE;
 }
 

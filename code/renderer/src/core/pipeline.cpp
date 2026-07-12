@@ -320,9 +320,9 @@ void BasePipeline::create_pipeline_layout() {
     // _layout = std::make_shared<PipelineLayout>()
 }
 
-BasePipeline::BasePipeline(std::shared_ptr<FgRenderPass> fg_render_pass, 
+BasePipeline::BasePipeline(std::shared_ptr<FgRenderPass> fg_render_pass,
         uint32_t subpass_idx, PipelineFeature feature) : Pipeline(feature) {
-    // FIXME: legacy code path, requires refactoring to use RHI
+    _desc_layout = std::make_shared<BaseDescriptorLayout>(feature);
 }
 
 void Pipeline::bind(std::shared_ptr<CommandBuffer> cmd_buf) {

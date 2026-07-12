@@ -10,7 +10,9 @@
 #include <core/renderers/sky_renderer.h>
 #include <core/pipeline_manager.h>
 #include <core/command_buffer.h>
+#include <rhi/rhi.h>
 #include <rhi/rhi_resource.h>
+#include <rhi/vulkan/vulkan_rhi.h>
 #include <memory>
 #include <sstream>
 #include <utils/log.h>
@@ -23,8 +25,10 @@ using namespace zr;
 bool MultiPassRenderer::init(AAssetManager* asset_mgr, ANativeWindow* window,
         rhi::SampleCount sample_count, VkFormat swapchain_fmt) {
     LOGD("renderer init start");
-    _context = std::make_shared<RenderContext>();
-    _context->init(asset_mgr, window, swapchain_fmt);
+    (void)asset_mgr;
+    (void)swapchain_fmt;
+    rhi::init(window);
+    _context = static_cast<rhi::VulkanRHI*>(rhi::rhi_instance)->get_context();
     LOGD("context init success");
     
     return init_internel(sample_count);
@@ -33,8 +37,9 @@ bool MultiPassRenderer::init(AAssetManager* asset_mgr, ANativeWindow* window,
 #elif  PLATFORM_GLFW
 bool  MultiPassRenderer::init(GLFWwindow* window, 
             rhi::SampleCount sample_count, VkFormat swapchain_fmt) {
-    _context = std::make_shared<RenderContext>();
-    _context->init(window, swapchain_fmt);
+    (void)swapchain_fmt;
+    rhi::init(window);
+    _context = static_cast<rhi::VulkanRHI*>(rhi::rhi_instance)->get_context();
     return init_internel(sample_count);
 } 
 #endif

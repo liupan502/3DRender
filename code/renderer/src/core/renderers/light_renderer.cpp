@@ -102,7 +102,7 @@ std::shared_ptr<Pipeline> LightRenderer::get_pipeline(std::shared_ptr<sg::Node> 
             const LightInfo& light_info) {
     std::shared_ptr<sg::Material> material = node->get_component<sg::Material>();
     core::LightInfo node_light_info = material->get_ability().enable_light ? light_info : core::LightInfo();
-    auto pipeline = _pipeline_mgr->get_pipeline(node_light_info, material,
+    auto pipeline = get_pipeline_mgr()->get_pipeline(node_light_info, material,
                                                                         node->get_mesh()->get_vtx_attrs()); 
     return pipeline;                                                                               
 

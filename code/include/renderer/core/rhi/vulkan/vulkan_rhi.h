@@ -92,6 +92,7 @@ namespace rhi {
         std::shared_ptr<zr::core::CommandBuffer> _cmd_buf{nullptr};
         VkRenderPass _current_render_pass{VK_NULL_HANDLE};
         uint32_t _current_subpass{0};
+        Viewport _current_viewport{};
         std::map<std::pair<vulkan::VulkanGraphicsPipeline*, VkRenderPass>, VkPipeline> _pipeline_cache;
         std::map<RenderPassKey, VkRenderPass> _render_pass_cache;
         std::map<std::pair<VkRenderPass, std::vector<VkImageView>>, VkFramebuffer> _framebuffer_cache;

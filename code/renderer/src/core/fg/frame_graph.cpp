@@ -101,12 +101,47 @@ void FrameGraph::execute() {
             else if (attach_info.img_usage & rhi::TextureCreateFlagBit::DepthStencilTargetable){
                 ci.depth_attachment = std::move(attachment);
             }
+        }
 
+        if (!ci.color_attachments.empty() || ci.depth_attachment.first.fmt != rhi::ColorFormat::None) {
             res.render_target = rhi::rhi_instance->create_render_target(ci);
         }
 
         pass->prepare(res);
+
+        // Begin render pass
+        if (res.render_target) {
+            rhi::RenderPassParams params{};
+            auto display_size = pass->get_display_size();
+            params.vp.left = 0;
+            params.vp.top = 0;
+            params.vp.width = display_size.width;
+            params.vp.height = display_size.height;
+            params.ci.color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            params.ci.depth = 1.0f;
+            params.ci.stencil = 0;
+
+            for (auto& tex_name : outputs) {
+                auto it = _tex_res_map.find(tex_name);
+                if (it != _tex_res_map.end()) {
+                    auto& att = it->second->get_attachment_info();
+                    if (att.img_usage & static_cast<uint64_t>(rhi::TextureCreateFlagBit::RenderTargetable)) {
+                        params.ci.color = att.color_clear_val;
+                        params.ci.depth = att.depth_clear_val;
+                        params.ci.stencil = att.stencil_clear_val;
+                        break;
+                    }
+                }
+            }
+
+            rhi::rhi_instance->begin_render_pass(res.render_target, params);
+        }
+
         pass->execute(res);
+
+        if (res.render_target) {
+            rhi::rhi_instance->end_render_pass();
+        }
 
         for (auto& pair : _tex_res_map) {
             auto& tex_res = pair.second;

@@ -31,6 +31,7 @@ bool RenderContext::init(AAssetManager* asset_mgr, ANativeWindow* window, VkForm
     _instance->set_surface(vk_surface);
     _physical_device = _instance->get_suitable_gpu();
     LOGD("get_suitable_gpu success")
+    _physical_device->ensure_graphic_queue_family();
     _device = _physical_device->create_device();
     LOGD("create_device success")
     _cmd_pool = std::make_shared<core::CommandPool>(_device);
@@ -77,12 +78,15 @@ bool RenderContext::init(GLFWwindow* window, VkFormat swapchain_fmt) {
 
 
 
+    required_extensions.insert(std::make_pair(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, true));
+
     // enable validation
-    // std::vector<const char*> required_validation_layers = {"VK_LAYER_KHRONOS_validation"};
-    std::vector<const char*> required_validation_layers = {};
+    std::vector<const char*> required_validation_layers = {"VK_LAYER_KHRONOS_validation"};
 
     _instance = std::make_shared<core::Instance>("zr_engine", required_extensions, required_validation_layers);
     // core::Instance::androidAppCtx = app;
+
+    setup_debug_messenger();
 
     VkSurfaceKHR vk_surface;
     CALL_VK(glfwCreateWindowSurface(_instance->get(), window, nullptr, &vk_surface));
@@ -90,6 +94,7 @@ bool RenderContext::init(GLFWwindow* window, VkFormat swapchain_fmt) {
     _instance->set_surface(vk_surface);
     _physical_device = _instance->get_suitable_gpu();
     LOGD("get_suitable_gpu success")
+    _physical_device->ensure_graphic_queue_family();
     _device = _physical_device->create_device();
     LOGD("create_device success")
     _cmd_pool = std::make_shared<core::CommandPool>(_device);
@@ -119,7 +124,49 @@ bool RenderContext::init(GLFWwindow* window, VkFormat swapchain_fmt) {
 }
 #endif
 
+static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+    VkDebugUtilsMessageTypeFlagsEXT /*type*/,
+    const VkDebugUtilsMessengerCallbackDataEXT* callback_data,
+    void* /*user_data*/)
+{
+    if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+        LOGE("Vulkan: %s", callback_data->pMessage);
+    } else if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+        LOGW("Vulkan: %s", callback_data->pMessage);
+    } else {
+        LOGD("Vulkan: %s", callback_data->pMessage);
+    }
+    return VK_FALSE;
+}
+
+void RenderContext::setup_debug_messenger()
+{
+    auto func = (PFN_vkCreateDebugUtilsMessengerEXT)
+        vkGetInstanceProcAddr(_instance->get(), "vkCreateDebugUtilsMessengerEXT");
+    if (!func) return;
+
+    VkDebugUtilsMessengerCreateInfoEXT ci{};
+    ci.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    ci.messageSeverity =
+        VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+        VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+        VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+        VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    ci.messageType =
+        VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+        VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+        VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    ci.pfnUserCallback = debug_callback;
+    func(_instance->get(), &ci, nullptr, &_debug_messenger);
+}
+
 RenderContext::~RenderContext() {
+    if (_debug_messenger != VK_NULL_HANDLE) {
+        auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)
+            vkGetInstanceProcAddr(_instance->get(), "vkDestroyDebugUtilsMessengerEXT");
+        if (func) func(_instance->get(), _debug_messenger, nullptr);
+    }
     if (_vk_semaphore != VK_NULL_HANDLE) {
         vkDestroySemaphore(_device->get_device(), _vk_semaphore, nullptr);
     }

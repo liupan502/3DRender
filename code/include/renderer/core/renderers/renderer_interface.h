@@ -46,7 +46,8 @@ namespace zr{
                     _pipeline_mgr = std::make_shared<PipelineManager>();
                     _pipeline_mgr->set_pipeline_create(get_pipeline_creator());
                 }
-            } 
+                return _pipeline_mgr;
+            }
             
             inline void set_viewport(VkViewport viewport) { _viewport = viewport;};
 

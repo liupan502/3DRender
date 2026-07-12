@@ -245,7 +245,7 @@ namespace rhi {
         uint32_t depth = 1;        
         rhi::ColorFormat fmt = ColorFormat::None;
         rhi::SampleCount samples = SampleCount::SC_COUNT_1;
-        rhi::AttachmentLoadOp load_op = AttachmentLoadOp::ALO_LOAD;
+        rhi::AttachmentLoadOp load_op = AttachmentLoadOp::ALO_CLEAR;
         rhi::AttachmentStoreOp store_op = AttachmentStoreOp::ASO_STORE;
         uint16_t level = 0;
         uint16_t layer = 0;

@@ -126,6 +126,15 @@ static VkVertexInputRate input_rate_to_vk(VertexInputRate r) {
     }
 }
 
+static VkShaderStageFlags shader_stage_to_vk(ShaderStageType stage) {
+    switch (stage) {
+        case ShaderStageType::SST_VERTEX:   return VK_SHADER_STAGE_VERTEX_BIT;
+        case ShaderStageType::SST_FRAGMENT: return VK_SHADER_STAGE_FRAGMENT_BIT;
+        case ShaderStageType::SST_COMPUTE:  return VK_SHADER_STAGE_COMPUTE_BIT;
+        default:                            return VK_SHADER_STAGE_ALL_GRAPHICS;
+    }
+}
+
 static VkDescriptorType desc_type_to_vk(DescriptorType t) {
     switch (t) {
         case DescriptorType::DT_SAMPLER_2D:        return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -181,7 +190,7 @@ VkPipeline VulkanGraphicsPipeline::get_or_create(VkRenderPass render_pass, uint3
             binding.binding = b.binding_idx;
             binding.descriptorCount = b.desc_count;
             binding.descriptorType = desc_type_to_vk(b.desc_type);
-            binding.stageFlags = static_cast<VkShaderStageFlags>(b.shader_stage);
+            binding.stageFlags = shader_stage_to_vk(b.shader_stage);
             bindings.push_back(binding);
         }
 
@@ -247,26 +256,21 @@ VkPipeline VulkanGraphicsPipeline::get_or_create(VkRenderPass render_pass, uint3
     input_assembly.topology = topology_to_vk(info.topology);
     input_assembly.primitiveRestartEnable = info.primitive_restart_enable ? VK_TRUE : VK_FALSE;
 
-    VkViewport vp{};
-    vp.x = static_cast<float>(info.viewport.left);
-    vp.y = static_cast<float>(info.viewport.top);
-    vp.width = static_cast<float>(info.viewport.width);
-    vp.height = static_cast<float>(info.viewport.height);
-    vp.minDepth = 0.0f;
-    vp.maxDepth = 1.0f;
-
-    VkRect2D scissor{};
-    scissor.offset.x = info.viewport.left;
-    scissor.offset.y = info.viewport.top;
-    scissor.extent.width = info.viewport.width;
-    scissor.extent.height = info.viewport.height;
-
     VkPipelineViewportStateCreateInfo viewport_state{};
     viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     viewport_state.viewportCount = 1;
-    viewport_state.pViewports = &vp;
+    viewport_state.pViewports = nullptr;
     viewport_state.scissorCount = 1;
-    viewport_state.pScissors = &scissor;
+    viewport_state.pScissors = nullptr;
+
+    VkDynamicState dynamic_states[] = {
+        VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_SCISSOR
+    };
+    VkPipelineDynamicStateCreateInfo dynamic_state{};
+    dynamic_state.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dynamic_state.dynamicStateCount = 2;
+    dynamic_state.pDynamicStates = dynamic_states;
 
     VkPipelineRasterizationStateCreateInfo raster{};
     raster.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -326,7 +330,7 @@ VkPipeline VulkanGraphicsPipeline::get_or_create(VkRenderPass render_pass, uint3
     ci.pMultisampleState = &multisample;
     ci.pDepthStencilState = &depth_stencil;
     ci.pColorBlendState = &color_blend;
-    ci.pDynamicState = nullptr;
+    ci.pDynamicState = &dynamic_state;
     ci.layout = _vk_pipeline_layout;
     ci.renderPass = render_pass;
     ci.subpass = subpass;

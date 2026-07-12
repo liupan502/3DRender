@@ -104,7 +104,7 @@ CreatePipelineFunc TaaRenderer::get_pipeline_creator() {
 
 void TaaRenderer::prepare_desc(FgRenderPass* render_pass, const PassResources& res) {
     if (!_desc_set) {
-        _pipeline = _pipeline_mgr->get_pipeline(LightInfo(), std::make_shared<sg::Material>(nullptr),
+        _pipeline = get_pipeline_mgr()->get_pipeline(LightInfo(), std::make_shared<sg::Material>(nullptr),
                                     std::vector<std::vector<sg::VertexAttribute>>());
         _desc_set = _pipeline->get_available_desc_set();
     }

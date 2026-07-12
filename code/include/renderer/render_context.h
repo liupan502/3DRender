@@ -52,6 +52,7 @@ namespace zr{
         uint32_t get_current_frame_index() const { return _current_frame_index; }
 
     private:
+        void setup_debug_messenger();
         std::shared_ptr<core::PhysicalDevice> _physical_device;
         std::shared_ptr<core::Instance> _instance;
         std::shared_ptr<core::Device> _device;
@@ -68,5 +69,7 @@ namespace zr{
 
         // Frame tracking
         uint32_t _current_frame_index{0};
+
+        VkDebugUtilsMessengerEXT _debug_messenger{VK_NULL_HANDLE};
     };
 }

@@ -24,7 +24,7 @@ bool FgRenderPass::add_color_input(const std::string& name) {
     _color_inputs.emplace_back(name);
     _inputs.emplace_back(name);
     tex_res->add_read_pass(get_name());
-    tex_res->add_img_usage(VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
+    tex_res->add_img_usage(static_cast<uint64_t>(rhi::TextureCreateFlagBit::InputAttachmentRead));
     return true;
 }
 
@@ -60,7 +60,7 @@ bool FgRenderPass::add_depth_stencil_input(const std::string& name) {
     _inputs.emplace_back(name);
     auto tex_res = _fg->get_tex_res(name);
     tex_res->add_read_pass(get_name());
-    tex_res->add_img_usage(VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
+    tex_res->add_img_usage(static_cast<uint64_t>(rhi::TextureCreateFlagBit::InputAttachmentRead));
     return true;
 }
 
@@ -78,7 +78,7 @@ bool FgRenderPass::add_texture_sample(const std::string& name) {
         return false;
     }
     auto tex_res = _fg->get_tex_res(name);
-    tex_res->add_img_usage(VK_IMAGE_USAGE_SAMPLED_BIT);
+    tex_res->add_img_usage(rhi::TextureCreateFlagBit::ShaderResource | 0);
     _texture_samples.emplace_back(name);
     _inputs.emplace_back(name);
     tex_res->add_read_pass(get_name());

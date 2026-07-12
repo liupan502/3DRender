@@ -27,7 +27,7 @@ Swapchain::Swapchain(std::shared_ptr<Device> device, VkFormat target_format) :
     ci.queueFamilyIndexCount = 1;
     ci.pQueueFamilyIndices = &gpu->get_graphic_queue_family_idx();
     ci.imageExtent = _display_size;
-    ci.compositeAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
+    ci.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     ci.imageFormat = _suitable_fmt.format;
     ci.imageColorSpace = _suitable_fmt.colorSpace;
     ci.imageArrayLayers = 1;

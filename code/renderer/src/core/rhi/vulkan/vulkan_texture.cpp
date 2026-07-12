@@ -12,14 +12,21 @@ namespace vulkan {
 
 VkFormat VulkanTexture::color_format_to_vk(ColorFormat fmt) const {
     switch (fmt) {
-        case ColorFormat::R8G8B8A8_UNORM:   return VK_FORMAT_R8G8B8A8_UNORM;
-        case ColorFormat::R8G8B8A8_SRGB:    return VK_FORMAT_R8G8B8A8_SRGB;
-        case ColorFormat::R8G8B8A8_SNORM:   return VK_FORMAT_R8G8B8A8_SNORM;
-        case ColorFormat::R8G8B8A8_UINT:    return VK_FORMAT_R8G8B8A8_UINT;
-        case ColorFormat::R8G8B8A8_SINT:    return VK_FORMAT_R8G8B8A8_SINT;
-        case ColorFormat::R16G16B16A16_SFLOAT: return VK_FORMAT_R16G16B16A16_SFLOAT;
-        case ColorFormat::R32G32B32A32_SFLOAT: return VK_FORMAT_R32G32B32A32_SFLOAT;
-        default:                             return VK_FORMAT_UNDEFINED;
+        case ColorFormat::R8G8B8A8_UNORM:            return VK_FORMAT_R8G8B8A8_UNORM;
+        case ColorFormat::R8G8B8A8_SRGB:             return VK_FORMAT_R8G8B8A8_SRGB;
+        case ColorFormat::R8G8B8A8_SNORM:            return VK_FORMAT_R8G8B8A8_SNORM;
+        case ColorFormat::R8G8B8A8_UINT:             return VK_FORMAT_R8G8B8A8_UINT;
+        case ColorFormat::R8G8B8A8_SINT:             return VK_FORMAT_R8G8B8A8_SINT;
+        case ColorFormat::R16G16B16A16_SFLOAT:       return VK_FORMAT_R16G16B16A16_SFLOAT;
+        case ColorFormat::R32G32B32A32_SFLOAT:       return VK_FORMAT_R32G32B32A32_SFLOAT;
+        case ColorFormat::R32G32_SFLOAT:             return VK_FORMAT_R32G32_SFLOAT;
+        case ColorFormat::R32G32B32_SFLOAT:          return VK_FORMAT_R32G32B32_SFLOAT;
+        case ColorFormat::R16G16_SFLOAT:             return VK_FORMAT_R16G16_SFLOAT;
+        case ColorFormat::B10G11R11_UFLOAT_PACK32:   return VK_FORMAT_B10G11R11_UFLOAT_PACK32;
+        case ColorFormat::D32_SFLOAT:                return VK_FORMAT_D32_SFLOAT;
+        case ColorFormat::B8G8R8A8_SRGB:             return VK_FORMAT_B8G8R8A8_SRGB;
+        case ColorFormat::R16G16B16A16_UINT:         return VK_FORMAT_R16G16B16A16_UINT;
+        default:                                     return VK_FORMAT_UNDEFINED;
     }
 }
 
@@ -79,6 +86,19 @@ void VulkanTexture::create_image() {
                    &_vk_image, &_vma_alloc, nullptr);
 }
 
+static VkImageAspectFlags format_to_aspect_mask(VkFormat fmt) {
+    switch (fmt) {
+        case VK_FORMAT_D32_SFLOAT:
+            return VK_IMAGE_ASPECT_DEPTH_BIT;
+        case VK_FORMAT_D32_SFLOAT_S8_UINT:
+            return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+        case VK_FORMAT_D24_UNORM_S8_UINT:
+            return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+        default:
+            return VK_IMAGE_ASPECT_COLOR_BIT;
+    }
+}
+
 VkImageViewType VulkanTexture::texture_type_to_vk_image_view_type(TextureType type) const {
     switch (type) {
         case TextureType::Texture2D:       return VK_IMAGE_VIEW_TYPE_2D;
@@ -98,7 +118,7 @@ void VulkanTexture::create_image_view() {
     ci.image = _vk_image;
     ci.viewType = texture_type_to_vk_image_view_type(_create_info.type);
     ci.format = _vk_format;
-    ci.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    ci.subresourceRange.aspectMask = format_to_aspect_mask(_vk_format);
     ci.subresourceRange.baseMipLevel = 0;
     ci.subresourceRange.levelCount = _create_info.mip_num;
     ci.subresourceRange.baseArrayLayer = 0;
@@ -177,7 +197,7 @@ void VulkanTexture::set_layout(VkCommandBuffer cmd_buf,
     barrier.image = _vk_image;
 
     VkImageSubresourceRange range{};
-    range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    range.aspectMask = format_to_aspect_mask(_vk_format);
     range.baseMipLevel = 0;
     range.levelCount = 1;
     range.baseArrayLayer = 0;
@@ -238,7 +258,7 @@ void VulkanTexture::transition_image_layout_internal(
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.image = _vk_image;
-    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.aspectMask = format_to_aspect_mask(fmt);
     barrier.subresourceRange.baseMipLevel = base_mip_level;
     barrier.subresourceRange.levelCount = mip_level_count;
     barrier.subresourceRange.baseArrayLayer = base_layer;
@@ -303,7 +323,7 @@ VkBufferImageCopy VulkanTexture::create_buffer_image_copy(
     region.bufferOffset = 0;
     region.bufferRowLength = 0;
     region.bufferImageHeight = 0;
-    region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    region.imageSubresource.aspectMask = format_to_aspect_mask(_vk_format);
     region.imageSubresource.mipLevel = mip_level;
     region.imageSubresource.baseArrayLayer = base_layer;
     region.imageSubresource.layerCount = 1;
@@ -344,7 +364,7 @@ void VulkanTexture::update_data(unsigned char* data, uint32_t size,
         vk_image_blit.srcSubresource.layerCount = 1;
         vk_image_blit.srcSubresource.baseArrayLayer = src_blit_params.base_layer;
         vk_image_blit.srcSubresource.mipLevel = src_blit_params.mip_level;
-        vk_image_blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        vk_image_blit.srcSubresource.aspectMask = format_to_aspect_mask(get_vk_format());
         vk_image_blit.srcOffsets[0].x = src_blit_params.width;
         vk_image_blit.srcOffsets[0].y = src_blit_params.height;
         vk_image_blit.srcOffsets[0].z = 0;
@@ -355,7 +375,7 @@ void VulkanTexture::update_data(unsigned char* data, uint32_t size,
         vk_image_blit.dstSubresource.layerCount = 1;
         vk_image_blit.dstSubresource.baseArrayLayer = dst_blit_params.base_layer;
         vk_image_blit.dstSubresource.mipLevel = dst_blit_params.mip_level;
-        vk_image_blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        vk_image_blit.dstSubresource.aspectMask = format_to_aspect_mask(get_vk_format());
         vk_image_blit.dstOffsets[0].x = dst_blit_params.width;
         vk_image_blit.dstOffsets[0].y = dst_blit_params.height;
         vk_image_blit.dstOffsets[0].z = 0;

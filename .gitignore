@@ -31,6 +31,9 @@
 *.out
 *.app
 
+# Build output
+build/
+
 # Windows artifacts
 nul
 .DS_Store
