@@ -115,8 +115,10 @@ void SkyViewLutRenderer::prepare_desc(FgRenderPass* render_pass, const PassResou
     _desc_set->update_desc_set_buffer({_sky_render_info_uniform_buf});
 
     if (!res.input_textures.empty()) {
-        auto sampler = rhi::rhi_instance->create_sample_state({});
-        _desc_set->update_desc_set_texture(sampler, res.input_textures[0], 1);
+        if (!_sampler) {
+            _sampler = rhi::rhi_instance->create_sample_state({});
+        }
+        _desc_set->update_desc_set_texture(_sampler, res.input_textures[0], 1);
     }
 
     reset_viewport(render_pass);  

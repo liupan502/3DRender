@@ -51,9 +51,11 @@ void QuadRenderer::prepare_desc(FgRenderPass* renderpass, const PassResources& r
     }
 
     if (!res.input_textures.empty()) {
-        rhi::SampleStateCreateInfo sampler_ci{};
-        auto sampler = rhi::rhi_instance->create_sample_state(sampler_ci);
-        _desc_set->update_desc_set_texture(sampler, res.input_textures[0], 0);
+        if (!_sampler) {
+            rhi::SampleStateCreateInfo sampler_ci{};
+            _sampler = rhi::rhi_instance->create_sample_state(sampler_ci);
+        }
+        _desc_set->update_desc_set_texture(_sampler, res.input_textures[0], 0);
     }
 
     reset_viewport(renderpass);
@@ -65,6 +67,9 @@ void QuadRenderer::render_scene(sg::Scene* scene,
     rhi::RenderPrimitive primitive{};
     primitive.vtx_buf = _quad_rhi_buf;
     primitive.idx_buf = _quad_rhi_idx_buf;
+    if (_desc_set) {
+        primitive.desc_set = _desc_set->get_rhi_desc_set();
+    }
 
     rhi::rhi_instance->draw(_pipeline->get_rhi_pipeline(), primitive, 0, 3, 1);
 }

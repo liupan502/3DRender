@@ -4,7 +4,9 @@
 #include <vulkan/vulkan_android.h>
 #include <core/vk_common.h>
 #include <core/command_pool.h>
+#include <core/command_buffer.h>
 #include <core/swapchain.h>
+#include <core/image.h>
 #include <core/descriptor.h>
 #include <core/pipeline.h>
 #include <utils/log.h>
@@ -209,11 +211,27 @@ uint32_t RenderContext::acquire_image(VkSemaphore signal_semaphore, uint64_t tim
 
 void RenderContext::present(VkQueue queue, uint32_t image_index, VkSemaphore wait_semaphore) {
 
-    // Wait for fence and reset
-    auto deviceHandle = this->get_device()->get_device();
-    auto fenceHandle = this->get_fence();
-    CALL_VK(vkWaitForFences(deviceHandle, 1, &fenceHandle, VK_TRUE, 100000000));
-    CALL_VK(vkResetFences(deviceHandle, 1, &fenceHandle));
+    // Transition the presented swapchain image to PRESENT_SRC_KHR. The single-time
+    // command submission also waits for all previously submitted work on the queue,
+    // so the presented image's layout transition is complete before present.
+    _cmd_pool->execute_single_cmd([this, image_index](std::shared_ptr<core::CommandBuffer> cmd_buf) {
+        VkImageMemoryBarrier barrier{};
+        barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        barrier.pNext = nullptr;
+        barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.image = *_swap_chain->get_display_images()[image_index]->get();
+        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        barrier.subresourceRange.baseMipLevel = 0;
+        barrier.subresourceRange.levelCount = 1;
+        barrier.subresourceRange.baseArrayLayer = 0;
+        barrier.subresourceRange.layerCount = 1;
+        vkCmdPipelineBarrier(cmd_buf->get(), VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                             VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0,
+                             0, nullptr, 0, nullptr, 1, &barrier);
+    });
 
     VkPresentInfoKHR present_info{};
     present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

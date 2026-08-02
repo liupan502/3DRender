@@ -197,6 +197,7 @@ namespace rhi {
         uint32_t height = 0;
     };
 
+    class DescriptorSet;
     class DescriptorSetLayout;
 
     struct GraphicsPipelineCreateInfo {
@@ -292,6 +293,7 @@ namespace rhi {
     struct RenderPrimitive {
         std::shared_ptr<Buffer> vtx_buf;
         std::shared_ptr<Buffer> idx_buf;
+        std::shared_ptr<DescriptorSet> desc_set;
     };
 
     struct DescriptorBindingInfo {

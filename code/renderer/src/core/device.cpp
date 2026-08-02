@@ -45,7 +45,7 @@ Device::Device(PhysicalDevice *physical_device) : _physical_device(physical_devi
     vulkanFunctions.vkGetDeviceProcAddr = &vkGetDeviceProcAddr;
 
     VmaAllocatorCreateInfo allocatorCreateInfo = {};
-    allocatorCreateInfo.flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
+    allocatorCreateInfo.flags = 0;
     allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_0;
     allocatorCreateInfo.instance = _physical_device->get_instance()->get();
     allocatorCreateInfo.physicalDevice = _physical_device->get();

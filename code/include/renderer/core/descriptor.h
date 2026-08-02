@@ -110,6 +110,8 @@ namespace zr {
             void update_desc_set_texture(rhi::SampleStateRef sampler, rhi::TextureRef img_view, 
                                 uint32_t binding_idx);
 
+            inline rhi::DescriptorSetRef get_rhi_desc_set() const { return _rhi_desc_set; }
+
             // void update_desc_set_input_attachment(std::shared_ptr<ImageView> img_view, uint32_t binding_idx);
 
             // void bind(std::shared_ptr<CommandBuffer> cmd_buf, std::shared_ptr<PipelineLayout> pipeline_layout);

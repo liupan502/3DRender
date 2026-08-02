@@ -73,7 +73,8 @@ namespace rhi {
 
         void end_render_pass() override;
 
-        void update_desc_buffer(DescriptorSetRef desc, BufferRef buf, uint32_t binding_idx, uint32_t offset, uint32_t len) override;
+        void update_desc_buffer(DescriptorSetRef desc, BufferRef buf, uint32_t binding_idx,
+            uint32_t dst_array_element, uint32_t offset, uint32_t len) override;
 
         void draw(GraphicsPipelineRef pipeline, const RenderPrimitive& primitive, 
             uint32_t const indexOffset, uint32_t const indexCount, uint32_t const instanceCount) override;

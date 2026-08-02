@@ -24,6 +24,7 @@ virtual void prepare_renderpass(sg::Scene* scene, FgRenderPass* renderpass, cons
             std::shared_ptr<DescriptorSet> _desc_set = nullptr;
             std::shared_ptr<Pipeline> _pipeline = nullptr;
             std::shared_ptr<sg::Texture> _tex = nullptr;
+            rhi::SampleStateRef _sampler = nullptr;
             
         };
 

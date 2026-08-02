@@ -60,13 +60,17 @@ void ColorGradingRenderer::prepare_desc(FgRenderPass* render_pass, const PassRes
     }
 
     if (res.input_textures.size() > 0) {
-        auto sampler = rhi::rhi_instance->create_sample_state({});
-        _desc_set->update_desc_set_texture(sampler, res.input_textures[0], 0);
+        if (!_sampler) {
+            _sampler = rhi::rhi_instance->create_sample_state({});
+        }
+        _desc_set->update_desc_set_texture(_sampler, res.input_textures[0], 0);
     }
     
     if (res.input_textures.size() > 1) {
-        auto sampler1 = rhi::rhi_instance->create_sample_state({});
-        _desc_set->update_desc_set_texture(sampler1, res.input_textures[1], 1);
+        if (!_sampler) {
+            _sampler = rhi::rhi_instance->create_sample_state({});
+        }
+        _desc_set->update_desc_set_texture(_sampler, res.input_textures[1], 1);
     }
     
     _desc_set->update_desc_set_texture(_color_grading_tex, 2);

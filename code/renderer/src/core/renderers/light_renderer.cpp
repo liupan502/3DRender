@@ -136,10 +136,13 @@ void LightRenderer::render_scene(sg::Scene* scene,
     
     uint32_t active_idx = 0;
 
-    auto render_mesh = [&](std::shared_ptr<Pipeline> pipeline, std::shared_ptr<sg::Mesh> mesh, uint16_t instance_count) {
+    auto render_mesh = [&](std::shared_ptr<Pipeline> pipeline, std::shared_ptr<sg::Mesh> mesh, uint16_t instance_count, std::shared_ptr<core::DescriptorSet> desc_set) {
         auto primitive = mesh->render_primitive();
         if (!primitive.vtx_buf || !primitive.idx_buf) {
             return;
+        }
+        if (desc_set) {
+            primitive.desc_set = desc_set->get_rhi_desc_set();
         }
         rhi::rhi_instance->draw(pipeline->get_rhi_pipeline(), primitive, 0, mesh->get_indice_count(), instance_count);
     };
@@ -251,7 +254,8 @@ void LightRenderer::render_scene(sg::Scene* scene,
             auto pipeline = get_pipeline(node, light_info);
             std::shared_ptr<sg::Mesh> mesh = node->get_mesh();
             uint16_t instance_count = node_arrs[i].size();
-            render_mesh(pipeline, mesh, instance_count);
+            auto desc_set = node->get_desc_set(pipeline);
+            render_mesh(pipeline, mesh, instance_count, desc_set);
         }
 
 

@@ -88,7 +88,12 @@ bool VulkanRHI::begin_frame() {
 void VulkanRHI::end_frame() {
     _cmd_buf->end();
     auto device = _context->get_device();
-    device->get_cmd_queue()->submit_cmd(_cmd_buf);
+    // Wait on the swapchain acquire semaphore so it becomes unsignaled before the next acquire,
+    // then wait for the queue to finish so the command buffer can be safely released.
+    _context->submit(device->get_cmd_queue()->get(), _cmd_buf->get(),
+                     _context->get_semaphore(), VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                     VK_NULL_HANDLE);
+    CALL_VK(vkQueueWaitIdle(device->get_cmd_queue()->get()));
     _cmd_buf = nullptr;
 }
 
@@ -154,19 +159,59 @@ RenderTargetRef VulkanRHI::create_render_target(const RenderTargetCreateInfo& in
 }
 
 DescriptorSetLayoutRef VulkanRHI::create_descriptor_set_layout(const DescriptorSetLayoutCreateInfo& ci) {
-    return std::make_shared<vulkan::VulkanDescriptorSetLayout>(ci);
+    auto device = _context->get_device();
+    return std::make_shared<vulkan::VulkanDescriptorSetLayout>(device->get_device(), ci);
 }
 
 DescriptorSetRef VulkanRHI::create_descriptor_set(DescriptorSetLayoutRef layout) {
-    return std::make_shared<vulkan::VulkanDescriptorSet>(layout);
+    auto vk_layout = std::static_pointer_cast<vulkan::VulkanDescriptorSetLayout>(layout);
+    return std::make_shared<vulkan::VulkanDescriptorSet>(layout, vk_layout->allocate_set());
 }
 
 void VulkanRHI::update_desc_texture(DescriptorSetRef desc, SampleStateRef sampler, TextureRef tex, uint32_t binding_idx) {
+    auto vk_desc = std::static_pointer_cast<vulkan::VulkanDescriptorSet>(desc);
+    auto vk_sampler = std::static_pointer_cast<vulkan::VulkanSampleState>(sampler);
+    auto vk_tex = std::static_pointer_cast<vulkan::VulkanTexture>(tex);
 
+    VkDescriptorImageInfo img_info{};
+    img_info.sampler = vk_sampler->get_vk_sampler();
+    img_info.imageView = vk_tex->get_image_view();
+    img_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+    VkWriteDescriptorSet write{};
+    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    write.dstSet = vk_desc->get();
+    write.dstBinding = binding_idx;
+    write.dstArrayElement = 0;
+    write.descriptorCount = 1;
+    write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    write.pImageInfo = &img_info;
+
+    auto device = _context->get_device();
+    vkUpdateDescriptorSets(device->get_device(), 1, &write, 0, nullptr);
 }
 
-void VulkanRHI::update_desc_buffer(DescriptorSetRef desc, BufferRef buf, uint32_t binding_idx, uint32_t offset, uint32_t len) {
+void VulkanRHI::update_desc_buffer(DescriptorSetRef desc, BufferRef buf, uint32_t binding_idx,
+    uint32_t dst_array_element, uint32_t offset, uint32_t len) {
+    auto vk_desc = std::static_pointer_cast<vulkan::VulkanDescriptorSet>(desc);
+    auto vk_buf = std::static_pointer_cast<vulkan::VulkanBuffer>(buf);
 
+    VkDescriptorBufferInfo buffer_info{};
+    buffer_info.buffer = vk_buf->get();
+    buffer_info.offset = offset;
+    buffer_info.range = len;
+
+    VkWriteDescriptorSet write{};
+    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    write.dstSet = vk_desc->get();
+    write.dstBinding = binding_idx;
+    write.dstArrayElement = dst_array_element;
+    write.descriptorCount = 1;
+    write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    write.pBufferInfo = &buffer_info;
+
+    auto device = _context->get_device();
+    vkUpdateDescriptorSets(device->get_device(), 1, &write, 0, nullptr);
 }
 
 void VulkanRHI::begin_render_pass(RenderTargetRef rt, const RenderPassParams& params) {
@@ -266,7 +311,7 @@ VkRenderPass VulkanRHI::get_or_create_render_pass(const RenderTargetCreateInfo& 
         desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         desc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        desc.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        desc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         attachments.push_back(desc);
 
         VkAttachmentReference ref{};
@@ -378,6 +423,13 @@ void VulkanRHI::draw(GraphicsPipelineRef pipeline, const RenderPrimitive& primit
     }
 
     vkCmdBindPipeline(_cmd_buf->get(), VK_PIPELINE_BIND_POINT_GRAPHICS, vk_pipeline_handle);
+
+    if (primitive.desc_set) {
+        auto vk_desc = std::static_pointer_cast<vulkan::VulkanDescriptorSet>(primitive.desc_set);
+        VkDescriptorSet vk_desc_set = vk_desc->get();
+        vkCmdBindDescriptorSets(_cmd_buf->get(), VK_PIPELINE_BIND_POINT_GRAPHICS,
+            vk_pipeline->get_layout(), 0, 1, &vk_desc_set, 0, nullptr);
+    }
 
     VkDeviceSize offset = 0;
     auto vk_vtx_buf = std::static_pointer_cast<vulkan::VulkanBuffer>(primitive.vtx_buf);

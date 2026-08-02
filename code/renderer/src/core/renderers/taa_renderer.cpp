@@ -113,7 +113,10 @@ void TaaRenderer::prepare_desc(FgRenderPass* render_pass, const PassResources& r
         _taa_info_uniform_buf = std::make_shared<UniformBuffer>(3, sizeof(TaaInfo));
     }
 
-    auto sampler = rhi::rhi_instance->create_sample_state({});
+    if (!_sampler) {
+        _sampler = rhi::rhi_instance->create_sample_state({});
+    }
+    auto sampler = _sampler;
     if (res.input_textures.size() > 0) {
         _desc_set->update_desc_set_texture(sampler, res.input_textures[0], 0);
     }

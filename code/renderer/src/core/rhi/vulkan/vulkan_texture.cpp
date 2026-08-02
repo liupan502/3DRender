@@ -400,7 +400,6 @@ void VulkanTexture::update_data(unsigned char* data, uint32_t size,
     if (generated_mip_map) {
         num = _create_info.mip_num - mip_level - 1;
     }
-
     auto fn = [&](std::shared_ptr<zr::core::CommandBuffer> cmd_buf) {
         transition_image_layout_internal(fmt, VK_IMAGE_LAYOUT_UNDEFINED,
                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, cmd_buf, mip_level, 1, base_layer, 1);
@@ -417,7 +416,8 @@ void VulkanTexture::update_data(unsigned char* data, uint32_t size,
             blit(_vk_image, src_blit_params, dst_blit_params, cmd_buf);
         }
     };
-    for (int i = 0; i < num; ++i) {
+    int count = num > 0 ? num : 1;
+    for (int i = 0; i < count; ++i) {
         device->get_cmd_pool()->execute_single_cmd(fn);
     }
     

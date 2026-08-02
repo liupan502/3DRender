@@ -365,7 +365,7 @@ void initImgui() {
     init_info.Instance = rc->get_instance()->get();
     init_info.PhysicalDevice = rc->get_gpu()->get();
     init_info.Device = rc->get_device()->get_device();
-    init_info.QueueFamily = VK_QUEUE_GRAPHICS_BIT;
+    init_info.QueueFamily = rc->get_device()->get_graphic_queue_family_idx();
     init_info.Queue = rc->get_queue()->get();
     init_info.PipelineCache = nullptr;
     init_info.DescriptorPool = nullptr;

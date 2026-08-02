@@ -5,6 +5,7 @@
 
 #include <core/core.h>
 
+#include <algorithm>
 #include <scenegraph/components/material.h>
 #include <scenegraph/components/skin.h>
 #include <scenegraph/components/texture.h>
@@ -252,8 +253,10 @@ void DescriptorSet::update_desc_set_buffer(std::vector<std::shared_ptr<UniformBu
     };
     _write_desc_sets.emplace_back(desc_write_set);*/
 
-    for (int i = 0; i < buffers.size(); i++) {
-        rhi::rhi_instance->update_desc_buffer(_rhi_desc_set, buffers[i]->get(), buffers[i]->get_binding_idx(), 0, buffers[i]->get_data_size());
+    uint32_t write_count = std::min(desc_count, static_cast<uint32_t>(buffers.size()));
+    for (uint32_t i = 0; i < write_count; i++) {
+        rhi::rhi_instance->update_desc_buffer(_rhi_desc_set, buffers[i]->get(), buffers[i]->get_binding_idx(),
+            dst_arr_ele + i, 0, buffers[i]->get_data_size());
     }
 }
 

@@ -46,11 +46,13 @@ void BloomDownSampleRenderer::prepare_desc(FgRenderPass* renderpass, const PassR
     }
 
     if (!res.input_textures.empty()) {
-        rhi::SampleStateCreateInfo sampler_ci{};
-        sampler_ci.address_u = rhi::SAM_CLAMP_EDGE;
-        sampler_ci.address_v = rhi::SAM_CLAMP_EDGE;
-        auto sampler = rhi::rhi_instance->create_sample_state(sampler_ci);
-        _desc_set->update_desc_set_texture(sampler, res.input_textures[0], 50);
+        if (!_sampler) {
+            rhi::SampleStateCreateInfo sampler_ci{};
+            sampler_ci.address_u = rhi::SAM_CLAMP_EDGE;
+            sampler_ci.address_v = rhi::SAM_CLAMP_EDGE;
+            _sampler = rhi::rhi_instance->create_sample_state(sampler_ci);
+        }
+        _desc_set->update_desc_set_texture(_sampler, res.input_textures[0], 50);
     }
     
     _param_uniform_buf->update((uint8_t*)(&_params), sizeof(Parameters));
@@ -98,11 +100,13 @@ void BloomUpSampleRenderer::prepare_desc(FgRenderPass* renderpass, const PassRes
     }
 
     if (!res.input_textures.empty()) {
-        rhi::SampleStateCreateInfo sampler_ci{};
-        sampler_ci.address_u = rhi::SAM_CLAMP_EDGE;
-        sampler_ci.address_v = rhi::SAM_CLAMP_EDGE;
-        auto sampler = rhi::rhi_instance->create_sample_state(sampler_ci);
-        _desc_set->update_desc_set_texture(sampler, res.input_textures[0], 60);
+        if (!_sampler) {
+            rhi::SampleStateCreateInfo sampler_ci{};
+            sampler_ci.address_u = rhi::SAM_CLAMP_EDGE;
+            sampler_ci.address_v = rhi::SAM_CLAMP_EDGE;
+            _sampler = rhi::rhi_instance->create_sample_state(sampler_ci);
+        }
+        _desc_set->update_desc_set_texture(_sampler, res.input_textures[0], 60);
     }
     
     _param_uniform_buf->update((uint8_t*)(&_params), sizeof(Parameters));

@@ -37,3 +37,7 @@ build/
 # Windows artifacts
 nul
 .DS_Store
+
+# opencode local state
+.omo/
+

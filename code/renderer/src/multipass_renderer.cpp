@@ -62,7 +62,7 @@ bool MultiPassRenderer::init_internel(rhi::SampleCount sample_count) {
     // add_transmittance_pass();
     // add_sky_view_pass();
     add_main_pass();
-    add_taa_pass();
+    // add_taa_pass();
     add_bloom_pass();
     add_color_grading_pass();
     add_output_pass();
@@ -306,7 +306,7 @@ void MultiPassRenderer::add_bloom_pass() {
     for (uint8_t i = 0; i < level; i++) {
 
         ss.str("");
-        ss << "bloom_down_sample_" << i;
+        ss << "bloom_down_sample_" << static_cast<int>(i);
         std::string pass_name = ss.str();
         std::shared_ptr<core::FgRenderPass> bloom_down_sample_pass = _fg->add_pass(pass_name);
         core::FgRenderpassSetupData set_up;
@@ -328,11 +328,11 @@ void MultiPassRenderer::add_bloom_pass() {
         color_output_info.height = height >> i;
         color_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable | 0;
         color_output_info.layer = 0;
-        color_output_info.level = i;
+        color_output_info.level = 0;
         color_output_info.samples = rhi::SampleCount::SC_COUNT_1;
         color_output_info.color_clear_val = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
         color_output_info.store_op = rhi::AttachmentStoreOp::ASO_STORE;
-        color_output_info.img_name = "bloom_downsample_pass_color_output_img";
+        color_output_info.img_name = "bloom_downsample_pass_color_output_img" + std::to_string(i);
         ss.str("");
         ss << "bloom_downsample_pass_color_output" << std::to_string(i);
         std::string color_output_name = ss.str();
@@ -342,7 +342,7 @@ void MultiPassRenderer::add_bloom_pass() {
         std::string tex_name = "";
         if (i == 0) {
             // tex_name = "main_pass_color_output";
-            tex_name = "taa_pass_color_output";
+            tex_name = "main_pass_color_output";
         }
         else {
             ss.str("");
@@ -355,7 +355,7 @@ void MultiPassRenderer::add_bloom_pass() {
     // add up sample passes
     for (uint8_t i = 0; i < level; i++) {
         ss.str("");
-        ss << "bloom_up_sample_" << i;
+        ss << "bloom_up_sample_" << static_cast<int>(i);
         std::string pass_name = ss.str();
 
         std::shared_ptr<core::FgRenderPass> bloom_up_sample_pass = _fg->add_pass(pass_name);
@@ -378,10 +378,10 @@ void MultiPassRenderer::add_bloom_pass() {
         color_output_info.height = height >> (level - i - 1);
         color_output_info.img_usage = rhi::TextureCreateFlagBit::RenderTargetable | 0;
         color_output_info.layer = 0;
-        color_output_info.level = level - i - 1;
+        color_output_info.level = 0;
         color_output_info.samples = rhi::SampleCount::SC_COUNT_1;
         color_output_info.color_clear_val = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-        color_output_info.img_name = "bloom_upsample_pass_color_output_img";
+        color_output_info.img_name = "bloom_upsample_pass_color_output_img" + std::to_string(i);
         color_output_info.store_op = rhi::AttachmentStoreOp::ASO_STORE;
         ss.str("");
         ss << "bloom_upsample_pass_color_output" << std::to_string(i);
@@ -431,7 +431,7 @@ void MultiPassRenderer::add_color_grading_pass() {
     color_output_info.img_name = "color_grading_output_img";
     color_grading_pass->add_color_output("color_grading_pass_output", color_output_info);
 
-    color_grading_pass->add_texture_sample("taa_pass_color_output");
+    color_grading_pass->add_texture_sample("main_pass_color_output");
     color_grading_pass->add_texture_sample("bloom_upsample_pass_color_output3");
 }
 

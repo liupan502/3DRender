@@ -88,7 +88,7 @@ void FrameGraph::execute() {
                 ci.layer_num = attach_info.layer_num;
                 ci.mip_num = attach_info.mip_num;
                 ci.format = attach_info.fmt;
-                ci.flags = attach_info.img_usage;
+                ci.flags = attach_info.img_usage | rhi::TextureCreateFlagBit::ShaderResource;
 
                 auto img = TexturePool::instance().acquire(ci);
                 _tex_handle_map[img_name] = img;
